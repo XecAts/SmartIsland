@@ -163,6 +163,11 @@
     <string name="slider_island_opacity">灵动岛透明度</string>
     <string name="toggle_drop_shadow_title">岛屿环境阴影</string>
     <string name="toggle_drop_shadow_desc">添加柔和的环境投影，营造立体的悬浮层级感</string>
+    <string name="slider_shadow_elevation">阴影高度/深度</string>
+    <string name="shadow_subtle">轻微</string>
+    <string name="shadow_medium">适中</string>
+    <string name="shadow_standard">标准</string>
+    <string name="shadow_deep">深邃</string>
     <string name="btn_reset_position">恢复默认位置</string>
     <string name="toast_applied_center_preset">已应用居中挖孔预设</string>
     <string name="toast_applied_wide_preset">已应用宽岛预设</string>
@@ -211,6 +216,11 @@
     <string name="color_timer_countdown_desc">倒计时环、沙漏图标与计时数字</string>
     <string name="color_stopwatch_laps">秒表与计圈</string>
     <string name="color_stopwatch_laps_desc">旋转秒表图标与已用时间计时器</string>
+    <string name="color_pill_background">灵动岛药丸背景颜色</string>
+    <string name="color_pill_background_desc">自定义灵动岛基础容器背景色</string>
+    <string name="color_hex_input">十六进制颜色代码 (Hex)</string>
+    <string name="color_hex_hint">输入6位十六进制代码（如 000000 或 1C1C1E）</string>
+    <string name="color_hex_error">无效的十六进制颜色格式</string>
     <string name="btn_reset_colors">重置所有颜色为默认值</string>
     <string name="dialog_color_picker_title">选择自定义颜色</string>
     <string name="color_red">红 (R)</string>
@@ -249,7 +259,7 @@
     <string name="select_device_oem">选择设备品牌 / 系统</string>
     <string name="auto_detect_device">自动检测：%1$s</string>
     <string name="active_rules_title">当前生效规则：%1$s</string>
-    <string name="active_rules_desc">• 已校准屏幕录制与录音应用包名\n• 已接入通话拨号器与活跃通话状态\n• 地图导航防误触发机制已开启\n• 热点与网络共享状态识别已就绪\n• 后台自启动意图已映射</string>
+    <string name="active_rules_desc">• 已适配屏幕录制与录音应用包名\n• 已接入通话拨号器与活跃通话状态\n• 地图导航防误触发机制已开启\n• 热点与网络共享状态识别已就绪\n• 后台自启动意图已映射</string>
     <string name="lock_screen_title">锁屏与隐私守护</string>
     <string name="lock_screen_desc">控制设备锁定时灵动岛的行为，并保护敏感通知内容</string>
     <string name="toggle_show_lock_screen_title">在锁屏界面显示灵动岛</string>
@@ -311,10 +321,10 @@
     <string name="retention_forever">永久保存</string>
 
     <!-- App Shortcuts -->
-    <string name="shortcuts_title">空闲灵动岛快捷启动器</string>
+    <string name="shortcuts_title">无通知时灵动岛快捷启动</string>
     <string name="shortcuts_desc">当没有活跃通知时，轻触灵动岛即可呼出快捷应用网格（最多 8 个应用）。</string>
     <string name="toggle_recent_apps_title">自动填充最近使用的应用</string>
-    <string name="toggle_recent_apps_desc_granted">用最近打开的应用自动填满空白卡槽</string>
+    <string name="toggle_recent_apps_desc_granted">用最近打开的应用自动填充空白位置</string>
     <string name="toggle_recent_apps_desc_needed">最近应用功能需要授予“使用情况访问权限”</string>
     <string name="pinned_apps_title">已固定的应用</string>
 
@@ -376,4 +386,13 @@
     <string name="expanded_action_reply">回复</string>
     <string name="expanded_action_mark_read">标为已读</string>
     <string name="expanded_action_dismiss">忽略</string>
+
+    <!-- Launcher & About Section Extra Strings -->
+    <string name="quick_launch_open_settings">打开灵动岛设置</string>
+    <string name="quick_launch_apps_unavailable">所选应用不可用。请在灵动岛设置中更新快捷应用。</string>
+    <string name="privacy_policy_title">隐私政策</string>
+    <string name="privacy_policy_desc">100% 本地运行且零追踪</string>
+    <string name="terms_of_use_title">使用条款</string>
+    <string name="version_title">版本信息</string>
+    <string name="developer_contact_title">开发者与联系方式</string>
 </resources>

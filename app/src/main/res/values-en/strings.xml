@@ -163,6 +163,11 @@
     <string name="slider_island_opacity">Island Opacity &amp; Transparency</string>
     <string name="toggle_drop_shadow_title">Island Drop Shadow</string>
     <string name="toggle_drop_shadow_desc">Add a soft ambient drop shadow for a floating depth effect</string>
+    <string name="slider_shadow_elevation">Shadow Elevation</string>
+    <string name="shadow_subtle">Subtle</string>
+    <string name="shadow_medium">Medium</string>
+    <string name="shadow_standard">Standard</string>
+    <string name="shadow_deep">Deep</string>
     <string name="btn_reset_position">Reset to Factory Position</string>
     <string name="toast_applied_center_preset">Applied Center Hole preset</string>
     <string name="toast_applied_wide_preset">Applied Wide Island preset</string>
@@ -211,6 +216,11 @@
     <string name="color_timer_countdown_desc">Countdown ring, hourglass glyph and timer digits</string>
     <string name="color_stopwatch_laps">Stopwatch &amp; Laps</string>
     <string name="color_stopwatch_laps_desc">Rotating stopwatch icon and elapsed time timer</string>
+    <string name="color_pill_background">Pill Background Color</string>
+    <string name="color_pill_background_desc">Base background color of the Smart Island container</string>
+    <string name="color_hex_input">Hex Color Code</string>
+    <string name="color_hex_hint">Enter 6-digit hex (e.g. 000000 or 1C1C1E)</string>
+    <string name="color_hex_error">Invalid hex color format</string>
     <string name="btn_reset_colors">Reset All Colors to Studio Defaults</string>
     <string name="dialog_color_picker_title">Select Custom Color</string>
     <string name="color_red">Red</string>
@@ -376,4 +386,13 @@
     <string name="expanded_action_reply">Reply</string>
     <string name="expanded_action_mark_read">Mark as read</string>
     <string name="expanded_action_dismiss">Dismiss</string>
+
+    <!-- Launcher & About Section Extra Strings -->
+    <string name="quick_launch_open_settings">Open Smart Island settings</string>
+    <string name="quick_launch_apps_unavailable">Selected apps are unavailable. Update App shortcuts in Smart Island.</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="privacy_policy_desc">100% On-Device &amp; Zero Tracking</string>
+    <string name="terms_of_use_title">Terms of Use</string>
+    <string name="version_title">Version</string>
+    <string name="developer_contact_title">Developer &amp; Contact</string>
 </resources>

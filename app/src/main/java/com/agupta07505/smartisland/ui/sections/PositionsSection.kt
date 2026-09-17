@@ -8,6 +8,7 @@
 package com.agupta07505.smartisland.ui.sections
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -58,6 +59,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.agupta07505.smartisland.R
@@ -83,6 +85,20 @@ fun PositionsSection(
     var localYOffset by remember(settings.yOffset) { mutableFloatStateOf(settings.yOffset) }
     var localCornerRadius by remember(settings.cornerRadius) { mutableFloatStateOf(settings.cornerRadius) }
     var localOpacity by remember(settings.opacity) { mutableFloatStateOf(settings.opacity) }
+    var localShadowElevation by remember(settings.shadowElevation) { mutableFloatStateOf(settings.shadowElevation) }
+    var showPillColorDialog by remember { mutableStateOf(false) }
+
+    if (showPillColorDialog) {
+        RgbColorPickerDialog(
+            title = stringResource(R.string.color_pill_background),
+            initialColor = settings.pillColor,
+            onDismiss = { showPillColorDialog = false },
+            onSave = { color ->
+                showPillColorDialog = false
+                scope.launch { repository.setPillColor(color) }
+            }
+        )
+    }
 
     // Dynamically calculate responsive notch coordinates for the current device screen
     val screenWidthDp = with(density) { windowInfo.containerSize.width.toDp().value }
@@ -380,6 +396,50 @@ fun PositionsSection(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
+                // Pill Background Color & Hex Badge
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.color_pill_background),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.color_pill_background_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+
+                    val pillColorObj = Color(settings.pillColor)
+                    val hexLabel = String.format("#%06X", (settings.pillColor and 0xFFFFFFL))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = pillColorObj,
+                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
+                        modifier = Modifier.clickable { showPillColorDialog = true }
+                    ) {
+                        Text(
+                            text = hexLabel,
+                            color = if (pillColorObj.red * 0.299 + pillColorObj.green * 0.587 + pillColorObj.blue * 0.114 > 0.5) Color.Black else Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        )
+                    }
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -406,6 +466,128 @@ fun PositionsSection(
                         checked = settings.enableShadow,
                         onCheckedChange = { checked ->
                             scope.launch { repository.setEnableShadow(checked) }
+                        }
+                    )
+                }
+
+                AnimatedVisibility(visible = settings.enableShadow) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SliderSettingItem(
+                            label = stringResource(R.string.slider_shadow_elevation),
+                            value = localShadowElevation,
+                            range = SmartIslandSettings.MIN_SHADOW_ELEVATION..SmartIslandSettings.MAX_SHADOW_ELEVATION,
+                            suffix = " dp",
+                            step = 1f,
+                            onValueChange = { localShadowElevation = it },
+                            onValueChangeFinished = {
+                                scope.launch { repository.setShadowElevation(localShadowElevation) }
+                            }
+                        )
+
+                        // Quick Shadow Elevation Preset Chips
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            listOf(
+                                6f to stringResource(R.string.shadow_subtle),
+                                10f to stringResource(R.string.shadow_medium),
+                                14f to stringResource(R.string.shadow_standard),
+                                22f to stringResource(R.string.shadow_deep)
+                            ).forEach { (targetVal, label) ->
+                                val isSelected = abs(localShadowElevation - targetVal) < 0.5f
+                                Surface(
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable {
+                                            localShadowElevation = targetVal
+                                            scope.launch { repository.setShadowElevation(targetVal) }
+                                        }
+                                ) {
+                                    Text(
+                                        text = "$label (${targetVal.toInt()}dp)",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier
+                                            .padding(vertical = 6.dp)
+                                            .fillMaxWidth(),
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.toggle_show_in_landscape_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.toggle_show_in_landscape_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Switch(
+                        checked = settings.showInLandscape,
+                        onCheckedChange = { checked ->
+                            scope.launch { repository.setShowInLandscape(checked) }
+                        }
+                    )
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.toggle_auto_expand_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = stringResource(R.string.toggle_auto_expand_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+                    Switch(
+                        checked = settings.autoExpandOnNotification,
+                        onCheckedChange = { checked ->
+                            scope.launch { repository.setAutoExpandOnNotification(checked) }
                         }
                     )
                 }

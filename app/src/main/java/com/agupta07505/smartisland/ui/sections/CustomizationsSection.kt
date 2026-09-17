@@ -36,6 +36,7 @@ import androidx.compose.material.icons.rounded.HourglassBottom
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.Navigation
 import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material.icons.rounded.WifiTethering
@@ -46,6 +47,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -86,6 +88,16 @@ private val PRESET_COLORS = listOf(
     0xFF8B5CF6L to "Purple"
 )
 
+internal val PILL_PRESET_COLORS = listOf(
+    0xFF000000L to "Black",
+    0xFF1C1C1EL to "Slate",
+    0xFF0A192FL to "Navy",
+    0xFF1E1B4BL to "Violet",
+    0xFF18181BL to "Zinc",
+    0xFF10B981L to "Emerald",
+    0xFF38BDF8L to "Sky"
+)
+
 @Composable
 fun CustomizationsSection(
     settings: SmartIslandSettings,
@@ -107,6 +119,7 @@ fun CustomizationsSection(
                 showDialog = false
                 scope.launch {
                     when (currentColorTarget) {
+                        "pill" -> repository.setPillColor(color)
                         "battery" -> repository.setBatteryColor(color)
                         "notification" -> repository.setNotificationDotColor(color)
                         "music" -> repository.setMusicVisualizerColor(color)
@@ -302,6 +315,23 @@ fun CustomizationsSection(
                 )
 
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                // Pill Background Color
+                FeatureColorRow(
+                    title = stringResource(R.string.color_pill_background),
+                    subtitle = stringResource(R.string.color_pill_background_desc),
+                    icon = Icons.Rounded.Palette,
+                    selectedColor = settings.pillColor,
+                    swatches = PILL_PRESET_COLORS,
+                    onColorSelected = { scope.launch { repository.setPillColor(it) } },
+                    onCustomClicked = {
+                        initialColor = settings.pillColor
+                        currentColorTarget = "pill"
+                        colorPickerTitle = ""
+                        showDialog = true
+                    }
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
 
                 // Feature Color Rows
                 FeatureColorRow(
@@ -502,6 +532,7 @@ fun CustomizationsSection(
                 OutlinedButton(
                     onClick = {
                         scope.launch {
+                            repository.setPillColor(0xFF000000L)
                             repository.setBatteryColor(0xFF10B981L)
                             repository.setNotificationDotColor(0xFF38BDF8L)
                             repository.setMusicVisualizerColor(0xFFFF6B9AL)
@@ -535,6 +566,7 @@ private fun FeatureColorRow(
     subtitle: String,
     icon: ImageVector,
     selectedColor: Long,
+    swatches: List<Pair<Long, String>> = PRESET_COLORS,
     onColorSelected: (Long) -> Unit,
     onCustomClicked: () -> Unit
 ) {
@@ -583,7 +615,7 @@ private fun FeatureColorRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PRESET_COLORS.forEach { (colorValue, _) ->
+            swatches.forEach { (colorValue, _) ->
                 val isSelected = selectedColor == colorValue
                 Box(
                     modifier = Modifier
@@ -609,8 +641,8 @@ private fun FeatureColorRow(
                 }
             }
 
-            // Custom RGB button
-            val isCustom = PRESET_COLORS.none { it.first == selectedColor }
+            // Custom RGB / Hex button
+            val isCustom = swatches.none { it.first == selectedColor }
             val rainbowBrush = remember {
                 Brush.linearGradient(
                     listOf(Color.Red, Color.Yellow, Color.Green, Color.Cyan, Color.Blue, Color.Magenta)
@@ -643,16 +675,57 @@ private fun FeatureColorRow(
 }
 
 @Composable
-private fun RgbColorPickerDialog(
+internal fun RgbColorPickerDialog(
     title: String,
     initialColor: Long,
     onDismiss: () -> Unit,
     onSave: (Long) -> Unit
 ) {
     val initialColorObj = Color(initialColor)
-    var red by remember { mutableStateOf((initialColorObj.red * 255f).toInt()) }
-    var green by remember { mutableStateOf((initialColorObj.green * 255f).toInt()) }
-    var blue by remember { mutableStateOf((initialColorObj.blue * 255f).toInt()) }
+    var red by remember { mutableStateOf((initialColorObj.red * 255f).toInt().coerceIn(0, 255)) }
+    var green by remember { mutableStateOf((initialColorObj.green * 255f).toInt().coerceIn(0, 255)) }
+    var blue by remember { mutableStateOf((initialColorObj.blue * 255f).toInt().coerceIn(0, 255)) }
+    var hexInput by remember { mutableStateOf(String.format("%02X%02X%02X", red, green, blue)) }
+    var isHexError by remember { mutableStateOf(false) }
+
+    fun updateFromRgb(newR: Int, newG: Int, newB: Int) {
+        red = newR.coerceIn(0, 255)
+        green = newG.coerceIn(0, 255)
+        blue = newB.coerceIn(0, 255)
+        hexInput = String.format("%02X%02X%02X", red, green, blue)
+        isHexError = false
+    }
+
+    fun updateFromHex(input: String) {
+        val clean = input.removePrefix("#").trim()
+        hexInput = clean
+        if (clean.length == 6) {
+            val parsed = clean.toLongOrNull(16)
+            if (parsed != null) {
+                red = ((parsed shr 16) and 0xFF).toInt()
+                green = ((parsed shr 8) and 0xFF).toInt()
+                blue = (parsed and 0xFF).toInt()
+                isHexError = false
+            } else {
+                isHexError = true
+            }
+        } else if (clean.length == 3) {
+            val rHex = "${clean[0]}${clean[0]}"
+            val gHex = "${clean[1]}${clean[1]}"
+            val bHex = "${clean[2]}${clean[2]}"
+            val parsed = "$rHex$gHex$bHex".toLongOrNull(16)
+            if (parsed != null) {
+                red = ((parsed shr 16) and 0xFF).toInt()
+                green = ((parsed shr 8) and 0xFF).toInt()
+                blue = (parsed and 0xFF).toInt()
+                isHexError = false
+            } else {
+                isHexError = true
+            }
+        } else {
+            isHexError = clean.isNotEmpty() && clean.length > 6
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -671,7 +744,7 @@ private fun RgbColorPickerDialog(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
+                        .height(52.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(previewColor)
                         .border(
@@ -686,8 +759,61 @@ private fun RgbColorPickerDialog(
                         text = hexCode,
                         color = if (red * 0.299 + green * 0.587 + blue * 0.114 > 186) Color.Black else Color.White,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        fontSize = 15.sp
                     )
+                }
+
+                // Direct Hex Input Field
+                OutlinedTextField(
+                    value = hexInput,
+                    onValueChange = { updateFromHex(it) },
+                    label = { Text(stringResource(R.string.color_hex_input)) },
+                    placeholder = { Text(stringResource(R.string.color_hex_hint)) },
+                    prefix = { Text("#", fontWeight = FontWeight.Bold) },
+                    isError = isHexError,
+                    supportingText = if (isHexError) {
+                        { Text(stringResource(R.string.color_hex_error), color = MaterialTheme.colorScheme.error) }
+                    } else null,
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+
+                // Quick Palette Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    listOf(
+                        0xFF000000L,
+                        0xFF1C1C1EL,
+                        0xFF0A192FL,
+                        0xFF1E1B4BL,
+                        0xFF10B981L,
+                        0xFF38BDF8L,
+                        0xFFEF4444L
+                    ).forEach { colorVal ->
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(26.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(colorVal))
+                                .border(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                    RoundedCornerShape(6.dp)
+                                )
+                                .clickable {
+                                    val c = Color(colorVal)
+                                    updateFromRgb(
+                                        (c.red * 255f).toInt(),
+                                        (c.green * 255f).toInt(),
+                                        (c.blue * 255f).toInt()
+                                    )
+                                }
+                        )
+                    }
                 }
 
                 // Red Slider
@@ -701,7 +827,7 @@ private fun RgbColorPickerDialog(
                     }
                     Slider(
                         value = red.toFloat(),
-                        onValueChange = { red = it.toInt() },
+                        onValueChange = { updateFromRgb(it.toInt(), green, blue) },
                         valueRange = 0f..255f,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -718,7 +844,7 @@ private fun RgbColorPickerDialog(
                     }
                     Slider(
                         value = green.toFloat(),
-                        onValueChange = { green = it.toInt() },
+                        onValueChange = { updateFromRgb(red, it.toInt(), blue) },
                         valueRange = 0f..255f,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -735,7 +861,7 @@ private fun RgbColorPickerDialog(
                     }
                     Slider(
                         value = blue.toFloat(),
-                        onValueChange = { blue = it.toInt() },
+                        onValueChange = { updateFromRgb(red, green, it.toInt()) },
                         valueRange = 0f..255f,
                         modifier = Modifier.fillMaxWidth()
                     )

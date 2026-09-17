@@ -44,6 +44,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
         val YOffset = floatPreferencesKey("y_offset")
         val CornerRadius = floatPreferencesKey("corner_radius")
         val Opacity = floatPreferencesKey("opacity")
+        val PillColor = longPreferencesKey("pill_color")
         val BatteryColor = longPreferencesKey("battery_color")
         val NotificationDotColor = longPreferencesKey("notification_dot_color")
         val MusicVisualizerColor = longPreferencesKey("music_visualizer_color")
@@ -74,6 +75,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
         val ShowInLandscape = booleanPreferencesKey("show_in_landscape")
         val AutoExpandOnNotification = booleanPreferencesKey("auto_expand_on_notification")
         val EnableShadow = booleanPreferencesKey("enable_shadow")
+        val ShadowElevation = floatPreferencesKey("shadow_elevation")
         val EnableMusicArtworkBackground = booleanPreferencesKey("enable_music_artwork_background")
         val DeviceType = stringPreferencesKey("device_type")
         val AllowNetworkChecks = booleanPreferencesKey("allow_network_checks")
@@ -130,6 +132,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
                     SmartIslandSettings.MIN_OPACITY,
                     SmartIslandSettings.MAX_OPACITY
                 ),
+                pillColor = validColor(prefs[Keys.PillColor], defaults.pillColor),
                 batteryColor = validColor(prefs[Keys.BatteryColor], defaults.batteryColor),
                 notificationDotColor = validColor(
                     prefs[Keys.NotificationDotColor],
@@ -185,6 +188,12 @@ class SmartIslandSettingsRepository(private val context: Context) {
                 showInLandscape = prefs[Keys.ShowInLandscape] ?: defaults.showInLandscape,
                 autoExpandOnNotification = prefs[Keys.AutoExpandOnNotification] ?: defaults.autoExpandOnNotification,
                 enableShadow = prefs[Keys.EnableShadow] ?: defaults.enableShadow,
+                shadowElevation = validDimension(
+                    prefs[Keys.ShadowElevation],
+                    defaults.shadowElevation,
+                    SmartIslandSettings.MIN_SHADOW_ELEVATION,
+                    SmartIslandSettings.MAX_SHADOW_ELEVATION
+                ),
                 enableMusicArtworkBackground = prefs[Keys.EnableMusicArtworkBackground] ?: defaults.enableMusicArtworkBackground,
                 deviceType = prefs[Keys.DeviceType] ?: defaults.deviceType,
                 allowNetworkChecks = prefs[Keys.AllowNetworkChecks] ?: defaults.allowNetworkChecks,
@@ -196,6 +205,14 @@ class SmartIslandSettingsRepository(private val context: Context) {
     suspend fun setDeviceType(value: String) = editSafely { it[Keys.DeviceType] = value }
     suspend fun setEnabled(value: Boolean) = editSafely { it[Keys.Enabled] = value }
     suspend fun setEnableShadow(value: Boolean) = editSafely { it[Keys.EnableShadow] = value }
+    suspend fun setShadowElevation(value: Float) = editSafely {
+        it[Keys.ShadowElevation] = validDimension(
+            value,
+            SmartIslandSettings.Default.shadowElevation,
+            SmartIslandSettings.MIN_SHADOW_ELEVATION,
+            SmartIslandSettings.MAX_SHADOW_ELEVATION
+        )
+    }
     suspend fun setEnableMusicArtworkBackground(value: Boolean) = editSafely { it[Keys.EnableMusicArtworkBackground] = value }
     suspend fun setWidth(value: Float) = editSafely {
         it[Keys.Width] = validDimension(
@@ -255,6 +272,9 @@ class SmartIslandSettingsRepository(private val context: Context) {
             SmartIslandSettings.MIN_OPACITY,
             SmartIslandSettings.MAX_OPACITY
         )
+    }
+    suspend fun setPillColor(value: Long) = editSafely {
+        it[Keys.PillColor] = validColor(value, SmartIslandSettings.Default.pillColor)
     }
     suspend fun setBatteryColor(value: Long) = editSafely {
         it[Keys.BatteryColor] = validColor(value, SmartIslandSettings.Default.batteryColor)
@@ -388,6 +408,8 @@ class SmartIslandSettingsRepository(private val context: Context) {
         it[Keys.YOffset] = SmartIslandSettings.Default.yOffset
         it[Keys.CornerRadius] = SmartIslandSettings.Default.cornerRadius
         it[Keys.Opacity] = SmartIslandSettings.Default.opacity
+        it[Keys.PillColor] = SmartIslandSettings.Default.pillColor
+        it[Keys.ShadowElevation] = SmartIslandSettings.Default.shadowElevation
     }
 
     private suspend fun editSafely(transform: suspend (MutablePreferences) -> Unit) {

@@ -163,6 +163,11 @@
     <string name="slider_island_opacity">Opacidade e Transparência da Ilha</string>
     <string name="toggle_drop_shadow_title">Sombra Projetada da Ilha</string>
     <string name="toggle_drop_shadow_desc">Adiciona uma sombra ambiente suave para criar um efeito de profundidade flutuante</string>
+    <string name="slider_shadow_elevation">Elevação da Sombra</string>
+    <string name="shadow_subtle">Sutil</string>
+    <string name="shadow_medium">Média</string>
+    <string name="shadow_standard">Padrão</string>
+    <string name="shadow_deep">Intensa</string>
     <string name="btn_reset_position">Redefinir para Posição de Fábrica</string>
     <string name="toast_applied_center_preset">Predefinição Furo Central aplicada</string>
     <string name="toast_applied_wide_preset">Predefinição Ilha Ampla aplicada</string>
@@ -209,9 +214,14 @@
     <string name="color_screen_recording_desc">Ponto de pulso de gravação ativa e cronômetro</string>
     <string name="color_timer_countdown">Temporizador e Contagem Regressiva</string>
     <string name="color_timer_countdown_desc">Anel de contagem, ampulheta e dígitos do temporizador</string>
-    <string name="color_stopwatch_laps">Cronômetro e Voltas</string>
-    <string name="color_stopwatch_laps_desc">Ícone giratório do cronômetro e tempo decorrido</string>
-    <string name="btn_reset_colors">Redefinir Todas as Cores para os Padrões</string>
+    <string name="color_stopwatch_laps">Cronômetro &amp; Voltas</string>
+    <string name="color_stopwatch_laps_desc">Ícone de cronômetro giratório e contador de tempo decorrido</string>
+    <string name="color_pill_background">Cor de Fundo da Pílula</string>
+    <string name="color_pill_background_desc">Cor de fundo base do contêiner da Smart Island</string>
+    <string name="color_hex_input">Código de Cor Hex</string>
+    <string name="color_hex_hint">Digite 6 dígitos hex (ex. 000000 ou 1C1C1E)</string>
+    <string name="color_hex_error">Formato de cor hex inválido</string>
+    <string name="btn_reset_colors">Restaurar Cores Padrão</string>
     <string name="dialog_color_picker_title">Selecionar Cor Personalizada</string>
     <string name="color_red">Vermelho (R)</string>
     <string name="color_green">Verde (G)</string>
@@ -376,4 +386,13 @@
     <string name="expanded_action_reply">Responder</string>
     <string name="expanded_action_mark_read">Marcar como lida</string>
     <string name="expanded_action_dismiss">Dispensar</string>
+
+    <!-- Launcher & About Section Extra Strings -->
+    <string name="quick_launch_open_settings">Abrir configurações do Smart Island</string>
+    <string name="quick_launch_apps_unavailable">Os aplicativos selecionados estão indisponíveis. Atualize os atalhos no Smart Island.</string>
+    <string name="privacy_policy_title">Política de Privacidade</string>
+    <string name="privacy_policy_desc">100% no dispositivo e zero rastreamento</string>
+    <string name="terms_of_use_title">Termos de Uso</string>
+    <string name="version_title">Versão</string>
+    <string name="developer_contact_title">Desenvolvedor e Contato</string>
 </resources>

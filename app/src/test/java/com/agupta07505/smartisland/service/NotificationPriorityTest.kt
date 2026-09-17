@@ -27,6 +27,11 @@ class NotificationPriorityTest {
     fun setUp() {
         io.mockk.mockkStatic(android.util.Log::class)
         every { android.util.Log.e(any(), any(), any()) } returns 0
+        every { android.util.Log.e(any(), any()) } returns 0
+        every { android.util.Log.w(any(), any<String>()) } returns 0
+        every { android.util.Log.w(any(), any<String>(), any()) } returns 0
+        every { android.util.Log.d(any(), any()) } returns 0
+        every { android.util.Log.i(any(), any()) } returns 0
     }
 
     @org.junit.After
@@ -195,5 +200,90 @@ class NotificationPriorityTest {
         val service = SmartIslandNotificationListenerService()
         val notification = mockk<Notification>()
         assertFalse(service.shouldBeIslandOnly(notification, IslandMode.Music))
+    }
+
+    @Test
+    fun testDndOffAllowsNotifications() {
+        val service = SmartIslandNotificationListenerService()
+        val sbn = mockk<StatusBarNotification>()
+        val notification = mockk<Notification>()
+        every { sbn.notification } returns notification
+        every { sbn.packageName } returns "com.whatsapp"
+        every { sbn.key } returns "0|com.whatsapp|1|null|1000"
+        val extras = mockk<android.os.Bundle>()
+        every { extras.getString(Notification.EXTRA_TEMPLATE) } returns null
+        every { extras.containsKey(Notification.EXTRA_MEDIA_SESSION) } returns false
+        every { extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) } returns 0
+        every { extras.getInt(Notification.EXTRA_PROGRESS, 0) } returns 0
+        every { extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false) } returns false
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Alice"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Hey there"
+        every { extras.getCharSequence(Notification.EXTRA_BIG_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_SUB_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_INFO_TEXT) } returns null
+        notification.extras = extras
+        notification.category = Notification.CATEGORY_MESSAGE
+        notification.flags = 0
+        notification.actions = emptyArray()
+        notification.tickerText = null
+
+        assertFalse(service.isBlockedByDoNotDisturb(sbn, filterOverride = android.service.notification.NotificationListenerService.INTERRUPTION_FILTER_ALL))
+    }
+
+    @Test
+    fun testDndTotalSilenceBlocksNotifications() {
+        val service = SmartIslandNotificationListenerService()
+        val sbn = mockk<StatusBarNotification>()
+        val notification = mockk<Notification>()
+        every { sbn.notification } returns notification
+        every { sbn.packageName } returns "com.whatsapp"
+        every { sbn.key } returns "0|com.whatsapp|1|null|1000"
+        val extras = mockk<android.os.Bundle>()
+        every { extras.getString(Notification.EXTRA_TEMPLATE) } returns null
+        every { extras.containsKey(Notification.EXTRA_MEDIA_SESSION) } returns false
+        every { extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) } returns 0
+        every { extras.getInt(Notification.EXTRA_PROGRESS, 0) } returns 0
+        every { extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false) } returns false
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Alice"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Hey there"
+        every { extras.getCharSequence(Notification.EXTRA_BIG_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_SUB_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_INFO_TEXT) } returns null
+        notification.extras = extras
+        notification.category = Notification.CATEGORY_MESSAGE
+        notification.flags = 0
+        notification.actions = emptyArray()
+        notification.tickerText = null
+
+        assertTrue(service.isBlockedByDoNotDisturb(sbn, filterOverride = android.service.notification.NotificationListenerService.INTERRUPTION_FILTER_NONE))
+    }
+
+    @Test
+    fun testDndMusicPlaybackAlwaysAllowed() {
+        val service = SmartIslandNotificationListenerService()
+        val sbn = mockk<StatusBarNotification>()
+        val notification = mockk<Notification>()
+        every { sbn.notification } returns notification
+        every { sbn.packageName } returns "com.spotify.music"
+        every { sbn.key } returns "0|com.spotify.music|1|null|1000"
+        val extras = mockk<android.os.Bundle>()
+        every { extras.getString(Notification.EXTRA_TEMPLATE) } returns null
+        every { extras.containsKey(Notification.EXTRA_MEDIA_SESSION) } returns true
+        every { extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) } returns 0
+        every { extras.getInt(Notification.EXTRA_PROGRESS, 0) } returns 0
+        every { extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false) } returns false
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Song Title"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Artist"
+        every { extras.getCharSequence(Notification.EXTRA_BIG_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_SUB_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_INFO_TEXT) } returns null
+        notification.extras = extras
+        notification.category = Notification.CATEGORY_TRANSPORT
+        notification.flags = Notification.FLAG_ONGOING_EVENT
+        notification.actions = emptyArray()
+        notification.tickerText = null
+
+        assertFalse(service.isBlockedByDoNotDisturb(sbn, filterOverride = android.service.notification.NotificationListenerService.INTERRUPTION_FILTER_PRIORITY))
+        assertFalse(service.isBlockedByDoNotDisturb(sbn, filterOverride = android.service.notification.NotificationListenerService.INTERRUPTION_FILTER_NONE))
     }
 }

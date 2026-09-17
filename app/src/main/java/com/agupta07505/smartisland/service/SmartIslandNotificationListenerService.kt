@@ -129,6 +129,10 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
     private val pendingSuppressionJobs = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.Job>()
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
+        onNotificationPosted(sbn, null)
+    }
+
+    override fun onNotificationPosted(sbn: StatusBarNotification, rankingMap: RankingMap?) {
         runCatchingLogged(TAG, "onNotificationPosted callback failed") {
         if (sbn.packageName == packageName) return@runCatchingLogged
 
@@ -172,14 +176,7 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
         try {
             if (currentSettings.enabled &&
                 currentSettings.hideFromNotificationShade &&
-                !com.agupta07505.smartisland.util.NotificationFilter.shouldSuppressFromIsland(
-                    sbn,
-                    packageManager,
-                    currentSettings.liveActivitiesEnabled,
-                    currentSettings.navigationEnabled,
-                    currentSettings.disabledNotificationPackages,
-                    currentSettings.deviceType
-                )
+                !shouldSuppressFromIsland(sbn, rankingMap)
             ) {
                 val modeQuick = notification.toIslandMode(
                     sbn,
@@ -202,7 +199,7 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
 
         serviceScope.launch {
             runSuspendCatchingLogged(TAG, "NotificationPosted async failed") {
-                if (shouldSuppressFromIsland(sbn)) return@runSuspendCatchingLogged
+                if (shouldSuppressFromIsland(sbn, rankingMap)) return@runSuspendCatchingLogged
 
                 val settings = repository.settings.first()
                 currentSettings = settings
@@ -333,6 +330,57 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
                     SmartIslandNotificationListenerService::class.java
                 )
             )
+        }
+    }
+
+    override fun onInterruptionFilterChanged(interruptionFilter: Int) {
+        super.onInterruptionFilterChanged(interruptionFilter)
+        runCatchingLogged(TAG, "onInterruptionFilterChanged callback failed") {
+            val isDndActive = interruptionFilter != INTERRUPTION_FILTER_ALL &&
+                interruptionFilter != INTERRUPTION_FILTER_UNKNOWN
+            android.util.Log.d(TAG, "onInterruptionFilterChanged: filter=$interruptionFilter, isDndActive=$isDndActive")
+            if (isDndActive) {
+                purgeDndBlockedNotifications()
+            }
+        }
+    }
+
+    override fun onNotificationRankingUpdate(rankingMap: RankingMap) {
+        super.onNotificationRankingUpdate(rankingMap)
+        runCatchingLogged(TAG, "onNotificationRankingUpdate callback failed") {
+            val filter = runCatchingLogged(TAG, "Failed to get filter in ranking update") {
+                currentInterruptionFilter
+            }?.takeIf { it != INTERRUPTION_FILTER_UNKNOWN }
+                ?: runCatchingLogged(TAG, "Failed to get filter from NotificationManager") {
+                    (getSystemService(android.content.Context.NOTIFICATION_SERVICE) as? NotificationManager)?.currentInterruptionFilter
+                } ?: INTERRUPTION_FILTER_ALL
+
+            val isDndActive = filter != INTERRUPTION_FILTER_ALL && filter != INTERRUPTION_FILTER_UNKNOWN
+            if (isDndActive) {
+                purgeDndBlockedNotifications(rankingMap)
+            }
+        }
+    }
+
+    private fun purgeDndBlockedNotifications(rankingMap: RankingMap? = null) {
+        serviceScope.launch {
+            val activeMap = runCatchingLogged(TAG, "Failed to get active notifications for DND purge") {
+                activeNotifications?.associateBy { it.key }
+            }.orEmpty()
+
+            val currentIsland = notificationRepository.notifications.value
+            currentIsland.forEach { islandNotif ->
+                val sbn = activeMap[islandNotif.key]
+                if (sbn != null) {
+                    if (isBlockedByDoNotDisturb(sbn, rankingMap)) {
+                        android.util.Log.d(TAG, "DND active: purging blocked notification ${islandNotif.key}")
+                        notificationRepository.removeNotification(islandNotif.key)
+                    }
+                } else if (islandNotif.mode == IslandMode.Notification) {
+                    android.util.Log.d(TAG, "DND active: purging untracked notification ${islandNotif.key}")
+                    notificationRepository.removeNotification(islandNotif.key)
+                }
+            }
         }
     }
 
@@ -572,10 +620,73 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
         }
     }
 
-    internal fun shouldSuppressFromIsland(sbn: StatusBarNotification): Boolean {
+    internal fun isBlockedByDoNotDisturb(
+        sbn: StatusBarNotification,
+        rankingMap: RankingMap? = null,
+        filterOverride: Int? = null
+    ): Boolean {
+        val filter = filterOverride ?: runCatchingLogged(TAG, "Failed to get interruption filter") {
+            currentInterruptionFilter
+        }?.takeIf { it != INTERRUPTION_FILTER_UNKNOWN }
+            ?: runCatchingLogged(TAG, "Failed to get interruption filter from NotificationManager") {
+                (getSystemService(android.content.Context.NOTIFICATION_SERVICE) as? NotificationManager)?.currentInterruptionFilter
+            } ?: INTERRUPTION_FILTER_ALL
+
+        // If filter is ALL or UNKNOWN, Do Not Disturb is OFF
+        if (filter == INTERRUPTION_FILTER_ALL || filter == INTERRUPTION_FILTER_UNKNOWN) {
+            return false
+        }
+
+        val notification = sbn.notification ?: return true
+        val mode = notification.toIslandMode(
+            sbn,
+            currentSettings.liveActivitiesEnabled,
+            currentSettings.navigationEnabled,
+            currentSettings.deviceType
+        )
+
+        // Music playback and ongoing system hardware states (Hotspot, ScreenRecording)
+        // are not intrusive notification alerts and must not be blocked by DND.
+        if (mode == IslandMode.Music || mode == IslandMode.Hotspot || mode == IslandMode.ScreenRecording) {
+            return false
+        }
+
+        val rMap = rankingMap ?: runCatchingLogged(TAG, "Failed to get current ranking") { currentRanking }
+        if (rMap != null) {
+            val ranking = Ranking()
+            if (rMap.getRanking(sbn.key, ranking)) {
+                // matchesInterruptionFilter() returns true if allowed by DND policy, false if blocked
+                return !ranking.matchesInterruptionFilter()
+            }
+        }
+
+        if (filter == INTERRUPTION_FILTER_NONE) {
+            return true
+        }
+
+        if (filter == INTERRUPTION_FILTER_ALARMS) {
+            return notification.category != Notification.CATEGORY_ALARM &&
+                mode != IslandMode.Timer &&
+                mode != IslandMode.Stopwatch
+        }
+
+        // Priority only mode: standard notifications are blocked by default if not verified
+        return true
+    }
+
+    internal fun shouldSuppressFromIsland(
+        sbn: StatusBarNotification,
+        rankingMap: RankingMap? = null,
+        filterOverride: Int? = null
+    ): Boolean {
+        if (isBlockedByDoNotDisturb(sbn, rankingMap, filterOverride)) {
+            android.util.Log.d(TAG, "Suppressed by Do Not Disturb: key=${sbn.key} pkg=${sbn.packageName}")
+            return true
+        }
+        val pm = runCatching { packageManager }.getOrNull() ?: return false
         return com.agupta07505.smartisland.util.NotificationFilter.shouldSuppressFromIsland(
             sbn,
-            packageManager,
+            pm,
             currentSettings.liveActivitiesEnabled,
             currentSettings.navigationEnabled,
             currentSettings.disabledNotificationPackages,
@@ -673,6 +784,7 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
 
     private fun playNotificationSound(sbn: StatusBarNotification) {
         if (currentSettings.disabledSoundPackages.contains(sbn.packageName)) return
+        if (isBlockedByDoNotDisturb(sbn)) return
         runCatchingLogged(TAG, "Failed to play notification sound for ${sbn.packageName}") {
             val audioManager = getSystemService(android.content.Context.AUDIO_SERVICE) as? AudioManager
             if (audioManager == null || audioManager.ringerMode != AudioManager.RINGER_MODE_NORMAL) return

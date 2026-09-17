@@ -47,6 +47,8 @@ import com.agupta07505.smartisland.model.IslandNotification
 import com.agupta07505.smartisland.data.SmartIslandSettings
 import com.agupta07505.smartisland.data.LaunchableApp
 import androidx.core.graphics.drawable.toBitmap
+import androidx.compose.ui.res.stringResource
+import com.agupta07505.smartisland.R
 
 @Composable
 fun IslandExpandedContent(
@@ -329,14 +331,14 @@ private fun EmptyExpanded(
             // UsageStats are queried. In particular, do not flash the setup state.
             Spacer(Modifier.height(84.dp))
         } else if (loadedApps.isEmpty() && !hasConfiguration) {
-            Text("Quick launch", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.shortcuts_title), color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.SemiBold)
             Text(
-                "Choose shortcuts in the Smart Island app",
+                stringResource(R.string.shortcuts_desc),
                 color = Color(0xFFB7C0CA),
                 fontSize = 13.sp
             )
             Text(
-                "Open Smart Island settings",
+                stringResource(R.string.quick_launch_open_settings),
                 color = Color(0xFF67E8F9),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -346,7 +348,7 @@ private fun EmptyExpanded(
             )
         } else if (loadedApps.isEmpty()) {
             Text(
-                "Selected apps are unavailable. Update App shortcuts in Smart Island.",
+                stringResource(R.string.quick_launch_apps_unavailable),
                 color = Color(0xFFB7C0CA),
                 fontSize = 13.sp
             )

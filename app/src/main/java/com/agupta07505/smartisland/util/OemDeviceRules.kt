@@ -26,6 +26,7 @@ enum class OemDeviceType(val displayName: String, val brandKeywords: List<String
     HUAWEI_HONOR("Huawei / Honor (EMUI & MagicOS)", listOf("huawei", "honor")),
     MOTOROLA("Motorola / Lenovo (My UX)", listOf("motorola", "lenovo", "moto")),
     TRANSSION("Tecno / Infinix / Itel (XOS & HiOS)", listOf("transsion", "infinix", "tecno", "itel")),
+    NUBIA("Nubia / RedMagic (MyOS & RedMagic OS)", listOf("nubia", "redmagic", "zte")),
     GENERIC("Generic Android", emptyList())
 }
 
@@ -103,6 +104,14 @@ object OemDeviceRules {
         "com.transsion.soundrecorder"
     )
 
+    private val NUBIA_SCREEN_RECORDER_PACKAGES = setOf(
+        "cn.nubia.screenrecorder",
+        "cn.nubia.recorder",
+        "cn.nubia.soundrecorder",
+        "com.zte.screenrecorder",
+        "com.zte.recorder"
+    )
+
     private val ALL_OEM_RECORDER_PACKAGES = GENERIC_SCREEN_RECORDER_PACKAGES +
         SAMSUNG_SCREEN_RECORDER_PACKAGES +
         XIAOMI_SCREEN_RECORDER_PACKAGES +
@@ -110,7 +119,8 @@ object OemDeviceRules {
         REALME_OPPO_SCREEN_RECORDER_PACKAGES +
         HUAWEI_SCREEN_RECORDER_PACKAGES +
         MOTOROLA_SCREEN_RECORDER_PACKAGES +
-        TRANSSION_SCREEN_RECORDER_PACKAGES
+        TRANSSION_SCREEN_RECORDER_PACKAGES +
+        NUBIA_SCREEN_RECORDER_PACKAGES
 
     private val SCREEN_RECORDING_KEYWORDS = listOf(
         "screen recording", "recording screen", "screen recorder", "screen record",
@@ -151,11 +161,18 @@ object OemDeviceRules {
         "com.hihonor.android.incallui"
     )
 
+    private val NUBIA_INCALL_PACKAGES = setOf(
+        "cn.nubia.incallui",
+        "cn.nubia.dialer",
+        "com.zte.incallui"
+    )
+
     private val ALL_OEM_INCALL_PACKAGES = SAMSUNG_INCALL_PACKAGES +
         XIAOMI_INCALL_PACKAGES +
         VIVO_INCALL_PACKAGES +
         REALME_OPPO_INCALL_PACKAGES +
         HUAWEI_INCALL_PACKAGES +
+        NUBIA_INCALL_PACKAGES +
         setOf("com.google.android.dialer", "com.android.dialer", "com.android.server.telecom", "com.android.phone")
 
     private val HOTSPOT_PACKAGES = setOf(
@@ -184,6 +201,7 @@ object OemDeviceRules {
             brand.contains("huawei") || brand.contains("honor") || manufacturer.contains("huawei") || manufacturer.contains("honor") -> OemDeviceType.HUAWEI_HONOR
             brand.contains("motorola") || brand.contains("lenovo") || brand.contains("moto") || manufacturer.contains("motorola") -> OemDeviceType.MOTOROLA
             brand.contains("infinix") || brand.contains("tecno") || brand.contains("itel") || manufacturer.contains("transsion") -> OemDeviceType.TRANSSION
+            brand.contains("nubia") || brand.contains("redmagic") || brand.contains("zte") || manufacturer.contains("nubia") || manufacturer.contains("zte") -> OemDeviceType.NUBIA
             else -> OemDeviceType.GENERIC
         }
     }
@@ -211,6 +229,7 @@ object OemDeviceRules {
             OemDeviceType.HUAWEI_HONOR -> packageName in HUAWEI_SCREEN_RECORDER_PACKAGES || packageName in ALL_OEM_RECORDER_PACKAGES
             OemDeviceType.MOTOROLA -> packageName in MOTOROLA_SCREEN_RECORDER_PACKAGES || packageName in ALL_OEM_RECORDER_PACKAGES
             OemDeviceType.TRANSSION -> packageName in TRANSSION_SCREEN_RECORDER_PACKAGES || packageName in ALL_OEM_RECORDER_PACKAGES
+            OemDeviceType.NUBIA -> packageName in NUBIA_SCREEN_RECORDER_PACKAGES || packageName in ALL_OEM_RECORDER_PACKAGES
             else -> packageName in ALL_OEM_RECORDER_PACKAGES
         }
 
@@ -246,6 +265,7 @@ object OemDeviceRules {
             OemDeviceType.VIVO_IQOO -> packageName in VIVO_INCALL_PACKAGES || packageName in ALL_OEM_INCALL_PACKAGES
             OemDeviceType.REALME_OPPO_ONEPLUS -> packageName in REALME_OPPO_INCALL_PACKAGES || packageName in ALL_OEM_INCALL_PACKAGES
             OemDeviceType.HUAWEI_HONOR -> packageName in HUAWEI_INCALL_PACKAGES || packageName in ALL_OEM_INCALL_PACKAGES
+            OemDeviceType.NUBIA -> packageName in NUBIA_INCALL_PACKAGES || packageName in ALL_OEM_INCALL_PACKAGES
             else -> packageName in ALL_OEM_INCALL_PACKAGES
         }
     }
@@ -299,6 +319,13 @@ object OemDeviceRules {
             }
             OemDeviceType.MOTOROLA -> {
                 intents.add(Intent().setComponent(ComponentName("com.asus.mobilemanager", "com.asus.mobilemanager.autostart.AutoStartActivity")))
+            }
+            OemDeviceType.NUBIA -> {
+                intents.add(Intent().setComponent(ComponentName("cn.nubia.security2", "cn.nubia.security.permission.activity.AccessControlActivity")))
+                intents.add(Intent().setComponent(ComponentName("cn.nubia.security2", "cn.nubia.security.power.ui.PowerControlActivity")))
+                intents.add(Intent().setComponent(ComponentName("cn.nubia.neosafe", "cn.nubia.neosafe.permission.StartupManagerActivity")))
+                intents.add(Intent().setComponent(ComponentName("cn.nubia.neosafe", "cn.nubia.neosafe.permission.AutoStartPermissionActivity")))
+                intents.add(Intent().setComponent(ComponentName("com.zte.heartyservice", "com.zte.heartyservice.autorun.AppAutoRunManager")))
             }
             else -> {
                 // Generic fallback

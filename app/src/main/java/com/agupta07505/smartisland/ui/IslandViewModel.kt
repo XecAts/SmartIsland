@@ -88,11 +88,19 @@ class IslandViewModel(
         viewModelScope.launch {
             runSuspendCatchingLogged(TAG, "Auto-expand collector failed") {
                 notificationRepo.autoExpandEvent.collect { key ->
-                    val list = visibleNotifications.value
-                    val index = list.indexOfFirst { it.key == key }
+                    val notif = notifications.value.firstOrNull { it.key == key } ?: return@collect
+                    val isFgMusic = notif.mode == IslandMode.Music &&
+                        !foregroundPackage.value.isNullOrEmpty() &&
+                        notif.packageName == foregroundPackage.value
+                    if (isFgMusic) return@collect
+
+                    val index = notifications.value.indexOfFirst { it.key == key }
                     if (index >= 0) {
                         selectedIndex.value = index
-                        expand()
+                        val isDemo = key.startsWith("demo_")
+                        if (settings.value.autoExpandOnNotification || isDemo) {
+                            expand()
+                        }
                     }
                 }
             }

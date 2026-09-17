@@ -36,6 +36,8 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import android.content.res.Configuration
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -113,11 +115,17 @@ fun IslandOverlayView(
     var dragOffset by remember { mutableStateOf(0f) }
 
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val displayMetrics = context.resources.displayMetrics
     val density = LocalDensity.current
-    val screenWidth = with(density) { displayMetrics.widthPixels.toDp() }
+    val screenWidth = configuration.screenWidthDp.dp
     val screenCenter = screenWidth / 2f
-    val expandedWidth = ((displayMetrics.widthPixels / displayMetrics.density) * EXPANDED_WIDTH_RATIO).dp
+    val expandedWidth = calculateExpandedWidth(
+        isLandscape = isLandscape,
+        screenWidthDp = configuration.screenWidthDp.toFloat(),
+        screenHeightDp = configuration.screenHeightDp.toFloat()
+    ).dp
     val transition = updateTransition(targetState = expanded, label = "islandTransition")
 
     val sizeSpec = spring<androidx.compose.ui.unit.Dp>(
@@ -196,6 +204,7 @@ fun IslandOverlayView(
     }
 
     val isHiding = isIdleHiding || (settings.autoHidePill && isAutoHidden)
+    val pillBackgroundColor = Color(settings.pillColor)
 
     val width by transition.animateDp(transitionSpec = { sizeSpec }, label = "islandWidth") {
         if (it) expandedWidth else if (isHiding) 0.dp else settings.width.dp
@@ -402,9 +411,14 @@ fun IslandOverlayView(
                     scaleY = switchScaleAnim.value
                 }
                 .then(
-                    if (settings.enableShadow && !isHiding) {
+                    if (settings.enableShadow && settings.shadowElevation > 0f && !isHiding) {
+                        val activeMainShadow = if (currentExpanded) {
+                            (settings.shadowElevation * 1.5f).dp
+                        } else {
+                            settings.shadowElevation.dp
+                        }
                         Modifier.shadow(
-                            elevation = if (currentExpanded) 22.dp else 14.dp,
+                            elevation = activeMainShadow,
                             shape = RoundedCornerShape(safeRadius),
                             clip = false,
                             ambientColor = Color.Black,
@@ -413,7 +427,7 @@ fun IslandOverlayView(
                     } else Modifier
                 )
                 .clip(RoundedCornerShape(safeRadius))
-                .background(Color.Black.copy(alpha = settings.opacity))
+                .background(pillBackgroundColor.copy(alpha = settings.opacity))
                 .pointerInput(displayMetrics.density, isInputActive) {
                     if (isInputActive) return@pointerInput
                     awaitEachGesture {
@@ -577,9 +591,9 @@ fun IslandOverlayView(
                         scaleY = secondaryScale * switchScaleAnim.value
                     }
                     .then(
-                        if (settings.enableShadow) {
+                        if (settings.enableShadow && settings.shadowElevation > 0f) {
                             Modifier.shadow(
-                                elevation = 12.dp,
+                                elevation = (settings.shadowElevation * 0.85f).dp,
                                 shape = RoundedCornerShape(secondaryBubbleCorner),
                                 clip = false,
                                 ambientColor = Color.Black,
@@ -588,7 +602,7 @@ fun IslandOverlayView(
                         } else Modifier
                     )
                     .clip(RoundedCornerShape(secondaryBubbleCorner))
-                    .background(Color.Black.copy(alpha = settings.opacity))
+                    .background(pillBackgroundColor.copy(alpha = settings.opacity))
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
@@ -646,8 +660,19 @@ fun IslandOverlayView(
                         scaleX = tertiaryScale * switchScaleAnim.value
                         scaleY = tertiaryScale * switchScaleAnim.value
                     }
+                    .then(
+                        if (settings.enableShadow && settings.shadowElevation > 0f) {
+                            Modifier.shadow(
+                                elevation = (settings.shadowElevation * 0.85f).dp,
+                                shape = RoundedCornerShape(settings.cornerRadius.dp),
+                                clip = false,
+                                ambientColor = Color.Black,
+                                spotColor = Color.Black
+                            )
+                        } else Modifier
+                    )
                     .clip(RoundedCornerShape(settings.cornerRadius.dp))
-                    .background(Color.Black.copy(alpha = settings.opacity))
+                    .background(pillBackgroundColor.copy(alpha = settings.opacity))
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null
@@ -777,7 +802,21 @@ private fun SecondaryBubbleContent(
 }
 
 // Animation specs
-private const val EXPANDED_WIDTH_RATIO = 0.95f
+internal const val EXPANDED_WIDTH_RATIO = 0.95f
+
+internal fun calculateExpandedWidth(
+    isLandscape: Boolean,
+    screenWidthDp: Float,
+    screenHeightDp: Float,
+    ratio: Float = EXPANDED_WIDTH_RATIO
+): Float {
+    return if (isLandscape) {
+        val portraitWidth = minOf(screenWidthDp, screenHeightDp)
+        (portraitWidth * ratio).coerceIn(340f, 440f)
+    } else {
+        screenWidthDp * ratio
+    }
+}
 private const val SWIPE_THRESHOLD_DP = 35f
 private const val DRAG_MAX_OFFSET_DP = 100f
 private const val COMPACT_INDICATOR_GAP_DP = 8f

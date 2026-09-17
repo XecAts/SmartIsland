@@ -716,7 +716,7 @@ fun AboutSection(
                 )
 
                 ClickableRowItem(
-                    label = "Version",
+                    label = stringResource(R.string.version_title),
                     value = currentVersion,
                     icon = Icons.Rounded.Info,
                     iconTint = Color(0xFF38BDF8),
@@ -725,8 +725,8 @@ fun AboutSection(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
                 ClickableRowItem(
-                    label = "Privacy Policy",
-                    subtitle = "100% On-Device & Zero Tracking",
+                    label = stringResource(R.string.privacy_policy_title),
+                    subtitle = stringResource(R.string.privacy_policy_desc),
                     icon = Icons.Rounded.Lock,
                     iconTint = Color(0xFF10B981),
                     onClick = {
@@ -739,8 +739,8 @@ fun AboutSection(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
                 ClickableRowItem(
-                    label = "Terms of Use",
-                    subtitle = "GNU GPL v3 License Terms",
+                    label = stringResource(R.string.terms_of_use_title),
+                    subtitle = stringResource(R.string.license_title),
                     icon = Icons.Rounded.Description,
                     iconTint = Color(0xFFF59E0B),
                     onClick = {
@@ -753,8 +753,8 @@ fun AboutSection(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
                 ClickableRowItem(
-                    label = "Open Source Repository",
-                    subtitle = "GitHub • Star & Contribute",
+                    label = stringResource(R.string.repo_insights_title),
+                    subtitle = stringResource(R.string.star_on_github),
                     icon = Icons.Rounded.Code,
                     iconTint = Color(0xFFA855F7),
                     onClick = {
@@ -777,7 +777,7 @@ fun AboutSection(
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
-                    text = "Developer & Contact",
+                    text = stringResource(R.string.developer_contact_title),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold

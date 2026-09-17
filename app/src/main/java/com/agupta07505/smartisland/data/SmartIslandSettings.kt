@@ -15,6 +15,7 @@ data class SmartIslandSettings(
     val yOffset: Float = 12f,
     val cornerRadius: Float = 22f,
     val opacity: Float = 1f,
+    val pillColor: Long = 0xFF000000L,
     val batteryColor: Long = 0xFF10B981L,
     val notificationDotColor: Long = 0xFF2563EBL,
     val musicVisualizerColor: Long = 0xFFFF6B9AL,
@@ -45,6 +46,7 @@ data class SmartIslandSettings(
     val showInLandscape: Boolean = false,
     val autoExpandOnNotification: Boolean = true,
     val enableShadow: Boolean = true,
+    val shadowElevation: Float = 14f,
     val enableMusicArtworkBackground: Boolean = true,
     val deviceType: String = "AUTO",
     val allowNetworkChecks: Boolean = true,
@@ -66,5 +68,7 @@ data class SmartIslandSettings(
         const val MAX_CORNER_RADIUS = 40f
         const val MIN_OPACITY = 0.2f
         const val MAX_OPACITY = 1f
+        const val MIN_SHADOW_ELEVATION = 0f
+        const val MAX_SHADOW_ELEVATION = 32f
     }
 }

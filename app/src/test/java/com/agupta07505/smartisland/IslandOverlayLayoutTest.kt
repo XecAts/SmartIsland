@@ -74,4 +74,41 @@ class IslandOverlayLayoutTest {
             )
         }
     }
+
+    @Test
+    fun landscapeExpandedWidthIsFixedAndDoesNotFillLandscapeScreenWidth() {
+        val landscapeScreenWidth = 914f
+        val landscapeScreenHeight = 411f
+
+        val portraitExpandedWidth = com.agupta07505.smartisland.ui.calculateExpandedWidth(
+            isLandscape = false,
+            screenWidthDp = landscapeScreenHeight, // 411dp in portrait
+            screenHeightDp = landscapeScreenWidth  // 914dp in portrait
+        )
+        val landscapeExpandedWidth = com.agupta07505.smartisland.ui.calculateExpandedWidth(
+            isLandscape = true,
+            screenWidthDp = landscapeScreenWidth,  // 914dp in landscape
+            screenHeightDp = landscapeScreenHeight // 411dp in landscape
+        )
+
+        // The landscape expanded width must equal the portrait compact width, NOT 95% of 914dp
+        assertEquals(portraitExpandedWidth, landscapeExpandedWidth, 0.01f)
+        org.junit.Assert.assertTrue(landscapeExpandedWidth < 450f)
+        org.junit.Assert.assertTrue(landscapeExpandedWidth < landscapeScreenWidth * 0.95f)
+
+        // Clamping bounds for tablets / ultra-wides
+        val tabletLandscapeWidth = com.agupta07505.smartisland.ui.calculateExpandedWidth(
+            isLandscape = true,
+            screenWidthDp = 1280f,
+            screenHeightDp = 800f
+        )
+        assertEquals(440f, tabletLandscapeWidth, 0.01f)
+
+        val smallLandscapeWidth = com.agupta07505.smartisland.ui.calculateExpandedWidth(
+            isLandscape = true,
+            screenWidthDp = 640f,
+            screenHeightDp = 320f
+        )
+        assertEquals(340f, smallLandscapeWidth, 0.01f)
+    }
 }

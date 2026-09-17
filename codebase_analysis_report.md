@@ -49,6 +49,7 @@ graph TD
   * **System Tray Suppression:** If an incoming notification is classified as `IMPORTANCE_HIGH` (Heads-Up notification), the service calls `cancelNotification(sbn.key)` to suppress the default OS banner. Simultaneously, it posts the notification to the Smart Island overlay with `autoExpand = true` to mimic a heads-up animation.
   * **Suppressed Keys Set:** Maintains a local `suppressedKeys` set to handle the cancellation sync so that notifications are not accidentally removed from the overlay state during the self-cancellation process.
   * **Clock Parsing (`TimerStopwatchParser`):** Automatically decodes clock alerts (Google Clock, Samsung Clock, Xiaomi/HyperOS, ColorOS, Huawei) into dedicated `IslandMode.Timer` or `IslandMode.Stopwatch` states.
+  * **Intelligent Notification Cooldown & Anti-Spam (`NotificationCooldownManager`):** Monitors notification bursts using a 30-second sliding window. Throttles apps exceeding the spam threshold, buffers the latest alert, and releases it cleanly after the quiet cooldown period.
   * **Persistent SQLite Notification Storage:** Stores notification alerts into the local SQLite database via [NotificationHistoryRepository](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/data/NotificationHistoryRepository.kt) for in-app history search, category filtering, and audit.
   * **Classification Logic:** Uses [NotificationFilter](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/util/NotificationFilter.kt) to filter out system-level package alerts, empty notifications, message sync background polling, and ongoing foreground tasks (unless they represent calls, music playback, progress tasks, or active timers). Categorizes notifications into one of the 13 `IslandMode` categories:
     * `Notification.CallStyle` / `Notification.CATEGORY_CALL` $\rightarrow$ `IslandMode.IncomingCall`
@@ -98,7 +99,7 @@ Swiping down on an expanded notification opens its origin app in a floating wind
 
 State is persisted and exposed reactively using a repository pattern:
 
-* **[SmartIslandSettingsRepository](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/data/SmartIslandSettingsRepository.kt):** Uses Android Jetpack `DataStore` (Preferences) to persist user configurations (X/Y offsets, sizes, colors, enabled status, auto-hide duration, landscape visibility). Exposes a reactive `Flow<SmartIslandSettings>`.
+* **[SmartIslandSettingsRepository](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/data/SmartIslandSettingsRepository.kt):** Uses Android Jetpack `DataStore` (Preferences) to persist user configurations (X/Y offsets, sizes, colors, enabled status, auto-hide duration, landscape visibility). Exposes a reactive `Flow<SmartIslandSettings>`, with atomic single-transaction `restoreSettings(settings)` and `resetAllSettings()` support for JSON backup/restore via Android SAF.
 * **[SmartIslandNotificationRepository](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/data/SmartIslandNotificationRepository.kt):** Holds active notifications in a thread-safe `MutableStateFlow<List<IslandNotification>>`. It receives posting/removal commands from services, synchronizing state with the UI.
 
 ---
@@ -128,6 +129,7 @@ The [IslandCollapsedContent](file:///a:/SmartIsland/app/src/main/java/com/agupta
   * **Notification Mode:** A customizable blue notification dot.
   * **Call Mode:** An active timer (`CallTimer`) that updates elapsed time in `MM:SS` format.
   * **Music Mode:** A live 3-bar Audio Visualizer animation powered by GPU-accelerated Compose `graphicsLayer` scaling.
+  * **Bluetooth Mode:** Dual-path battery gauge smoothly alternating with earbuds icon via 520f spring animation (`BluetoothCollapsedRight`).
   * **Battery Mode:** A custom battery percent text displaying next to the charging glyph.
 
 ### 4.3. Custom Graphics
@@ -149,6 +151,7 @@ The [SmartIslandHomeScreen](file:///a:/SmartIsland/app/src/main/java/com/agupta0
 * **[GesturesSection](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/sections/GesturesSection.kt):** Implements an interactive tabbed guide with looping finger path animations and a try-it-yourself sandbox to preview swipes.
 * **[SupportSection](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/sections/SupportSection.kt):** Deep links to GitHub for starring, bug reports, and enhancements.
 * **[AboutSection](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/sections/AboutSection.kt):** Displays developer social links, version details, and privacy links.
+* **[BackupRestoreSection](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/sections/BackupRestoreSection.kt):** Allows exporting and importing full island geometry, color studio palettes, shortcuts, and notification rules to/from JSON via Android Storage Access Framework with atomic DataStore batch restore and factory reset.
 
 ---
 
@@ -161,7 +164,7 @@ The repository maintains an extensive test suite verifying logic boundaries:
 | [SmartIslandNotificationRepositoryTest](file:///a:/SmartIsland/app/src/test/java/com/agupta07505/smartisland/data/SmartIslandNotificationRepositoryTest.kt) | Notification Repository | Event streams, posting, removing, timer resets, commands. |
 | [IslandModeMappingTest](file:///a:/SmartIsland/app/src/test/java/com/agupta07505/smartisland/model/IslandModeMappingTest.kt) | Mode Classification | Correct mapping of categories (Call, Transport, Progress, Media buttons) to `IslandMode`. |
 | [NotificationPriorityTest](file:///a:/SmartIsland/app/src/test/java/com/agupta07505/smartisland/service/NotificationPriorityTest.kt) | Interception Filters | Ignored packages/flags, ongoing notification filter constraints, edge-case actions. |
-| [SmartIslandSettingsTest](file:///a:/SmartIsland/app/src/test/java/com/agupta07505/smartisland/data/SmartIslandSettingsTest.kt) | Settings Datastore | Preference serialization, updates, reset bounds, boundaries. |
+| [SmartIslandSettingsTest](file:///a:/SmartIsland/app/src/test/java/com/agupta07505/smartisland/data/SmartIslandSettingsTest.kt) | Settings Datastore | Preference serialization, JSON export/import round-trip, bounds clamping, corrupted JSON fallbacks, reset bounds. |
 | [SystemEventReceiverTest](file:///a:/SmartIsland/app/src/test/java/com/agupta07505/smartisland/service/SystemEventReceiverTest.kt) | Battery & Power Receiver | Intent matching, charging state parsing, battery percentage change thresholds. |
 | [IslandOverlaySmokeTest](file:///a:/SmartIsland/app/src/androidTest/java/com/agupta07505/smartisland/IslandOverlaySmokeTest.kt) | UI Compose Overlay | Smoke-testing Compose view creation, settings repository connection, overlay UI rendering. |
 

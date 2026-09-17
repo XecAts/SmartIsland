@@ -24,7 +24,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.HourglassBottom
 import androidx.compose.material.icons.rounded.DirectionsCar
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Map
@@ -470,6 +472,17 @@ fun NotificationsAndPrivacySection(
                         )
                     }
                 }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                ToggleRowItem(
+                    title = stringResource(R.string.toggle_bluetooth_battery_title),
+                    subtitle = stringResource(R.string.toggle_bluetooth_battery_desc),
+                    icon = Icons.Rounded.BluetoothConnected,
+                    iconColor = Color(0xFF2563EB),
+                    checked = settings.showBluetoothBattery,
+                    onCheckedChange = { scope.launch { repository.setShowBluetoothBattery(it) } }
+                )
             }
         }
 
@@ -522,14 +535,284 @@ fun NotificationsAndPrivacySection(
             }
         }
 
-        // Group 4: Per-App Notification & Sound Manager
-        var query by remember { mutableStateOf("") }
+        // Shared Installed Apps Provider
         val installedApps by produceState(initialValue = emptyList<LaunchableApp>(), context) {
             value = withContext(Dispatchers.IO) {
                 AppShortcutProvider.installedApps(context)
                     .filter { NotificationFilter.isAppEligibleForIsland(it.packageName, context.packageManager) }
             }
         }
+
+        // Group 3.5: Notification Cooldown & Anti-Spam
+        var cooldownAppQuery by remember { mutableStateOf("") }
+        val cooldownFilteredApps = remember(installedApps, cooldownAppQuery) {
+            if (cooldownAppQuery.isBlank()) installedApps
+            else installedApps.filter {
+                it.label.contains(cooldownAppQuery, ignoreCase = true) ||
+                    it.packageName.contains(cooldownAppQuery, ignoreCase = true)
+            }
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.notification_cooldown_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = stringResource(R.string.notification_cooldown_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                ToggleRowItem(
+                    title = stringResource(R.string.toggle_enable_cooldown_title),
+                    subtitle = stringResource(R.string.toggle_enable_cooldown_desc),
+                    icon = Icons.Rounded.HourglassBottom,
+                    iconColor = Color(0xFF8B5CF6),
+                    checked = settings.enableNotificationCooldown,
+                    onCheckedChange = { scope.launch { repository.setEnableNotificationCooldown(it) } }
+                )
+
+                AnimatedVisibility(
+                    visible = settings.enableNotificationCooldown,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        // 1. Cooldown Duration
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = stringResource(R.string.cooldown_duration_title, settings.notificationCooldownDurationMinutes),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf(1, 2, 3, 5, 10, 15).forEach { min ->
+                                    val isSelected = settings.notificationCooldownDurationMinutes == min
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = {
+                                            scope.launch { repository.setNotificationCooldownDurationMinutes(min) }
+                                        },
+                                        label = { Text("${min}m", fontSize = 12.sp) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    )
+                                }
+                            }
+
+                            SliderSettingItem(
+                                label = stringResource(R.string.cooldown_duration_slider),
+                                value = settings.notificationCooldownDurationMinutes.toFloat(),
+                                range = 1f..30f,
+                                step = 1f,
+                                suffix = " min",
+                                onValueChange = { newVal ->
+                                    scope.launch { repository.setNotificationCooldownDurationMinutes(newVal.roundToInt()) }
+                                }
+                            )
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                        // 2. Trigger Threshold (Alert count in 30 seconds)
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                text = stringResource(R.string.cooldown_threshold_title, settings.notificationCooldownThreshold),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                listOf(2, 3, 4, 5, 8, 10).forEach { count ->
+                                    val isSelected = settings.notificationCooldownThreshold == count
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = {
+                                            scope.launch { repository.setNotificationCooldownThreshold(count) }
+                                        },
+                                        label = { Text("$count", fontSize = 12.sp) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    )
+                                }
+                            }
+
+                            SliderSettingItem(
+                                label = stringResource(R.string.cooldown_threshold_slider),
+                                value = settings.notificationCooldownThreshold.toFloat(),
+                                range = 2f..10f,
+                                step = 1f,
+                                suffix = " alerts",
+                                onValueChange = { newVal ->
+                                    scope.launch { repository.setNotificationCooldownThreshold(newVal.roundToInt()) }
+                                }
+                            )
+                        }
+
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                        // 3. Excluded Apps (Whitelist)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.cooldown_excluded_apps_title),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(R.string.cooldown_excluded_apps_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            OutlinedTextField(
+                                value = cooldownAppQuery,
+                                onValueChange = { cooldownAppQuery = it },
+                                placeholder = { Text(stringResource(R.string.search_installed_apps)) },
+                                leadingIcon = {
+                                    Icon(Icons.Rounded.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(14.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                                ),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                val excludedCount = settings.notificationCooldownExcludedPackages.size
+                                Text(
+                                    text = stringResource(R.string.cooldown_excluded_count, excludedCount),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    OutlinedButton(
+                                        onClick = {
+                                            val targets = installedApps.map { it.packageName }.toSet()
+                                            scope.launch {
+                                                repository.setNotificationCooldownExcludedPackages(targets)
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(32.dp)
+                                    ) {
+                                        Text(stringResource(R.string.btn_exclude_all), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+
+                                    OutlinedButton(
+                                        onClick = {
+                                            scope.launch {
+                                                repository.setNotificationCooldownExcludedPackages(emptySet())
+                                            }
+                                        },
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(32.dp)
+                                    ) {
+                                        Text(stringResource(R.string.btn_clear_exclusions), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
+                                    }
+                                }
+                            }
+
+                            val displayApps = if (cooldownAppQuery.isBlank()) cooldownFilteredApps.take(15) else cooldownFilteredApps
+                            displayApps.forEach { app ->
+                                val isExcluded = app.packageName in settings.notificationCooldownExcludedPackages
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = app.label,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        Text(
+                                            text = app.packageName,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+
+                                    FilterChip(
+                                        selected = isExcluded,
+                                        onClick = {
+                                            scope.launch {
+                                                repository.toggleNotificationCooldownExcludedPackage(app.packageName)
+                                            }
+                                        },
+                                        label = {
+                                            Text(
+                                                text = if (isExcluded) stringResource(R.string.chip_excluded) else stringResource(R.string.chip_cooldown_active),
+                                                fontSize = 11.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                            labelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Group 4: Per-App Notification & Sound Manager
+        var query by remember { mutableStateOf("") }
         val filteredApps = remember(installedApps, query) {
             if (query.isBlank()) installedApps
             else installedApps.filter {

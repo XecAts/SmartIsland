@@ -7,8 +7,16 @@
 
 package com.agupta07505.smartisland.ui.expanded
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,10 +30,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Battery5Bar
+import androidx.compose.material.icons.rounded.BatteryAlert
+import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.BatteryFull
 import androidx.compose.material.icons.rounded.BluetoothConnected
+import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import com.agupta07505.smartisland.R
 import com.agupta07505.smartisland.data.SmartIslandSettings
 import com.agupta07505.smartisland.model.IslandNotification
+import kotlinx.coroutines.delay
 
 @Composable
 fun BluetoothExpanded(
@@ -49,6 +68,24 @@ fun BluetoothExpanded(
     val deviceName = notification?.title?.ifBlank { null } ?: "Bluetooth Device"
     val statusText = notification?.text?.ifBlank { null } ?: "Connected"
 
+    val batteryLevel = remember(notification?.text, notification?.progress) {
+        notification?.let { notif ->
+            if (notif.progress in 1..100 && notif.progressMax == 100) notif.progress
+            else {
+                val match = Regex("""(\d{1,3})%""").find(notif.text)
+                match?.groupValues?.get(1)?.toIntOrNull()?.coerceIn(0, 100)
+            }
+        }
+    }
+
+    val batteryColor = if ((batteryLevel ?: 100) <= 20) Color(0xFFEF4444) else Color(0xFF10B981)
+    val batteryIcon = when {
+        (batteryLevel ?: 100) >= 80 -> Icons.Rounded.BatteryFull
+        (batteryLevel ?: 100) >= 40 -> Icons.Rounded.Battery5Bar
+        (batteryLevel ?: 100) >= 20 -> Icons.Rounded.BatteryChargingFull
+        else -> Icons.Rounded.BatteryAlert
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -58,7 +95,8 @@ fun BluetoothExpanded(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.weight(1f, fill = false)
         ) {
             Box(
                 modifier = Modifier
@@ -83,31 +121,131 @@ fun BluetoothExpanded(
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
-                Spacer(Modifier.height(2.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(6.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFF10B981))
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = statusText,
-                        color = Color(0xFF10B981),
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                Spacer(Modifier.height(4.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(Color(0xFF10B981))
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = if (settings.showBluetoothBattery && batteryLevel != null) "Connected" else statusText,
+                            color = Color(0xFF10B981),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    if (settings.showBluetoothBattery && batteryLevel != null) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(batteryColor.copy(alpha = 0.15f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Icon(
+                                imageVector = batteryIcon,
+                                contentDescription = null,
+                                tint = batteryColor,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = "$batteryLevel%",
+                                color = batteryColor,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
 
-        Image(
-            painter = painterResource(id = R.drawable.ic_bluetooth_device),
-            contentDescription = "Bluetooth Device Image",
-            modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-        )
+        Spacer(Modifier.width(8.dp))
+
+        // Right side: Earbuds / Battery alternating animation
+        if (settings.showBluetoothBattery && batteryLevel != null) {
+            var showBatterySide by remember { mutableStateOf(false) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    delay(3000L)
+                    showBatterySide = !showBatterySide
+                }
+            }
+
+            AnimatedContent(
+                targetState = showBatterySide,
+                transitionSpec = {
+                    (fadeIn(animationSpec = spring(stiffness = 520f, dampingRatio = 0.72f)) +
+                            scaleIn(initialScale = 0.8f, animationSpec = spring(stiffness = 520f, dampingRatio = 0.72f)))
+                        .togetherWith(
+                            fadeOut(animationSpec = spring(stiffness = 520f, dampingRatio = 0.72f)) +
+                                    scaleOut(targetScale = 0.8f, animationSpec = spring(stiffness = 520f, dampingRatio = 0.72f))
+                        )
+                },
+                label = "BluetoothExpandedSwitch"
+            ) { isBatteryState ->
+                if (isBatteryState) {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(batteryColor.copy(alpha = 0.12f))
+                            .border(1.dp, batteryColor.copy(alpha = 0.3f), RoundedCornerShape(14.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = batteryIcon,
+                                contentDescription = "Battery Level",
+                                tint = batteryColor,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = "$batteryLevel%",
+                                color = batteryColor,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(46.dp)
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(Color(settings.bluetoothColor).copy(alpha = 0.12f))
+                            .border(1.dp, Color(settings.bluetoothColor).copy(alpha = 0.3f), RoundedCornerShape(14.dp)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Headphones,
+                            contentDescription = "Earbuds",
+                            tint = Color(settings.bluetoothColor),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+        } else {
+            Image(
+                painter = painterResource(id = R.drawable.ic_bluetooth_device),
+                contentDescription = "Bluetooth Device Image",
+                modifier = Modifier
+                    .size(46.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+        }
     }
 }

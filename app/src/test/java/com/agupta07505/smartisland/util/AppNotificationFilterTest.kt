@@ -291,4 +291,48 @@ class AppNotificationFilterTest {
 
         assertTrue(isSuppressed)
     }
+
+    @Test
+    fun testBluetoothPackageIneligible() {
+        val mockPm = mockk<PackageManager>()
+        assertFalse(NotificationFilter.isAppEligibleForIsland("com.android.bluetooth", mockPm))
+    }
+
+    @Test
+    fun testWearableConnectionStatusNotificationSuppressed() {
+        val mockPm = mockk<PackageManager>()
+        val appInfo = ApplicationInfo().apply { flags = 0 }
+        every { mockPm.getApplicationInfo(any(), 0) } returns appInfo
+
+        val mockSbn = mockk<StatusBarNotification>()
+        val mockNotif = mockk<Notification>()
+        mockNotif.flags = 0
+        mockNotif.category = null
+        val extras = mockk<Bundle>(relaxed = true)
+        every { extras.getCharSequence(any()) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Galaxy Watch"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Watch connected via Bluetooth"
+        mockNotif.extras = extras
+
+        every { mockSbn.packageName } returns "com.samsung.accessory"
+        every { mockSbn.notification } returns mockNotif
+
+        val isSuppressed = NotificationFilter.shouldSuppressFromIsland(
+            sbn = mockSbn,
+            packageManager = mockPm
+        )
+
+        assertTrue(isSuppressed)
+    }
+
+    @Test
+    fun testIsWearableConnectionNotificationHelper() {
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.samsung.accessory", "connected"))
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.samsung.android.app.watchmanager", "sync complete"))
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.google.android.wearable.app", "disconnected"))
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.some.app", "galaxy watch connected via bluetooth"))
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.some.app", "pixel watch connected"))
+        assertFalse(NotificationFilter.isWearableConnectionNotification("com.whatsapp", "Hey, watch this video!"))
+        assertFalse(NotificationFilter.isWearableConnectionNotification("org.telegram.messenger", "I connected my new PC"))
+    }
 }

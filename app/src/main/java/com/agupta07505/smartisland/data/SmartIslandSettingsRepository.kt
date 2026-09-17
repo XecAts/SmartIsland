@@ -58,6 +58,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
         val ScreenRecordingColor = longPreferencesKey("screen_recording_color")
         val TimerColor = longPreferencesKey("timer_color")
         val StopwatchColor = longPreferencesKey("stopwatch_color")
+        val EnableAppShortcuts = booleanPreferencesKey("enable_app_shortcuts")
         val ShortcutPackages = stringSetPreferencesKey("shortcut_packages")
         val ShowRecentApps = booleanPreferencesKey("show_recent_apps")
         val WelcomeDialogShown = booleanPreferencesKey("welcome_dialog_shown")
@@ -81,6 +82,14 @@ class SmartIslandSettingsRepository(private val context: Context) {
         val AllowNetworkChecks = booleanPreferencesKey("allow_network_checks")
         val EnableNotificationHistory = booleanPreferencesKey("enable_notification_history")
         val NotificationHistoryRetentionHours = intPreferencesKey("notification_history_retention_hours")
+        val ShowBluetoothBattery = booleanPreferencesKey("show_bluetooth_battery")
+        val EnableNotificationCooldown = booleanPreferencesKey("enable_notification_cooldown")
+        val NotificationCooldownDurationMinutes = intPreferencesKey("notification_cooldown_duration_minutes")
+        val NotificationCooldownThreshold = intPreferencesKey("notification_cooldown_threshold")
+        val NotificationCooldownExcludedPackages = stringSetPreferencesKey("notification_cooldown_excluded_packages")
+        val DeveloperModeEnabled = booleanPreferencesKey("developer_mode_enabled")
+        val RecordLogs = booleanPreferencesKey("record_logs")
+        val EnableNotchMode = booleanPreferencesKey("enable_notch_mode")
     }
 
     val settings: Flow<SmartIslandSettings> = context.smartIslandDataStore.data
@@ -152,6 +161,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
                 screenRecordingColor = validColor(prefs[Keys.ScreenRecordingColor], defaults.screenRecordingColor),
                 timerColor = validColor(prefs[Keys.TimerColor], defaults.timerColor),
                 stopwatchColor = validColor(prefs[Keys.StopwatchColor], defaults.stopwatchColor),
+                enableAppShortcuts = prefs[Keys.EnableAppShortcuts] ?: defaults.enableAppShortcuts,
                 shortcutPackages = prefs[Keys.ShortcutPackages]
                     ?.asSequence()
                     ?.filter { it.isNotBlank() && it.length <= MAX_PACKAGE_NAME_LENGTH }
@@ -197,8 +207,15 @@ class SmartIslandSettingsRepository(private val context: Context) {
                 enableMusicArtworkBackground = prefs[Keys.EnableMusicArtworkBackground] ?: defaults.enableMusicArtworkBackground,
                 deviceType = prefs[Keys.DeviceType] ?: defaults.deviceType,
                 allowNetworkChecks = prefs[Keys.AllowNetworkChecks] ?: defaults.allowNetworkChecks,
-                enableNotificationHistory = prefs[Keys.EnableNotificationHistory] ?: defaults.enableNotificationHistory,
-                notificationHistoryRetentionHours = prefs[Keys.NotificationHistoryRetentionHours] ?: defaults.notificationHistoryRetentionHours
+                notificationHistoryRetentionHours = prefs[Keys.NotificationHistoryRetentionHours] ?: defaults.notificationHistoryRetentionHours,
+                showBluetoothBattery = prefs[Keys.ShowBluetoothBattery] ?: defaults.showBluetoothBattery,
+                enableNotificationCooldown = prefs[Keys.EnableNotificationCooldown] ?: defaults.enableNotificationCooldown,
+                notificationCooldownDurationMinutes = prefs[Keys.NotificationCooldownDurationMinutes] ?: defaults.notificationCooldownDurationMinutes,
+                notificationCooldownThreshold = prefs[Keys.NotificationCooldownThreshold] ?: defaults.notificationCooldownThreshold,
+                notificationCooldownExcludedPackages = prefs[Keys.NotificationCooldownExcludedPackages] ?: defaults.notificationCooldownExcludedPackages,
+                developerModeEnabled = prefs[Keys.DeveloperModeEnabled] ?: defaults.developerModeEnabled,
+                recordLogs = prefs[Keys.RecordLogs] ?: defaults.recordLogs,
+                enableNotchMode = prefs[Keys.EnableNotchMode] ?: defaults.enableNotchMode
             )
         }
 
@@ -321,6 +338,9 @@ class SmartIslandSettingsRepository(private val context: Context) {
     suspend fun setStopwatchColor(value: Long) = editSafely {
         it[Keys.StopwatchColor] = validColor(value, SmartIslandSettings.Default.stopwatchColor)
     }
+    suspend fun setEnableAppShortcuts(value: Boolean) = editSafely {
+        it[Keys.EnableAppShortcuts] = value
+    }
     suspend fun setShortcutPackages(value: Set<String>) = editSafely {
         it[Keys.ShortcutPackages] = value
             .asSequence()
@@ -400,6 +420,38 @@ class SmartIslandSettingsRepository(private val context: Context) {
     suspend fun setNotificationHistoryRetentionHours(value: Int) = editSafely {
         it[Keys.NotificationHistoryRetentionHours] = value
     }
+    suspend fun setShowBluetoothBattery(value: Boolean) = editSafely {
+        it[Keys.ShowBluetoothBattery] = value
+    }
+    suspend fun setEnableNotificationCooldown(value: Boolean) = editSafely {
+        it[Keys.EnableNotificationCooldown] = value
+    }
+    suspend fun setNotificationCooldownDurationMinutes(value: Int) = editSafely {
+        it[Keys.NotificationCooldownDurationMinutes] = value.coerceIn(1, 60)
+    }
+    suspend fun setNotificationCooldownThreshold(value: Int) = editSafely {
+        it[Keys.NotificationCooldownThreshold] = value.coerceIn(2, 20)
+    }
+    suspend fun setNotificationCooldownExcludedPackages(packages: Set<String>) = editSafely {
+        it[Keys.NotificationCooldownExcludedPackages] = packages
+    }
+    suspend fun setDeveloperModeEnabled(value: Boolean) = editSafely {
+        it[Keys.DeveloperModeEnabled] = value
+    }
+    suspend fun setRecordLogs(value: Boolean) = editSafely {
+        it[Keys.RecordLogs] = value
+    }
+    suspend fun setEnableNotchMode(value: Boolean) = editSafely {
+        it[Keys.EnableNotchMode] = value
+    }
+    suspend fun toggleNotificationCooldownExcludedPackage(packageName: String) = editSafely { prefs ->
+        val current = prefs[Keys.NotificationCooldownExcludedPackages] ?: emptySet()
+        prefs[Keys.NotificationCooldownExcludedPackages] = if (packageName in current) {
+            current - packageName
+        } else {
+            current + packageName
+        }
+    }
 
     suspend fun resetPosition() = editSafely {
         it[Keys.Width] = SmartIslandSettings.Default.width
@@ -411,6 +463,110 @@ class SmartIslandSettingsRepository(private val context: Context) {
         it[Keys.PillColor] = SmartIslandSettings.Default.pillColor
         it[Keys.ShadowElevation] = SmartIslandSettings.Default.shadowElevation
     }
+
+    suspend fun restoreSettings(settings: SmartIslandSettings) = editSafely { prefs ->
+        prefs[Keys.Enabled] = settings.enabled
+        prefs[Keys.Width] = validDimension(
+            settings.width,
+            SmartIslandSettings.Default.width,
+            SmartIslandSettings.MIN_WIDTH,
+            SmartIslandSettings.MAX_WIDTH
+        )
+        prefs[Keys.Height] = validDimension(
+            settings.height,
+            SmartIslandSettings.Default.height,
+            SmartIslandSettings.MIN_HEIGHT,
+            SmartIslandSettings.MAX_HEIGHT
+        )
+        prefs[Keys.XOffset] = validDimension(
+            settings.xOffset,
+            SmartIslandSettings.Default.xOffset,
+            SmartIslandSettings.MIN_X_OFFSET,
+            SmartIslandSettings.MAX_X_OFFSET
+        )
+        prefs[Keys.YOffset] = validDimension(
+            settings.yOffset,
+            SmartIslandSettings.Default.yOffset,
+            SmartIslandSettings.MIN_Y_OFFSET,
+            SmartIslandSettings.MAX_Y_OFFSET
+        )
+        prefs[Keys.CornerRadius] = validDimension(
+            settings.cornerRadius,
+            SmartIslandSettings.Default.cornerRadius,
+            SmartIslandSettings.MIN_CORNER_RADIUS,
+            SmartIslandSettings.MAX_CORNER_RADIUS
+        )
+        prefs[Keys.Opacity] = validDimension(
+            settings.opacity,
+            SmartIslandSettings.Default.opacity,
+            SmartIslandSettings.MIN_OPACITY,
+            SmartIslandSettings.MAX_OPACITY
+        )
+        prefs[Keys.PillColor] = validColor(settings.pillColor, SmartIslandSettings.Default.pillColor)
+        prefs[Keys.BatteryColor] = validColor(settings.batteryColor, SmartIslandSettings.Default.batteryColor)
+        prefs[Keys.NotificationDotColor] = validColor(settings.notificationDotColor, SmartIslandSettings.Default.notificationDotColor)
+        prefs[Keys.MusicVisualizerColor] = validColor(settings.musicVisualizerColor, SmartIslandSettings.Default.musicVisualizerColor)
+        prefs[Keys.HotspotColor] = validColor(settings.hotspotColor, SmartIslandSettings.Default.hotspotColor)
+        prefs[Keys.CallColor] = validColor(settings.callColor, SmartIslandSettings.Default.callColor)
+        prefs[Keys.LiveActivityColor] = validColor(settings.liveActivityColor, SmartIslandSettings.Default.liveActivityColor)
+        prefs[Keys.TransferColor] = validColor(settings.transferColor, SmartIslandSettings.Default.transferColor)
+        prefs[Keys.NavigationColor] = validColor(settings.navigationColor, SmartIslandSettings.Default.navigationColor)
+        prefs[Keys.BluetoothColor] = validColor(settings.bluetoothColor, SmartIslandSettings.Default.bluetoothColor)
+        prefs[Keys.FlashlightColor] = validColor(settings.flashlightColor, SmartIslandSettings.Default.flashlightColor)
+        prefs[Keys.ScreenRecordingColor] = validColor(settings.screenRecordingColor, SmartIslandSettings.Default.screenRecordingColor)
+        prefs[Keys.TimerColor] = validColor(settings.timerColor, SmartIslandSettings.Default.timerColor)
+        prefs[Keys.StopwatchColor] = validColor(settings.stopwatchColor, SmartIslandSettings.Default.stopwatchColor)
+        prefs[Keys.EnableAppShortcuts] = settings.enableAppShortcuts
+        prefs[Keys.ShortcutPackages] = settings.shortcutPackages
+            .asSequence()
+            .filter { it.isNotBlank() && it.length <= MAX_PACKAGE_NAME_LENGTH }
+            .take(MAX_SHORTCUTS)
+            .toSet()
+        prefs[Keys.ShowRecentApps] = settings.showRecentApps
+        prefs[Keys.WelcomeDialogShown] = settings.welcomeDialogShown
+        prefs[Keys.ShowOnLockScreen] = settings.showOnLockScreen
+        prefs[Keys.LockScreenPrivacy] = settings.lockScreenPrivacy.takeIf { it in VALID_LOCK_SCREEN_PRIVACY_VALUES }
+            ?: SmartIslandSettings.Default.lockScreenPrivacy
+        prefs[Keys.ShowNotificationActions] = settings.showNotificationActions
+        prefs[Keys.HideFromNotificationShade] = settings.hideFromNotificationShade
+        prefs[Keys.LiveActivitiesEnabled] = settings.liveActivitiesEnabled
+        prefs[Keys.NavigationEnabled] = settings.navigationEnabled
+        prefs[Keys.DisabledNotificationPackages] = settings.disabledNotificationPackages
+            .asSequence()
+            .filter { it.isNotBlank() && it.length <= MAX_PACKAGE_NAME_LENGTH }
+            .toSet()
+        prefs[Keys.DisabledSoundPackages] = settings.disabledSoundPackages
+            .asSequence()
+            .filter { it.isNotBlank() && it.length <= MAX_PACKAGE_NAME_LENGTH }
+            .toSet()
+        prefs[Keys.HideWhenIdle] = settings.hideWhenIdle
+        prefs[Keys.AutoHidePill] = settings.autoHidePill
+        prefs[Keys.AutoHideTimeoutSeconds] = settings.autoHideTimeoutSeconds.coerceIn(1, 120)
+        prefs[Keys.ShowInLandscape] = settings.showInLandscape
+        prefs[Keys.AutoExpandOnNotification] = settings.autoExpandOnNotification
+        prefs[Keys.EnableShadow] = settings.enableShadow
+        prefs[Keys.ShadowElevation] = validDimension(
+            settings.shadowElevation,
+            SmartIslandSettings.Default.shadowElevation,
+            SmartIslandSettings.MIN_SHADOW_ELEVATION,
+            SmartIslandSettings.MAX_SHADOW_ELEVATION
+        )
+        prefs[Keys.EnableMusicArtworkBackground] = settings.enableMusicArtworkBackground
+        prefs[Keys.DeviceType] = settings.deviceType
+        prefs[Keys.AllowNetworkChecks] = settings.allowNetworkChecks
+        prefs[Keys.EnableNotificationHistory] = settings.enableNotificationHistory
+        prefs[Keys.NotificationHistoryRetentionHours] = settings.notificationHistoryRetentionHours
+        prefs[Keys.ShowBluetoothBattery] = settings.showBluetoothBattery
+        prefs[Keys.EnableNotificationCooldown] = settings.enableNotificationCooldown
+        prefs[Keys.NotificationCooldownDurationMinutes] = settings.notificationCooldownDurationMinutes
+        prefs[Keys.NotificationCooldownThreshold] = settings.notificationCooldownThreshold
+        prefs[Keys.NotificationCooldownExcludedPackages] = settings.notificationCooldownExcludedPackages
+        prefs[Keys.DeveloperModeEnabled] = settings.developerModeEnabled
+        prefs[Keys.RecordLogs] = settings.recordLogs
+        prefs[Keys.EnableNotchMode] = settings.enableNotchMode
+    }
+
+    suspend fun resetAllSettings() = restoreSettings(SmartIslandSettings.Default.copy(welcomeDialogShown = true))
 
     private suspend fun editSafely(transform: suspend (MutablePreferences) -> Unit) {
         try {

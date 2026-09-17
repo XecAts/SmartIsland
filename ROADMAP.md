@@ -23,6 +23,12 @@ Smart Island currently provides:
 - **Tap Anywhere to Open Target App**: Neutral taps on expanded cards open source apps with ongoing music protection
 - **Auto-Hide Pill Inactivity Timer**: Configurable timeout (1s–60s) with 1-tap presets and tap-to-reveal gesture
 - **Landscape Mode Visibility Control**: Opt-in toggle to keep island active and repositioned in landscape orientation
+- **Bluetooth Battery & Earbuds Alternating Animation**: Dual-path battery percentage extraction via intent extra and reflection, with a smooth 3-second spring transition between live battery gauge and earbuds icon in both collapsed and expanded states
+- **Intelligent Notification Cooldown & Anti-Spam Engine**: Sliding window burst detection with customizable quiet duration (1–30 min), trigger threshold (2–10 msgs), and per-app whitelist exclusions
+- **Settings Backup & Restore System**: Scoped Storage JSON export/import via Android SAF, atomic single-transaction DataStore restore, factory reset, and bounds clamping
+- **App Shortcuts Launcher Master Control**: Complete user enable/disable toggle for quick-launch apps grid on empty island with zero background overhead when disabled
+- **iPhone Notch Mode**: Authentic iPhone-style top-docked notch (`y = 0`) with rounded bottom corners, downward expansion, and complete suppression of the split right companion circle
+- **Developer Mode & In-App Log Recording**: 7-tap version unlock, in-memory diagnostic buffer, process logcat capture, live status monitor, and Scoped Storage `.txt` export
 - Complete **Material 3 Expressive** design system with Android 12+ wallpaper dynamic color adaptation
 - **Island Background Opacity & Transparency Controls**: Continuous opacity adjustment (20% to 100%) with 4 quick presets (Solid, Dark, Glass, Clear)
 - **High-Performance Virtualized Notification History**: Ultra-fast `LazyColumn` log with `AppIconMemoryCache`, search bar, date grouping, and **Delete by App** bulk management
@@ -37,7 +43,7 @@ Smart Island currently provides:
   - `Navigation` (turn-by-turn routing arrows, distance, and ETA)
   - `DownloadUpload` (transfer speeds MB/s, progress meters, sync suppression)
   - `Hotspot` (active tethering client count & quick turn-off)
-  - `Bluetooth` (device battery & connectivity)
+  - `Bluetooth` (dual-path battery extraction & smooth spring-animated alternation between battery info and earbuds icon)
   - `Flashlight` (torch state indicator & toggle)
   - `ScreenRecording` (live elapsed timer)
 - **Inline Reply & Soft-Keyboard WindowManager Focus**: Seamless IME typing right inside the island with auto-collapse pause

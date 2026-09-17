@@ -37,9 +37,20 @@ import androidx.compose.material.icons.rounded.Navigation
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.BatteryAlert
 import androidx.compose.material.icons.rounded.BatterySaver
+import androidx.compose.material.icons.rounded.BatteryFull
+import androidx.compose.material.icons.rounded.Battery5Bar
+import androidx.compose.material.icons.rounded.BatteryChargingFull
+import androidx.compose.material.icons.rounded.Headphones
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.AvTimer
@@ -277,13 +288,7 @@ fun IslandCollapsedContent(
                     HotspotCollapsedRight(notification = notification, settings = settings)
                 }
                 IslandMode.Bluetooth -> {
-                    Image(
-                        painter = painterResource(id = com.agupta07505.smartisland.R.drawable.ic_bluetooth_device),
-                        contentDescription = "Bluetooth Device",
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(CircleShape)
-                    )
+                    BluetoothCollapsedRight(notification = notification, settings = settings)
                 }
                 IslandMode.Flashlight -> {
                     Text(
@@ -1015,6 +1020,95 @@ internal fun StopwatchTimer(notification: IslandNotification?, color: Color) {
         fontSize = 11.sp,
         fontWeight = FontWeight.Bold
     )
+}
+
+@Composable
+fun BluetoothCollapsedRight(
+    notification: IslandNotification?,
+    settings: SmartIslandSettings
+) {
+    val batteryLevel = remember(notification?.text, notification?.progress) {
+        notification?.let { notif ->
+            if (notif.progress in 1..100 && notif.progressMax == 100) notif.progress
+            else {
+                val match = Regex("""(\d{1,3})%""").find(notif.text)
+                match?.groupValues?.get(1)?.toIntOrNull()?.coerceIn(0, 100)
+            }
+        }
+    }
+
+    if (!settings.showBluetoothBattery || batteryLevel == null) {
+        Image(
+            painter = painterResource(id = com.agupta07505.smartisland.R.drawable.ic_bluetooth_device),
+            contentDescription = "Bluetooth Device",
+            modifier = Modifier
+                .size(20.dp)
+                .clip(CircleShape)
+        )
+    } else {
+        var showBattery by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            while (true) {
+                kotlinx.coroutines.delay(3000L)
+                showBattery = !showBattery
+            }
+        }
+
+        AnimatedContent(
+            targetState = showBattery,
+            transitionSpec = {
+                (fadeIn(animationSpec = spring(stiffness = 520f, dampingRatio = 0.72f)) +
+                        scaleIn(initialScale = 0.72f, animationSpec = spring(stiffness = 520f, dampingRatio = 0.72f)))
+                    .togetherWith(
+                        fadeOut(animationSpec = spring(stiffness = 520f, dampingRatio = 0.72f)) +
+                                scaleOut(targetScale = 0.72f, animationSpec = spring(stiffness = 520f, dampingRatio = 0.72f))
+                    )
+            },
+            label = "BluetoothCollapsedSwitch"
+        ) { isBatteryState ->
+            if (isBatteryState) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    val batteryColor = if (batteryLevel <= 20) Color(0xFFEF4444) else Color(0xFF10B981)
+                    val batteryIcon = when {
+                        batteryLevel >= 80 -> Icons.Rounded.BatteryFull
+                        batteryLevel >= 40 -> Icons.Rounded.Battery5Bar
+                        batteryLevel >= 20 -> Icons.Rounded.BatteryChargingFull
+                        else -> Icons.Rounded.BatteryAlert
+                    }
+                    Icon(
+                        imageVector = batteryIcon,
+                        contentDescription = "Battery",
+                        tint = batteryColor,
+                        modifier = Modifier.size(13.dp)
+                    )
+                    Text(
+                        text = "$batteryLevel%",
+                        color = batteryColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .background(Color(settings.bluetoothColor).copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Headphones,
+                        contentDescription = "Earbuds",
+                        tint = Color(settings.bluetoothColor),
+                        modifier = Modifier.size(13.dp)
+                    )
+                }
+            }
+        }
+    }
 }
 
 // Collapsed content animation

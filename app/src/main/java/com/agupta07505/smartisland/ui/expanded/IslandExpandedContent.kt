@@ -66,6 +66,9 @@ fun IslandExpandedContent(
     onReplyStateChanged: (Boolean) -> Unit = {}
 ) {
     if (notifications.isEmpty()) {
+        if (!settings.enableAppShortcuts) {
+            return
+        }
         val density = LocalDensity.current
         Box(
             modifier = modifier

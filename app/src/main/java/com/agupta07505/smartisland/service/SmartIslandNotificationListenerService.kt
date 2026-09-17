@@ -42,10 +42,12 @@ import com.agupta07505.smartisland.data.SmartIslandSettingsRepository
 import com.agupta07505.smartisland.model.IslandMode
 import com.agupta07505.smartisland.model.IslandNotification
 import com.agupta07505.smartisland.model.IslandNotificationAction
+import com.agupta07505.smartisland.util.NotificationCooldownManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -71,6 +73,7 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
     @Inject lateinit var notificationRepository: INotificationRepository
     @Inject lateinit var historyRepository: INotificationHistoryRepository
     private var lastHistoryCleanupTime = 0L
+    private val cooldownReleaseJobs = ConcurrentHashMap<String, Job>()
 
     override fun onCreate() {
         super.onCreate()
@@ -114,6 +117,9 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         isSystemConnected = false
+        cooldownReleaseJobs.values.forEach { it.cancel() }
+        cooldownReleaseJobs.clear()
+        NotificationCooldownManager.clear()
         pendingRemovals.values.forEach { it.cancel() }
         pendingRemovals.clear()
         pendingSuppressionJobs.values.forEach { it.cancel() }
@@ -423,6 +429,13 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
             settings.deviceType
         )
         android.util.Log.d(TAG, "handleNotificationPosted: mode=$mode key=${sbn.key} title=${extras.getCharSequence(Notification.EXTRA_TITLE)}")
+
+        // Check intelligent anti-spam notification cooldown
+        if (NotificationCooldownManager.shouldThrottle(sbn, settings, mode)) {
+            android.util.Log.d(TAG, "Notification throttled by cooldown: pkg=${sbn.packageName} key=${sbn.key}")
+            scheduleCooldownRelease(sbn.packageName, settings.notificationCooldownDurationMinutes)
+            return
+        }
 
         val shouldIslandOnly = shouldBeIslandOnly(notification, mode)
 
@@ -996,6 +1009,23 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
     }
 
     private data class MediaInfo(val artwork: Bitmap?, val positionMs: Long?, val durationMs: Long?, val isPlaying: Boolean)
+
+    private fun scheduleCooldownRelease(packageName: String, durationMinutes: Int) {
+        if (cooldownReleaseJobs[packageName]?.isActive == true) return
+        val job = serviceScope.launch {
+            delay(durationMinutes * 60_000L)
+            val buffered = NotificationCooldownManager.pollBufferedNotification(packageName)
+            if (buffered != null) {
+                val current = repository.settings.first()
+                if (current.enabled) {
+                    android.util.Log.d(TAG, "Releasing buffered cooldown notification: pkg=$packageName key=${buffered.key}")
+                    handleNotificationPosted(buffered, current)
+                }
+            }
+            cooldownReleaseJobs.remove(packageName)
+        }
+        cooldownReleaseJobs[packageName] = job
+    }
 
     companion object {
         @Volatile

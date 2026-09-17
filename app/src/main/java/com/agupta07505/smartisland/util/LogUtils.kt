@@ -16,6 +16,7 @@ inline fun <T> runCatchingLogged(tag: String, message: String = "Operation faile
         block()
     } catch (e: Exception) {
         try {
+            AppLogRecorder.e(tag, message, e)
             if (BuildConfig.DEBUG) {
                 Log.e(tag, message, e)
             }
@@ -35,6 +36,7 @@ suspend inline fun <T> runSuspendCatchingLogged(
         throw error
     } catch (error: Exception) {
         try {
+            AppLogRecorder.e(tag, message, error)
             if (BuildConfig.DEBUG) {
                 Log.e(tag, message, error)
             }

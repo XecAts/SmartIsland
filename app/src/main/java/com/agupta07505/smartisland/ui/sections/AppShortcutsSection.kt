@@ -94,21 +94,8 @@ fun AppShortcutsSection(
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
-                    text = stringResource(R.string.shortcuts_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(R.string.shortcuts_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                // Master Switch: Enable / Disable App Shortcut Launcher
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -121,27 +108,29 @@ fun AppShortcutsSection(
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(38.dp)
+                                .size(40.dp)
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)),
+                                .background(
+                                    if (settings.enableAppShortcuts) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                                    else MaterialTheme.colorScheme.surfaceVariant
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = Icons.Rounded.History,
+                                imageVector = Icons.Rounded.Apps,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp)
+                                tint = if (settings.enableAppShortcuts) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                         Column {
                             Text(
-                                text = stringResource(R.string.toggle_recent_apps_title),
+                                text = stringResource(R.string.toggle_enable_shortcuts_title),
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = if (usageAccess) stringResource(R.string.toggle_recent_apps_desc_granted)
-                                else stringResource(R.string.toggle_recent_apps_desc_needed),
+                                text = stringResource(R.string.toggle_enable_shortcuts_desc),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -149,31 +138,88 @@ fun AppShortcutsSection(
                     }
                     Spacer(Modifier.width(12.dp))
                     Switch(
-                        checked = settings.showRecentApps,
+                        checked = settings.enableAppShortcuts,
                         onCheckedChange = { enabled ->
-                            if (enabled && !usageAccess) {
-                                context.safeStartActivity(
-                                    Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS),
-                                    "Cannot open Usage access settings on this device."
-                                )
-                            }
-                            scope.launch { repository.setShowRecentApps(enabled) }
+                            scope.launch { repository.setEnableAppShortcuts(enabled) }
                         }
                     )
                 }
 
-                if (!usageAccess && settings.showRecentApps) {
-                    OutlinedButton(
-                        onClick = {
-                            context.safeStartActivity(
-                                Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS),
-                                "Cannot open Usage access settings on this device."
-                            )
-                        },
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier.fillMaxWidth()
+                if (settings.enableAppShortcuts) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                    Text(
+                        text = stringResource(R.string.shortcuts_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Grant Usage Access Permission", fontWeight = FontWeight.SemiBold)
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.History,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Column {
+                                Text(
+                                    text = stringResource(R.string.toggle_recent_apps_title),
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = if (usageAccess) stringResource(R.string.toggle_recent_apps_desc_granted)
+                                    else stringResource(R.string.toggle_recent_apps_desc_needed),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Switch(
+                            checked = settings.showRecentApps,
+                            onCheckedChange = { enabled ->
+                                if (enabled && !usageAccess) {
+                                    context.safeStartActivity(
+                                        Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS),
+                                        "Cannot open Usage access settings on this device."
+                                    )
+                                }
+                                scope.launch { repository.setShowRecentApps(enabled) }
+                            }
+                        )
+                    }
+
+                    if (!usageAccess && settings.showRecentApps) {
+                        OutlinedButton(
+                            onClick = {
+                                context.safeStartActivity(
+                                    Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS),
+                                    "Cannot open Usage access settings on this device."
+                                )
+                            },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Grant Usage Access Permission", fontWeight = FontWeight.SemiBold)
+                        }
                     }
                 }
             }

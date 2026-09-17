@@ -92,6 +92,7 @@
     <string name="card_app_shortcuts_title">Inicializador de Atalhos de Apps</string>
     <string name="card_app_shortcuts_desc">Inicie rapidamente apps fixados ou recentes a partir da ilha recolhida</string>
     <string name="card_app_shortcuts_status">%1$d/8 fixados</string>
+    <string name="card_app_shortcuts_status_disabled">Desativado</string>
     <string name="card_notification_history_title">Histórico e Registros de Notificações</string>
     <string name="card_notification_history_desc">Visualize e pesquise notificações salvas com agrupamento por data e limpeza automática</string>
     <string name="card_notification_history_status_active">Registro Ativo</string>
@@ -284,12 +285,32 @@
     <string name="auto_hide_timeout_label">Tempo Limite para Ocultar</string>
     <string name="toggle_show_in_landscape_title">Exibir no Modo Paisagem</string>
     <string name="toggle_show_in_landscape_desc">Manter o Smart Island visível ao girar o dispositivo para o modo paisagem</string>
+    <string name="toggle_bluetooth_battery_title">Bateria Bluetooth e Animação de Fones</string>
+    <string name="toggle_bluetooth_battery_desc">Exibir porcentagem de bateria do dispositivo conectado e alternar suavemente com o ícone de fones na ilha</string>
     <string name="live_nav_services_title">Atividades ao Vivo e Navegação GPS</string>
     <string name="live_nav_services_desc">Rastreamento de entregas, viagens e setas de direção de mapas em tempo real</string>
     <string name="toggle_live_activities_title">Rastreamento de Entregas e Viagens ao Vivo</string>
     <string name="toggle_live_activities_desc">Alertas em tempo real para Uber, iFood, 99, Rappi, etc.</string>
     <string name="toggle_navigation_title">Navegação GPS Passo a Passo</string>
     <string name="toggle_navigation_desc">Setas de direção e distância em tempo real para Google Maps e Waze</string>
+
+    <!-- Notification Cooldown & Anti-Spam -->
+    <string name="notification_cooldown_title">Resfriamento e Anti-Spam de Notificações</string>
+    <string name="notification_cooldown_desc">Silencia temporariamente aplicativos que enviam alertas em excesso e exibe a notificação mais recente após um intervalo</string>
+    <string name="toggle_enable_cooldown_title">Ativar Resfriamento Anti-Spam</string>
+    <string name="toggle_enable_cooldown_desc">Controla notificações repetitivas do mesmo app e entrega a mensagem mais recente após o resfriamento</string>
+    <string name="cooldown_duration_title">Duração do Resfriamento: %1$d min</string>
+    <string name="cooldown_duration_slider">Tempo de Silêncio</string>
+    <string name="cooldown_threshold_title">Disparo de Spam: %1$d alertas em 30s</string>
+    <string name="cooldown_threshold_slider">Limite de Alertas</string>
+    <string name="cooldown_excluded_apps_title">Aplicativos Excluídos (Nunca Resfriar)</string>
+    <string name="cooldown_excluded_apps_desc">Os aplicativos selecionados sempre exibirão alertas imediatamente, sem sofrer limitação</string>
+    <string name="cooldown_excluded_count">%1$d apps excluídos (alerta imediato)</string>
+    <string name="btn_exclude_all">Excluir Todos</string>
+    <string name="btn_clear_exclusions">Limpar Todos</string>
+    <string name="chip_excluded">Alerta Imediato</string>
+    <string name="chip_cooldown_active">Resfriamento Ativo</string>
+
     <string name="app_alerts_manager_title">Gerenciador de Alertas e Sons por App</string>
     <string name="app_alerts_manager_desc">Gerencie a exibição de notificações e reprodução de som individualmente para cada app</string>
     <string name="search_installed_apps">Pesquisar aplicativos instalados…</string>
@@ -323,6 +344,8 @@
     <!-- App Shortcuts -->
     <string name="shortcuts_title">Inicializador Rápido com Ilha Vazia</string>
     <string name="shortcuts_desc">Quando não houver alertas ativos, tocar na ilha revela sua grade de aplicativos rápidos (até 8 apps).</string>
+    <string name="toggle_enable_shortcuts_title">Ativar Inicializador de Atalhos</string>
+    <string name="toggle_enable_shortcuts_desc">Toque na ilha vazia para acessar aplicativos fixados ou recentes</string>
     <string name="toggle_recent_apps_title">Preencher Automaticamente com Apps Recentes</string>
     <string name="toggle_recent_apps_desc_granted">Preenche os espaços livres com seus aplicativos usados mais recentemente</string>
     <string name="toggle_recent_apps_desc_needed">Permissão de acesso ao uso necessária para apps recentes</string>
@@ -395,4 +418,79 @@
     <string name="terms_of_use_title">Termos de Uso</string>
     <string name="version_title">Versão</string>
     <string name="developer_contact_title">Desenvolvedor e Contato</string>
+
+    <!-- Backup & Restore -->
+    <string name="detail_title_backup_restore">Backup e Restauração</string>
+    <string name="card_backup_restore_title">Backup e Restauração de Ajustes</string>
+    <string name="card_backup_restore_desc">Exporte e importe seus ajustes de layout, temas de cores e regras para JSON</string>
+    <string name="card_backup_restore_status">Pronto</string>
+    <string name="backup_overview_title">Backup e Restauração de Configurações</string>
+    <string name="backup_overview_desc">Salve suas coordenadas de entalhe, dimensões personalizadas, temas de cores, atalhos de apps e regras em um arquivo de backup, ou restaure uma configuração prévia.</string>
+    <string name="backup_status_summary">Resumo da Configuração</string>
+    <string name="backup_status_details">Largura: %1$ddp • Opacidade: %2$d%% • Elevação: %3$ddp • %4$d Atalhos</string>
+    <string name="backup_export_card_title">Exportar Backup de Configurações</string>
+    <string name="backup_export_card_desc">Salva sua geometria da ilha, temas e regras em um arquivo .json seguro pelo Storage Access Framework do Android.</string>
+    <string name="btn_export_backup">Exportar Backup (JSON)</string>
+    <string name="backup_restore_card_title">Restaurar do Backup</string>
+    <string name="backup_restore_card_desc">Selecione um arquivo de backup JSON do Smart Island exportado anteriormente para restaurar todas as configurações.</string>
+    <string name="btn_restore_backup">Selecionar Arquivo de Backup</string>
+    <string name="backup_reset_card_title">Restaurar Padrões de Fábrica</string>
+    <string name="backup_reset_card_desc">Reverte todos os tamanhos, posições, desvios, temas de cores e regras da ilha para os valores originais.</string>
+    <string name="btn_reset_all_settings">Redefinir Todas as Configurações</string>
+    <string name="dialog_restore_confirm_title">Restaurar Configurações?</string>
+    <string name="dialog_restore_confirm_desc">Isso substituirá o layout da ilha, cores e regras atuais pela configuração deste arquivo de backup (%1$s configurações detectadas).\n\nExportado em: %2$s\nVersão do App: %3$s\n\nDeseja continuar?</string>
+    <string name="dialog_reset_confirm_title">Redefinir Todas as Configurações?</string>
+    <string name="dialog_reset_confirm_desc">Tem certeza de que deseja redefinir todas as configurações e ajustes da ilha para os valores padrão de fábrica? Esta ação não pode ser desfeita.</string>
+    <string name="toast_backup_exported_success">Backup de configurações salvo com sucesso!</string>
+    <string name="toast_backup_export_failed">Falha ao salvar o backup: %1$s</string>
+    <string name="toast_backup_restored_success">Configurações restauradas com sucesso!</string>
+    <string name="toast_backup_restore_failed">Falha ao restaurar o backup: %1$s</string>
+    <string name="toast_backup_invalid_file">O arquivo selecionado não é um backup válido do Smart Island.</string>
+    <string name="toast_reset_all_success">Todas as configurações foram redefinidas para os padrões</string>
+    <string name="btn_backup_restore_shortcut">Backup e Restauração</string>
+
+    <!-- Developer Options & Diagnostic Logs -->
+    <string name="category_developer_options">Desenvolvedor e Diagnóstico</string>
+    <string name="card_developer_options_title">Opções de Desenvolvedor e Logs</string>
+    <string name="card_developer_options_desc">Grave logs de diagnóstico, veja o snapshot do sistema e exporte para o armazenamento</string>
+    <string name="detail_title_developer_options">Opções de Desenvolvedor</string>
+    <string name="dev_options_master_title">Modo Desenvolvedor</string>
+    <string name="dev_options_master_desc">Ativa ferramentas avançadas de registro de logs e telemetria do sistema</string>
+    <string name="dev_record_logs_title">Gravar Logs do Aplicativo</string>
+    <string name="dev_record_logs_desc">Grave notificações, ciclo de vida da ilha e exceções para investigar problemas</string>
+    <string name="status_recording_active">GRAVAÇÃO ATIVA</string>
+    <string name="status_recording_idle">Gravação Inativa</string>
+    <string name="dev_log_entries_count">%1$d entradas</string>
+    <string name="dev_export_section_title">Gerenciamento e Exportação de Logs</string>
+    <string name="btn_export_logs_storage">Exportar Logs para o Armazenamento (.txt)</string>
+    <string name="btn_share_logs">Compartilhar Logs</string>
+    <string name="btn_copy_logs">Copiar Logs</string>
+    <string name="btn_clear_logs">Limpar Logs Gravados</string>
+    <string name="share_logs_title">Compartilhar Relatório de Diagnóstico do Smart Island</string>
+    <string name="toast_logs_exported_success">Logs de diagnóstico exportados com sucesso para o armazenamento!</string>
+    <string name="toast_logs_export_failed">Falha ao exportar logs: %1$s</string>
+    <string name="toast_logs_copied">Logs de diagnóstico copiados para a área de transferência!</string>
+    <string name="toast_logs_cleared">Buffer de logs gravados foi limpo.</string>
+    <string name="toast_dev_mode_already_active">O modo desenvolvedor já está ativado.</string>
+    <string name="toast_dev_mode_steps_remaining">Faltam %1$d etapas para você se tornar um desenvolvedor.</string>
+    <string name="toast_dev_mode_enabled">Modo desenvolvedor desbloqueado! As Opções de Desenvolvedor já estão disponíveis.</string>
+    <string name="dialog_clear_logs_title">Limpar Buffer de Logs?</string>
+    <string name="dialog_clear_logs_desc">Isso descartará permanentemente todos os logs gravados na memória e rastreamentos em cache.</string>
+    <string name="dev_system_snapshot_title">Snapshot de Diagnóstico em Tempo Real</string>
+    <string name="dev_system_snapshot_desc">Hardware atual, permissões e parâmetros da ilha</string>
+    <string name="dev_mode_unlocked_banner_title">Modo Desenvolvedor Ativo</string>
+    <string name="dev_mode_unlocked_banner_desc">O registro de diagnósticos e a telemetria do sistema estão disponíveis nas Opções de Desenvolvedor.</string>
+
+    <!-- iPhone Notch Mode -->
+    <string name="notch_mode_card_title">Modo Notch iPhone</string>
+    <string name="notch_mode_card_desc">Substitui a Ilha Dinâmica flutuante por um entalhe estilo iPhone fixado na borda superior da tela, com cantos inferiores arredondados e sem círculo auxiliar à direita.</string>
+    <string name="notch_mode_toggle_title">Ativar Modo Notch iPhone</string>
+    <string name="notch_mode_toggle_desc">Fixa a ilha no topo e remove o círculo secundário à direita</string>
+    <string name="btn_apply_notch_preset">Aplicar Tamanho Recomendado do Notch iPhone</string>
+    <string name="toast_notch_mode_enabled">Modo Notch iPhone ativado</string>
+    <string name="toast_notch_mode_disabled">Ilha Dinâmica flutuante restaurada</string>
+    <string name="toast_notch_preset_applied">Dimensões recomendadas do notch iPhone aplicadas (%1$ddp x %2$ddp)</string>
+    <string name="preset_iphone_notch">Notch iPhone</string>
+    <string name="preset_iphone_notch_desc">175x35dp, fixado no topo</string>
+    <string name="y_offset_locked_notch_mode">Fixado na borda superior (0 dp) no Modo Notch</string>
 </resources>

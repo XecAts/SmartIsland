@@ -92,6 +92,7 @@
     <string name="card_app_shortcuts_title">App Shortcuts Launcher</string>
     <string name="card_app_shortcuts_desc">Quick-launch pinned applications or recent apps from collapsed island</string>
     <string name="card_app_shortcuts_status">%1$d/8 pinned</string>
+    <string name="card_app_shortcuts_status_disabled">Disabled</string>
     <string name="card_notification_history_title">Notification History &amp; Logs</string>
     <string name="card_notification_history_desc">View and search saved notifications with day/time grouping &amp; auto-clean timer</string>
     <string name="card_notification_history_status_active">Logging Active</string>
@@ -284,12 +285,32 @@
     <string name="auto_hide_timeout_label">Hide Inactivity Timeout</string>
     <string name="toggle_show_in_landscape_title">Show in Landscape Mode</string>
     <string name="toggle_show_in_landscape_desc">Keep Smart Island visible when rotating device to landscape orientation</string>
+    <string name="toggle_bluetooth_battery_title">Bluetooth Battery &amp; Earbuds Animation</string>
+    <string name="toggle_bluetooth_battery_desc">Show connected device battery percentage and smoothly alternate with the earbuds icon in the island</string>
     <string name="live_nav_services_title">Live Activities &amp; Navigation</string>
     <string name="live_nav_services_desc">Real-time delivery progress, rideshare tracking, and map direction arrows</string>
     <string name="toggle_live_activities_title">Live Delivery &amp; Ride Tracking</string>
     <string name="toggle_live_activities_desc">Real-time live badges for Uber, Swiggy, Zomato, Blinkit, Rapido, Ola, etc.</string>
     <string name="toggle_navigation_title">Turn-by-Turn Map Navigation</string>
     <string name="toggle_navigation_desc">Real-time direction arrows and distance for Google Maps &amp; Waze</string>
+
+    <!-- Notification Cooldown & Anti-Spam -->
+    <string name="notification_cooldown_title">Notification Cooldown &amp; Anti-Spam</string>
+    <string name="notification_cooldown_desc">Temporarily cool down noisy apps that spam multiple alerts, and surface the latest notification after a quiet delay</string>
+    <string name="toggle_enable_cooldown_title">Enable Anti-Spam Cooldown</string>
+    <string name="toggle_enable_cooldown_desc">Hold back rapid-fire alerts from the same app and deliver the latest message after cooldown</string>
+    <string name="cooldown_duration_title">Cooldown Duration: %1$d min</string>
+    <string name="cooldown_duration_slider">Quiet Period Duration</string>
+    <string name="cooldown_threshold_title">Spam Trigger: %1$d alerts in 30s</string>
+    <string name="cooldown_threshold_slider">Trigger Alert Count</string>
+    <string name="cooldown_excluded_apps_title">Excluded Apps (Never Cooldown)</string>
+    <string name="cooldown_excluded_apps_desc">Selected apps will always alert immediately without being throttled</string>
+    <string name="cooldown_excluded_count">%1$d apps excluded (always alert)</string>
+    <string name="btn_exclude_all">Exclude All</string>
+    <string name="btn_clear_exclusions">Clear All</string>
+    <string name="chip_excluded">Always Alert</string>
+    <string name="chip_cooldown_active">Cooldown Active</string>
+
     <string name="app_alerts_manager_title">App Alerts &amp; Sound Manager</string>
     <string name="app_alerts_manager_desc">Manage notification display and sound playback on a per-app basis</string>
     <string name="search_installed_apps">Search installed applications…</string>
@@ -323,6 +344,8 @@
     <!-- App Shortcuts -->
     <string name="shortcuts_title">Empty Island Quick Launcher</string>
     <string name="shortcuts_desc">When there are no active alerts, tapping the island reveals your quick-launch apps grid (up to 8 apps).</string>
+    <string name="toggle_enable_shortcuts_title">Enable App Shortcut Launcher</string>
+    <string name="toggle_enable_shortcuts_desc">Tap the empty island to access quick-launch pinned or recent applications</string>
     <string name="toggle_recent_apps_title">Auto-fill with Recent Apps</string>
     <string name="toggle_recent_apps_desc_granted">Fills open slots with your most recently used apps</string>
     <string name="toggle_recent_apps_desc_needed">Usage stats permission required for recent apps</string>
@@ -395,4 +418,79 @@
     <string name="terms_of_use_title">Terms of Use</string>
     <string name="version_title">Version</string>
     <string name="developer_contact_title">Developer &amp; Contact</string>
+
+    <!-- Backup & Restore -->
+    <string name="detail_title_backup_restore">Backup &amp; Restore</string>
+    <string name="card_backup_restore_title">Backup &amp; Restore Settings</string>
+    <string name="card_backup_restore_desc">Export and import your layout adjustments, custom color themes, and rules to JSON</string>
+    <string name="card_backup_restore_status">Ready</string>
+    <string name="backup_overview_title">Settings Backup &amp; Restore</string>
+    <string name="backup_overview_desc">Save your personalized notch positioning, custom dimensions, color themes, app shortcuts, and notification rules to a backup file, or restore a previously saved configuration.</string>
+    <string name="backup_status_summary">Configuration Summary</string>
+    <string name="backup_status_details">Width: %1$ddp • Opacity: %2$d%% • Elevation: %3$ddp • %4$d Shortcuts</string>
+    <string name="backup_export_card_title">Export Settings Backup</string>
+    <string name="backup_export_card_desc">Saves your current island geometry, custom themes, and rules into a portable .json file using Android Storage Access Framework.</string>
+    <string name="btn_export_backup">Export Backup (JSON)</string>
+    <string name="backup_restore_card_title">Restore from Backup</string>
+    <string name="backup_restore_card_desc">Select a previously exported Smart Island JSON backup file to restore all your adjustments and configurations.</string>
+    <string name="btn_restore_backup">Select Backup File</string>
+    <string name="backup_reset_card_title">Reset to Factory Defaults</string>
+    <string name="backup_reset_card_desc">Revert all island sizes, positions, offsets, color themes, and rules back to their original default values.</string>
+    <string name="btn_reset_all_settings">Reset All Settings</string>
+    <string name="dialog_restore_confirm_title">Restore Settings?</string>
+    <string name="dialog_restore_confirm_desc">This will replace your current island layout, colors, and settings with the configuration from this backup file (%1$s settings detected).\n\nExported: %2$s\nApp Version: %3$s\n\nDo you wish to proceed?</string>
+    <string name="dialog_reset_confirm_title">Reset All Settings?</string>
+    <string name="dialog_reset_confirm_desc">Are you sure you want to reset all island settings and adjustments back to default factory values? This action cannot be undone.</string>
+    <string name="toast_backup_exported_success">Settings backup saved successfully!</string>
+    <string name="toast_backup_export_failed">Failed to save backup: %1$s</string>
+    <string name="toast_backup_restored_success">Settings successfully restored!</string>
+    <string name="toast_backup_restore_failed">Failed to restore backup: %1$s</string>
+    <string name="toast_backup_invalid_file">Selected file is not a valid Smart Island backup.</string>
+    <string name="toast_reset_all_success">All settings reset to defaults</string>
+    <string name="btn_backup_restore_shortcut">Backup &amp; Restore</string>
+
+    <!-- Developer Options & Diagnostic Logs -->
+    <string name="category_developer_options">Developer &amp; Diagnostics</string>
+    <string name="card_developer_options_title">Developer Options &amp; Logs</string>
+    <string name="card_developer_options_desc">Record in-app diagnostic logs, view system snapshot, and export to storage</string>
+    <string name="detail_title_developer_options">Developer Options</string>
+    <string name="dev_options_master_title">Developer Mode</string>
+    <string name="dev_options_master_desc">Enables advanced diagnostic logging and system telemetry tools</string>
+    <string name="dev_record_logs_title">Record Application Logs</string>
+    <string name="dev_record_logs_desc">Record notifications, overlay lifecycles, and exceptions to investigate issues</string>
+    <string name="status_recording_active">RECORDING ACTIVE</string>
+    <string name="status_recording_idle">Logging Idle</string>
+    <string name="dev_log_entries_count">%1$d entries</string>
+    <string name="dev_export_section_title">Log Management &amp; Export</string>
+    <string name="btn_export_logs_storage">Export Logs to Storage (.txt)</string>
+    <string name="btn_share_logs">Share Logs</string>
+    <string name="btn_copy_logs">Copy Logs</string>
+    <string name="btn_clear_logs">Clear Recorded Logs</string>
+    <string name="share_logs_title">Share Smart Island Diagnostic Report</string>
+    <string name="toast_logs_exported_success">Diagnostic logs exported successfully to storage!</string>
+    <string name="toast_logs_export_failed">Failed to export logs: %1$s</string>
+    <string name="toast_logs_copied">Diagnostic logs copied to clipboard!</string>
+    <string name="toast_logs_cleared">Recorded log buffer cleared.</string>
+    <string name="toast_dev_mode_already_active">Developer mode is already enabled.</string>
+    <string name="toast_dev_mode_steps_remaining">You are now %1$d steps away from being a developer.</string>
+    <string name="toast_dev_mode_enabled">Developer mode unlocked! Developer Options are now available.</string>
+    <string name="dialog_clear_logs_title">Clear Log Buffer?</string>
+    <string name="dialog_clear_logs_desc">This will permanently discard all in-memory recorded logs and cached traces.</string>
+    <string name="dev_system_snapshot_title">Live Diagnostic Snapshot</string>
+    <string name="dev_system_snapshot_desc">Current hardware, permissions, and island parameters</string>
+    <string name="dev_mode_unlocked_banner_title">Developer Mode Active</string>
+    <string name="dev_mode_unlocked_banner_desc">Diagnostic logging and system telemetry are available in Developer Options.</string>
+
+    <!-- iPhone Notch Mode -->
+    <string name="notch_mode_card_title">iPhone Notch Mode</string>
+    <string name="notch_mode_card_desc">Transforms Smart Island into an authentic iPhone-style notch docked at the top screen edge, with rounded bottom corners and zero companion circles.</string>
+    <string name="notch_mode_toggle_title">Enable iPhone Notch Mode</string>
+    <string name="notch_mode_toggle_desc">Docks the island to the top edge and removes the secondary right circle</string>
+    <string name="btn_apply_notch_preset">Apply Recommended iPhone Notch Size</string>
+    <string name="toast_notch_mode_enabled">iPhone Notch Mode enabled</string>
+    <string name="toast_notch_mode_disabled">Floating Dynamic Island restored</string>
+    <string name="toast_notch_preset_applied">Applied recommended iPhone notch dimensions (%1$ddp x %2$ddp)</string>
+    <string name="preset_iphone_notch">iPhone Notch</string>
+    <string name="preset_iphone_notch_desc">175x35dp, top edge docked</string>
+    <string name="y_offset_locked_notch_mode">Docked to top edge (0 dp) in Notch Mode</string>
 </resources>

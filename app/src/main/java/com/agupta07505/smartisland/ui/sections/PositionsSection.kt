@@ -33,6 +33,7 @@ import androidx.compose.material.icons.rounded.CenterFocusStrong
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.FitScreen
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -72,7 +73,8 @@ import kotlin.math.abs
 @Composable
 fun PositionsSection(
     settings: SmartIslandSettings,
-    repository: SmartIslandSettingsRepository
+    repository: SmartIslandSettingsRepository,
+    onNavigateToBackup: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -115,6 +117,136 @@ fun PositionsSection(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        // Card 0: iPhone Notch Mode
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(
+                1.dp,
+                if (settings.enableNotchMode) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (settings.enableNotchMode) MaterialTheme.colorScheme.primaryContainer
+                                    else MaterialTheme.colorScheme.surfaceVariant
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.FitScreen,
+                                contentDescription = null,
+                                tint = if (settings.enableNotchMode) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.notch_mode_card_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                if (settings.enableNotchMode) {
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                    ) {
+                                        Text(
+                                            text = stringResource(R.string.status_active),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            Text(
+                                text = stringResource(R.string.notch_mode_card_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Switch(
+                        checked = settings.enableNotchMode,
+                        onCheckedChange = { enabled ->
+                            scope.launch {
+                                repository.setEnableNotchMode(enabled)
+                                if (enabled) {
+                                    Toast.makeText(context, context.getString(R.string.toast_notch_mode_enabled), Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, context.getString(R.string.toast_notch_mode_disabled), Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    )
+                }
+
+                if (settings.enableNotchMode) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                repository.setPosition(
+                                    width = 175f,
+                                    height = 35f,
+                                    xOffset = 0f,
+                                    yOffset = 0f
+                                )
+                                repository.setCornerRadius(20f)
+                            }
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.toast_notch_preset_applied, 175, 35),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Refresh,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.btn_apply_notch_preset))
+                    }
+                }
+            }
+        }
+
         // Card 1: Quick Responsive Layout Presets
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -249,27 +381,55 @@ fun PositionsSection(
                         )
                     }
 
-                    // Row 3: Compact Pill
-                    val isCompactSelected = abs(settings.xOffset) < 5f && abs(settings.width - 92f) < 6f
-                    PresetCardItem(
-                        title = stringResource(R.string.preset_compact_pill),
-                        subtitle = stringResource(R.string.preset_compact_pill_desc),
-                        icon = Icons.Rounded.Smartphone,
-                        isSelected = isCompactSelected,
-                        onClick = {
-                            scope.launch {
-                                repository.setPosition(
-                                    width = 92f,
-                                    height = 30f,
-                                    xOffset = 0f,
-                                    yOffset = 8f
-                                )
-                                repository.setCornerRadius(18f)
-                            }
-                            Toast.makeText(context, context.getString(R.string.toast_applied_compact_preset), Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    // Row 3: Compact Pill & iPhone Notch
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        val isCompactSelected = !settings.enableNotchMode && abs(settings.xOffset) < 5f && abs(settings.width - 92f) < 6f
+                        PresetCardItem(
+                            title = stringResource(R.string.preset_compact_pill),
+                            subtitle = stringResource(R.string.preset_compact_pill_desc),
+                            icon = Icons.Rounded.Smartphone,
+                            isSelected = isCompactSelected,
+                            onClick = {
+                                scope.launch {
+                                    repository.setEnableNotchMode(false)
+                                    repository.setPosition(
+                                        width = 92f,
+                                        height = 30f,
+                                        xOffset = 0f,
+                                        yOffset = 8f
+                                    )
+                                    repository.setCornerRadius(18f)
+                                }
+                                Toast.makeText(context, context.getString(R.string.toast_applied_compact_preset), Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        val isNotchSelected = settings.enableNotchMode
+                        PresetCardItem(
+                            title = stringResource(R.string.preset_iphone_notch),
+                            subtitle = stringResource(R.string.preset_iphone_notch_desc),
+                            icon = Icons.Rounded.FitScreen,
+                            isSelected = isNotchSelected,
+                            onClick = {
+                                scope.launch {
+                                    repository.setEnableNotchMode(true)
+                                    repository.setPosition(
+                                        width = 175f,
+                                        height = 35f,
+                                        xOffset = 0f,
+                                        yOffset = 0f
+                                    )
+                                    repository.setCornerRadius(20f)
+                                }
+                                Toast.makeText(context, context.getString(R.string.toast_notch_preset_applied, 175, 35), Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
         }
@@ -323,13 +483,49 @@ fun PositionsSection(
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
-                SliderSettingItem(
-                    label = stringResource(R.string.slider_vertical_offset),
-                    value = localYOffset,
-                    range = SmartIslandSettings.MIN_Y_OFFSET..SmartIslandSettings.MAX_Y_OFFSET,
-                    onValueChange = { localYOffset = it },
-                    onValueChangeFinished = { scope.launch { repository.setYOffset(localYOffset) } }
-                )
+                if (settings.enableNotchMode) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.slider_vertical_offset),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(R.string.y_offset_locked_notch_mode),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        ) {
+                            Text(
+                                text = "0 dp",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                } else {
+                    SliderSettingItem(
+                        label = stringResource(R.string.slider_vertical_offset),
+                        value = localYOffset,
+                        range = SmartIslandSettings.MIN_Y_OFFSET..SmartIslandSettings.MAX_Y_OFFSET,
+                        onValueChange = { localYOffset = it },
+                        onValueChangeFinished = { scope.launch { repository.setYOffset(localYOffset) } }
+                    )
+                }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
 
                 SliderSettingItem(
@@ -593,17 +789,32 @@ fun PositionsSection(
                 }
 
                 Spacer(Modifier.height(14.dp))
-                OutlinedButton(
-                    onClick = {
-                        scope.launch { repository.resetPosition() }
-                        Toast.makeText(context, context.getString(R.string.toast_reset_position), Toast.LENGTH_SHORT).show()
-                    },
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Icon(Icons.Rounded.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.btn_reset_position), fontWeight = FontWeight.SemiBold)
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch { repository.resetPosition() }
+                            Toast.makeText(context, context.getString(R.string.toast_reset_position), Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Rounded.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.btn_reset_position), fontWeight = FontWeight.SemiBold)
+                    }
+
+                    OutlinedButton(
+                        onClick = onNavigateToBackup,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Rounded.SettingsBackupRestore, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(6.dp))
+                        Text(stringResource(R.string.btn_backup_restore_shortcut), fontWeight = FontWeight.SemiBold)
+                    }
                 }
             }
         }

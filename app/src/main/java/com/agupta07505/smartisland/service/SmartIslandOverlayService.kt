@@ -228,6 +228,7 @@ class SmartIslandOverlayService : AccessibilityService() {
             addAction(android.os.PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
             addAction(android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED)
             addAction(android.bluetooth.BluetoothDevice.ACTION_ACL_DISCONNECTED)
+            addAction("android.bluetooth.device.action.BATTERY_LEVEL_CHANGED")
         }
         
         // CRASH FIX: Android 13+/14+ requires explicit export flag for system broadcasts
@@ -639,7 +640,7 @@ class SmartIslandOverlayService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
 
         val currentX = if (expanded || isTouchableRegionSupported) 0 else windowXPx
-        val currentY = settings.yOffset.dpToPx()
+        val currentY = if (settings.enableNotchMode) 0 else settings.yOffset.dpToPx()
         val currentSoftInputMode = if (isInput) {
             WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
@@ -697,7 +698,7 @@ class SmartIslandOverlayService : AccessibilityService() {
     private fun collapsedParams(settings: SmartIslandSettings): WindowManager.LayoutParams {
         val density = resources.displayMetrics.density
         val screenWidthPx = resources.displayMetrics.widthPixels.toFloat()
-        val isSplitMode = if (::viewModel.isInitialized) viewModel.notifications.value.size >= 2 else false
+        val isSplitMode = if (settings.enableNotchMode) false else (if (::viewModel.isInitialized) viewModel.notifications.value.size >= 2 else false)
         val mainWidthPx = settings.width * density
         val circleSizePx = settings.height * density
         val compactGapPx = 8f * density
@@ -730,7 +731,7 @@ class SmartIslandOverlayService : AccessibilityService() {
         ).apply {
             gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
             x = if (isTouchableRegionSupported) 0 else windowXPx
-            y = settings.yOffset.dpToPx()
+            y = if (settings.enableNotchMode) 0 else settings.yOffset.dpToPx()
         }.also {
             lastParams = it
         }

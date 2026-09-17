@@ -119,6 +119,7 @@ fun AboutSection(
     var contributors by remember { mutableStateOf<List<GitHubContributor>>(emptyList()) }
     var recentCommits by remember { mutableStateOf<List<GitHubCommit>>(emptyList()) }
     var isLoadingInsights by remember { mutableStateOf(false) }
+    var devClickCount by remember { mutableStateOf(0) }
 
     fun checkUpdates() {
         if (!settings.allowNetworkChecks) {
@@ -198,7 +199,37 @@ fun AboutSection(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable {
+                                    if (settings.developerModeEnabled) {
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.toast_dev_mode_already_active),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        devClickCount++
+                                        val remaining = 7 - devClickCount
+                                        if (remaining in 1..4) {
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(R.string.toast_dev_mode_steps_remaining, remaining),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else if (remaining <= 0) {
+                                            devClickCount = 0
+                                            scope.launch { repository?.setDeveloperModeEnabled(true) }
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(R.string.toast_dev_mode_enabled),
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                        }
+                                    }
+                                }
+                        ) {
                             Text(
                                 text = stringResource(R.string.github_update_center_title),
                                 style = MaterialTheme.typography.titleMedium,
@@ -507,6 +538,52 @@ fun AboutSection(
                             context.startActivity(intent)
                         }
                     )
+                }
+            }
+        }
+
+        if (settings.developerModeEnabled) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, Color(0xFF10B981).copy(alpha = 0.4f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(18.dp),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF10B981).copy(alpha = 0.15f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Code,
+                            contentDescription = null,
+                            tint = Color(0xFF10B981),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.dev_mode_unlocked_banner_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.dev_mode_unlocked_banner_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }

@@ -92,6 +92,7 @@
     <string name="card_app_shortcuts_title">快捷应用启动器</string>
     <string name="card_app_shortcuts_desc">在无通知时轻触灵动岛快速启动常用应用</string>
     <string name="card_app_shortcuts_status">%1$d/8 已固定</string>
+    <string name="card_app_shortcuts_status_disabled">已关闭</string>
     <string name="card_notification_history_title">通知历史与日志</string>
     <string name="card_notification_history_desc">按日期分组查看并搜索已保存的通知，支持自动清理</string>
     <string name="card_notification_history_status_active">记录中</string>
@@ -284,12 +285,32 @@
     <string name="auto_hide_timeout_label">隐藏超时时间</string>
     <string name="toggle_show_in_landscape_title">横屏模式下保持显示</string>
     <string name="toggle_show_in_landscape_desc">设备旋转至横屏时继续显示灵动岛</string>
+    <string name="toggle_bluetooth_battery_title">蓝牙电量与耳机动效</string>
+    <string name="toggle_bluetooth_battery_desc">显示已连接蓝牙设备电量百分比，并在灵动岛中与耳机图标平滑切换动效</string>
     <string name="live_nav_services_title">实时活动与地图导航</string>
     <string name="live_nav_services_desc">实时外卖进度、网约车行程与地图转向箭头</string>
     <string name="toggle_live_activities_title">实时外卖与打车行程</string>
     <string name="toggle_live_activities_desc">为外卖配送与网约车提供实时进度徽标与状态</string>
     <string name="toggle_navigation_title">转弯路线地图导航</string>
     <string name="toggle_navigation_desc">实时显示地图转向箭头与距离提示</string>
+
+    <!-- Notification Cooldown & Anti-Spam -->
+    <string name="notification_cooldown_title">防刷屏与通知冷却</string>
+    <string name="notification_cooldown_desc">当同一应用短时间内频繁发送通知时自动进入冷却状态，并在静音等待后显示最新通知</string>
+    <string name="toggle_enable_cooldown_title">启用通知防刷屏冷却</string>
+    <string name="toggle_enable_cooldown_desc">抑制同一应用短时间内的高频弹窗打扰，冷却结束后送达最新通知</string>
+    <string name="cooldown_duration_title">冷却持续时间：%1$d 分钟</string>
+    <string name="cooldown_duration_slider">静默冷却时长</string>
+    <string name="cooldown_threshold_title">触发阈值：30秒内 %1$d 条通知</string>
+    <string name="cooldown_threshold_slider">触发通知数量</string>
+    <string name="cooldown_excluded_apps_title">白名单应用（永不冷却）</string>
+    <string name="cooldown_excluded_apps_desc">所选应用将始终立即显示通知，绝不被冷却或抑制</string>
+    <string name="cooldown_excluded_count">%1$d 个应用已加入白名单（立即提醒）</string>
+    <string name="btn_exclude_all">全部排除</string>
+    <string name="btn_clear_exclusions">清空白名单</string>
+    <string name="chip_excluded">立即提醒</string>
+    <string name="chip_cooldown_active">冷却保护</string>
+
     <string name="app_alerts_manager_title">应用通知与声音管理</string>
     <string name="app_alerts_manager_desc">针对每个应用单独控制通知显示与提示音播放</string>
     <string name="search_installed_apps">搜索已安装的应用…</string>
@@ -323,6 +344,8 @@
     <!-- App Shortcuts -->
     <string name="shortcuts_title">无通知时灵动岛快捷启动</string>
     <string name="shortcuts_desc">当没有活跃通知时，轻触灵动岛即可呼出快捷应用网格（最多 8 个应用）。</string>
+    <string name="toggle_enable_shortcuts_title">启用快捷应用启动器</string>
+    <string name="toggle_enable_shortcuts_desc">在无通知时轻触灵动岛快速访问已固定或最近的应用</string>
     <string name="toggle_recent_apps_title">自动填充最近使用的应用</string>
     <string name="toggle_recent_apps_desc_granted">用最近打开的应用自动填充空白位置</string>
     <string name="toggle_recent_apps_desc_needed">最近应用功能需要授予“使用情况访问权限”</string>
@@ -395,4 +418,79 @@
     <string name="terms_of_use_title">使用条款</string>
     <string name="version_title">版本信息</string>
     <string name="developer_contact_title">开发者与联系方式</string>
+
+    <!-- Backup & Restore -->
+    <string name="detail_title_backup_restore">备份与恢复</string>
+    <string name="card_backup_restore_title">备份与恢复设置</string>
+    <string name="card_backup_restore_desc">将您的布局微调、自定义颜色主题与规则导出和导入为 JSON</string>
+    <string name="card_backup_restore_status">就绪</string>
+    <string name="backup_overview_title">设置备份与恢复</string>
+    <string name="backup_overview_desc">将您的灵动岛位置、自定义尺寸、色彩方案、快捷应用与通知规则保存为备份文件，或随时恢复已保存的配置。</string>
+    <string name="backup_status_summary">当前配置摘要</string>
+    <string name="backup_status_details">宽度: %1$ddp • 不透明度: %2$d%% • 阴影: %3$ddp • %4$d 个快捷应用</string>
+    <string name="backup_export_card_title">导出设置备份</string>
+    <string name="backup_export_card_desc">通过 Android 存储访问框架将当前岛屿几何数据、自定义主题和规则安全保存为 .json 文件。</string>
+    <string name="btn_export_backup">导出备份 (JSON)</string>
+    <string name="backup_restore_card_title">从备份恢复</string>
+    <string name="backup_restore_card_desc">选取之前导出的 Smart Island JSON 备份文件以恢复所有的微调与配置。</string>
+    <string name="btn_restore_backup">选取备份文件</string>
+    <string name="backup_reset_card_title">恢复出厂设置</string>
+    <string name="backup_reset_card_desc">将所有岛屿尺寸、位置、偏移、色彩方案与规则恢复为默认初始值。</string>
+    <string name="btn_reset_all_settings">重置所有设置</string>
+    <string name="dialog_restore_confirm_title">恢复设置？</string>
+    <string name="dialog_restore_confirm_desc">这将用此备份文件的配置（检测到 %1$s 项设置）替换您当前的岛屿布局与颜色规则。\n\n导出时间: %2$s\n应用版本: %3$s\n\n是否继续？</string>
+    <string name="dialog_reset_confirm_title">重置所有设置？</string>
+    <string name="dialog_reset_confirm_desc">确定要将所有灵动岛设置和微调恢复为出厂默认值吗？此操作无法撤销。</string>
+    <string name="toast_backup_exported_success">设置备份已成功保存！</string>
+    <string name="toast_backup_export_failed">保存备份失败: %1$s</string>
+    <string name="toast_backup_restored_success">设置已成功恢复！</string>
+    <string name="toast_backup_restore_failed">恢复备份失败: %1$s</string>
+    <string name="toast_backup_invalid_file">所选文件不是有效的 Smart Island 备份。</string>
+    <string name="toast_reset_all_success">所有设置已恢复默认值</string>
+    <string name="btn_backup_restore_shortcut">备份与恢复</string>
+
+    <!-- Developer Options & Diagnostic Logs -->
+    <string name="category_developer_options">开发者与诊断</string>
+    <string name="card_developer_options_title">开发者选项与日志</string>
+    <string name="card_developer_options_desc">记录应用内诊断日志、查看系统快照并导出到存储</string>
+    <string name="detail_title_developer_options">开发者选项</string>
+    <string name="dev_options_master_title">开发者模式</string>
+    <string name="dev_options_master_desc">启用高级诊断日志记录与系统遥测工具</string>
+    <string name="dev_record_logs_title">记录应用日志</string>
+    <string name="dev_record_logs_desc">记录通知、灵动岛生命周期与异常，以便排查和解决问题</string>
+    <string name="status_recording_active">正在记录</string>
+    <string name="status_recording_idle">未记录</string>
+    <string name="dev_log_entries_count">%1$d 条记录</string>
+    <string name="dev_export_section_title">日志管理与导出</string>
+    <string name="btn_export_logs_storage">导出日志到存储 (.txt)</string>
+    <string name="btn_share_logs">分享日志</string>
+    <string name="btn_copy_logs">复制日志</string>
+    <string name="btn_clear_logs">清除已记录的日志</string>
+    <string name="share_logs_title">分享灵动岛诊断报告</string>
+    <string name="toast_logs_exported_success">诊断日志已成功导出到存储！</string>
+    <string name="toast_logs_export_failed">导出日志失败: %1$s</string>
+    <string name="toast_logs_copied">诊断日志已复制到剪贴板！</string>
+    <string name="toast_logs_cleared">已清空日志记录缓存。</string>
+    <string name="toast_dev_mode_already_active">开发者模式已处于启用状态。</string>
+    <string name="toast_dev_mode_steps_remaining">只需再点 %1$d 次即可开启开发者模式。</string>
+    <string name="toast_dev_mode_enabled">开发者模式已解锁！开发者选项现已可用。</string>
+    <string name="dialog_clear_logs_title">清空日志缓存？</string>
+    <string name="dialog_clear_logs_desc">这将永久清空内存中记录的所有日志与缓存追踪记录。</string>
+    <string name="dev_system_snapshot_title">实时系统诊断快照</string>
+    <string name="dev_system_snapshot_desc">当前硬件、权限与灵动岛参数</string>
+    <string name="dev_mode_unlocked_banner_title">开发者模式已开启</string>
+    <string name="dev_mode_unlocked_banner_desc">诊断日志记录与系统遥测功能已在开发者选项中提供。</string>
+
+    <!-- iPhone Notch Mode -->
+    <string name="notch_mode_card_title">iPhone 刘海屏模式</string>
+    <string name="notch_mode_card_desc">将悬浮灵动岛替换为贴合屏幕顶部的 iPhone 风格刘海屏，采用圆润底部转角，并完全移除右侧独立小圆圈。</string>
+    <string name="notch_mode_toggle_title">启用 iPhone 刘海屏模式</string>
+    <string name="notch_mode_toggle_desc">贴合屏幕顶部并禁用右侧次级分屏小圆圈</string>
+    <string name="btn_apply_notch_preset">应用推荐 iPhone 刘海尺寸</string>
+    <string name="toast_notch_mode_enabled">已启用 iPhone 刘海屏模式</string>
+    <string name="toast_notch_mode_disabled">已恢复悬浮灵动岛模式</string>
+    <string name="toast_notch_preset_applied">已应用推荐 iPhone 刘海尺寸（%1$ddp x %2$ddp）</string>
+    <string name="preset_iphone_notch">iPhone 刘海</string>
+    <string name="preset_iphone_notch_desc">175x35dp，贴合顶部</string>
+    <string name="y_offset_locked_notch_mode">刘海模式下已固定至屏幕顶部（0 dp）</string>
 </resources>

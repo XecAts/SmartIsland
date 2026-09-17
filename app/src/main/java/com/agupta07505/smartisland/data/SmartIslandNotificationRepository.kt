@@ -248,9 +248,11 @@ class SmartIslandNotificationRepository : INotificationRepository {
                 packageName = "com.android.bluetooth",
                 appName = "Bluetooth",
                 title = "AirPods Pro",
-                text = "Connected • 100%",
+                text = "Connected • 85%",
                 timeMillis = System.currentTimeMillis(),
-                mode = IslandMode.Bluetooth
+                mode = IslandMode.Bluetooth,
+                progress = 85,
+                progressMax = 100
             )
             IslandMode.Flashlight -> IslandNotification(
                 key = "demo_flashlight",

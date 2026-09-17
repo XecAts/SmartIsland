@@ -8,6 +8,24 @@ The format is inspired by Keep a Changelog, and this project uses the GNU Genera
 
 ### Added
 
+- **iPhone Notch Mode & Companion Circle Elimination (`PositionsSection.kt`, `IslandOverlayView.kt`, `SmartIslandOverlayService.kt`, `SmartIslandSettings.kt`)**:
+  - **Authentic iPhone Notch Docking**: Anchors the island flush to the very top edge of the display (`y = 0`), mimicking the hardware notch of iPhones (iPhone X through iPhone 14).
+  - **Rounded Bottom Corners**: Top corners are attached seamlessly against the top bezel (`topStart = 0.dp, topEnd = 0.dp`), while bottom corners curve down into the display screen (`bottomStart = cornerRadius.dp, bottomEnd = cornerRadius.dp`).
+  - **Complete Elimination of Right Companion Circle**: When two or more notifications or activities arrive, Smart Island stays as a single unified notch and never splits into a secondary circle on the right.
+  - **Dedicated Notch Mode Card & Preset in Positions & Sizing**: Toggle switch in the *Positions & Sizing* screen with 1-tap **"Apply Recommended iPhone Notch Size"** button (175x35dp, y = 0) and an **iPhone Notch** preset in the layout presets grid.
+  - **Downward Expansion**: Expanding the notch drops the card downwards from the top edge with rounded bottom corners and status bar padding.
+  - **100% Multi-Locale Parity**: Full localized strings across English, Chinese (Simplified/Regional), and Portuguese (Standard/Brazil).
+
+- **Developer Mode & In-App Log Recording & Diagnostic Export (`DeveloperOptionsSection.kt`, `AppLogRecorder.kt`, `AboutSection.kt`, `SmartIslandSettings.kt`)**:
+  - **7-Tap Developer Mode Unlock**: Standard Android easter-egg style unlock by tapping the App Version in the About section 7 times, with countdown toasts ("You are now X steps away from being a developer") and instant unlock confirmation.
+  - **Dedicated Developer Options Hub**: Appears in the Settings Overview once unlocked, complete with master Developer Mode enable/disable toggle.
+  - **Comprehensive App Log Recorder (`AppLogRecorder.kt`)**: Thread-safe in-memory ring buffer (up to 3,000 entries) capturing diagnostic events, service lifecycle, notification processing, and caught exceptions across `SmartIslandOverlayService` and `SmartIslandNotificationListenerService`.
+  - **Real-Time Process Logcat Capture**: Dynamically extracts the app's own process logcat trace (`logcat -d -v threadtime --pid=$pid`) without requiring elevated `READ_LOGS` permissions.
+  - **Scoped Storage File Export (`CreateDocument`)**: One-tap export saving a complete diagnostic report (`smartisland_logs_<timestamp>.txt`) directly to user-selected device storage via Android's Storage Access Framework.
+  - **Diagnostic Report Generator**: Bundles hardware specs, Android OS version, OEM vendor rules, permission grants, Shizuku binding, Island geometry, live settings JSON snapshot, in-memory log buffer, and process logcat.
+  - **1-Tap Share, Copy & Clear**: Integrated system share sheet dispatch (`ACTION_SEND`), clipboard copying, and live buffer clearing with confirmation dialog.
+  - **100% Localization Parity**: Full string translations across English, Chinese (Simplified & Regional), and Portuguese (Standard & Brazil).
+
 - **Ultra-Fluid, High-Speed Spring Animation Engine (`IslandOverlayView.kt`, `BounceClick.kt`, `SmartIslandOverlayService.kt`)**:
   - **Unified High-Fluidity Spring Physics**: Synchronized width and height morphing to calibrated spring curves (`stiffness = 520f`, `dampingRatio = 0.72f` / `0.76f`), completely eliminating the asymmetric height snap.
   - **Snappy 190ms Cross-Fades**: Reduced alpha transition duration to a responsive 190ms with smooth cubic bezier easing for instant tactile feedback.
@@ -30,6 +48,28 @@ The format is inspired by Keep a Changelog, and this project uses the GNU Genera
 - **Landscape Mode Visibility Toggle (`NotificationsAndPrivacySection.kt`, `SmartIslandSettingsRepository.kt`, `SmartIslandOverlayService.kt`)**:
   - New setting **"Show in Landscape Mode"** in the Display & Expansion section.
   - Allows the island to remain active, visible, and dynamically repositioned when rotating the device to landscape orientation.
+- **Full Settings & Adjustments Backup & Restore System (`BackupRestoreSection.kt`, `SmartIslandSettings.kt`, `SmartIslandSettingsRepository.kt`)**:
+  - **Scoped Storage Export (`CreateDocument`)**: Export complete island geometry, custom dimensions, offsets, corner radii, opacity, shadow elevation, full Color Studio palette, App Shortcuts Launcher, and Notification & Privacy rules into a portable, formatted JSON backup file via Android's Storage Access Framework.
+  - **Scoped Storage Import (`OpenDocument`)**: Import and restore previously saved configuration files with automatic metadata inspection (app version, export date, setting count), strict dimension bounds clamping, and a confirmation safety dialog.
+  - **Atomic Single-Transaction Restore**: Applies all 40+ preferences in a single DataStore transaction, immediately updating the overlay and studio UI without UI flicker.
+  - **Factory Reset**: One-tap option to reset all island dimensions, colors, and behaviors back to factory defaults with confirmation dialog.
+  - **Studio & Layout Quick-Access**: Integrated directly into Settings Overview under "System & Core Services" and as a quick-action shortcut within the Notch & Layout settings screen.
+- **Bluetooth Device Battery & Earbuds Alternating Animation (`IslandCollapsedContent.kt`, `BluetoothExpanded.kt`, `SystemEventReceiver.kt`, `SmartIslandSettings.kt`)**:
+  - **Dynamic Battery Level Extraction**: Dual-path extraction on `ACTION_ACL_CONNECTED` and `"android.bluetooth.device.action.BATTERY_LEVEL_CHANGED"` via broadcast extras (`android.bluetooth.device.extra.BATTERY_LEVEL`) with graceful reflection fallback on `device.getBatteryLevel()`, obtaining live battery status without requiring restricted Bluetooth GATT permissions.
+  - **Fluid Spring-Based Alternating Animation**: Smoothly transitions between live battery level gauge (`BatteryFull`/`Battery5Bar`/`BatteryAlert` + percentage) and earbuds icon (`Icons.Rounded.Headphones`) on a 3-second cadence using high-fluidity spring physics (`stiffness = 520f`, `dampingRatio = 0.72f`).
+  - **Pill & Card Integration**: Active in both collapsed pill right slot, secondary companion split bubble, and expanded Bluetooth card.
+  - **Configurable Settings Toggle**: User-facing toggle in Notifications & Privacy with reactive DataStore persistence and JSON backup/restore support.
+- **Intelligent Notification Cooldown & Anti-Spam Engine (`NotificationCooldownManager.kt`, `SmartIslandNotificationListenerService.kt`, `NotificationsAndPrivacySection.kt`, `SmartIslandSettings.kt`)**:
+  - **Burst Detection & Anti-Spam Protection**: Monitors rapid notification bursts within a 30-second sliding window. When an app exceeds the trigger threshold (e.g. 3 alerts in 30s), it enters a cooldown state to shield the user from disruptive heads-up popups and vibration storms.
+  - **Delayed Delivery of Latest Message**: During cooldown, rapid successive alerts from that app are suppressed from vibrating/popping the island while the latest message is safely buffered. Once the quiet period expires (e.g. 3 minutes), the island smoothly surfaces the final message.
+  - **User-Adjustable Duration & Trigger Threshold**: Full control in Notifications & Privacy with quick presets (1m, 2m, 3m, 5m, 10m, 15m) and sliders for both quiet period duration (1–30 min) and spam alert threshold (2–10 alerts).
+  - **Per-App Exclusion Whitelist**: Customizable excluded apps selector allowing users to designate critical apps (e.g. messaging, emergency, or delivery apps) that will never be throttled or cooled down.
+  - **Critical Mode Exemptions**: Phone calls, timers, stopwatches, media playback, and navigation instructions are automatically exempt from cooldown to ensure vital tasks are never delayed.
+- **App Shortcut Launcher Enable/Disable Master Toggle (`AppShortcutsSection.kt`, `SmartIslandSettings.kt`, `SmartIslandSettingsRepository.kt`, `IslandOverlayView.kt`, `OverlayIsland.kt`)**:
+  - Added user option to completely enable or disable the App Shortcuts Launcher.
+  - When disabled, tapping the empty collapsed island does not expand into an empty shortcuts box, saving resources and background package/usage queries.
+  - Overview card clearly indicates whether the launcher is "Disabled" or displays the pinned app count with color-coded status badges.
+  - Full persistence across DataStore and inclusion in JSON backup and restore with 100% localization parity.
 - **Full Chinese & Portuguese Localization Parity (`values-zh`, `values-zh-rCN`, `values-pt`, `values-pt-rBR`)**:
   - Added complete 100% translation coverage for all new settings, toggles, labels, and descriptions.
 
@@ -43,6 +83,11 @@ The format is inspired by Keep a Changelog, and this project uses the GNU Genera
   - Switched `AudioVisualizer` in `IslandCollapsedContent.kt` to GPU-accelerated `graphicsLayer { scaleY = ... }` and `WavyMusicSeekBar.kt` to vsync-synchronized `rememberInfiniteTransition`.
 - **Camera Cutout Opacity Uniformity Fix (`IslandCollapsedContent.kt`)**:
   - Eliminated redundant center dot `Box` that was causing double alpha blending and a darker circle in the center when opacity was reduced.
+- **Bluetooth Watch Reconnection Spam Fix (`SystemEventReceiver.kt`, `NotificationFilter.kt`)**:
+  - **Smartwatch & Wearable Connection Filtering**: Automatically filters out smartwatches, fitness bands, health trackers, and Bluetooth peripherals (mice, keyboards) from triggering audio Bluetooth connection popups in `SystemEventReceiver.kt`. Audio devices (headphones, earbuds, car audio, speakers) remain fully supported.
+  - **Wearable Companion Status Notification Suppression**: `NotificationFilter.kt` automatically suppresses connection and sync status notifications from smartwatch companion services (`com.samsung.accessory`, `com.samsung.android.app.watchmanager`, `com.google.android.wearable.app`, etc.) and system Bluetooth (`com.android.bluetooth`).
+  - **Connection Debouncing & Device Tracking**: Implemented a 30-second debounce per Bluetooth device address, preventing rapid reconnect loops or BLE sync packets (e.g. Galaxy Watch on Samsung One UI) from continuously auto-expanding the Smart Island every 5 seconds.
+  - **Selective Disconnect Handling**: `ACTION_ACL_DISCONNECTED` now selectively checks device hardware addresses so a background smartwatch disconnect or BLE ping does not inadvertently dismiss an active earbuds/audio notification.
 - **Version Bump**: Updated application version to **`6.0.0`** (`versionCode 7`).
 
 ## [5.2.0] - 2026-08-26

@@ -18,6 +18,7 @@ object NotificationFilter {
         "android",
         "com.android.systemui",
         "com.android.settings",
+        "com.android.bluetooth",
         "com.android.permissioncontroller",
         "com.google.android.permissioncontroller",
         "com.android.packageinstaller",
@@ -80,6 +81,11 @@ object NotificationFilter {
             return true
         }
 
+        // Suppress wearable / watch connection and sync status notifications
+        if (isWearableConnectionNotification(packageName, titleText)) {
+            return true
+        }
+
         // Suppress ongoing notifications that are not calls, media/music playback, live activities, navigation, downloads/uploads, hotspot, screen recording, timer, or stopwatch
         if (isOngoing) {
             val isProgressNotification = !isMessageSync && (
@@ -110,6 +116,38 @@ object NotificationFilter {
     fun isAppEligibleForIsland(packageName: String, packageManager: PackageManager): Boolean {
         if (packageName in SYSTEM_LEVEL_PACKAGES) return false
         return !isSystemLevelPackage(packageName, packageManager)
+    }
+
+    /**
+     * Returns true if the notification is a connection status or sync notification
+     * from a wearable/smartwatch companion app or Bluetooth sync event.
+     */
+    fun isWearableConnectionNotification(packageName: String, titleText: String): Boolean {
+        val isWearablePackage = packageName.startsWith("com.samsung.android.app.watchmanager") ||
+            packageName.startsWith("com.samsung.accessory") ||
+            packageName.startsWith("com.samsung.android.gear") ||
+            packageName.startsWith("com.samsung.android.waterplugin") ||
+            packageName.startsWith("com.google.android.wearable") ||
+            packageName.contains("watchmanager") ||
+            packageName.contains("gearplugin")
+
+        val connectionPhrases = listOf(
+            "connected", "connecting", "disconnected", "disconnecting", "paired",
+            "syncing", "sync complete", "bluetooth connection"
+        )
+
+        if (isWearablePackage && connectionPhrases.any { titleText.contains(it) }) {
+            return true
+        }
+
+        val watchConnectionPhrases = listOf(
+            "watch connected", "connected to watch", "watch disconnected", "disconnected from watch",
+            "connected via bluetooth", "connected to galaxy watch", "galaxy watch connected",
+            "pixel watch connected", "connected to your watch", "watch is connected",
+            "wearable connected", "connected to wearable", "device connected via bluetooth"
+        )
+
+        return watchConnectionPhrases.any { titleText.contains(it) }
     }
 
     private fun isSystemLevelCategory(notification: Notification): Boolean {

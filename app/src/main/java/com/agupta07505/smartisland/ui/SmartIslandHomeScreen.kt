@@ -80,6 +80,7 @@ import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Videocam
@@ -139,7 +140,9 @@ import com.agupta07505.smartisland.di.SmartIslandRepositories
 import com.agupta07505.smartisland.model.IslandMode
 import com.agupta07505.smartisland.ui.sections.AboutSection
 import com.agupta07505.smartisland.ui.sections.AppShortcutsSection
+import com.agupta07505.smartisland.ui.sections.BackupRestoreSection
 import com.agupta07505.smartisland.ui.sections.CustomizationsSection
+import com.agupta07505.smartisland.ui.sections.DeveloperOptionsSection
 import com.agupta07505.smartisland.ui.sections.GesturesSection
 import com.agupta07505.smartisland.ui.sections.NotificationHistorySection
 import com.agupta07505.smartisland.ui.sections.NotificationsAndPrivacySection
@@ -163,8 +166,10 @@ private enum class FeatureDetailSection {
     ColorStudio,
     GesturesGuide,
     PermissionsCenter,
+    BackupRestore,
     AboutApp,
-    SupportCommunity
+    SupportCommunity,
+    DeveloperOptions
 }
 
 @SuppressLint("BatteryLife")
@@ -346,7 +351,11 @@ fun SmartIslandHomeScreen(
                         StudioTab.Position -> {
                             PositionsSection(
                                 settings = settings,
-                                repository = resolvedRepository
+                                repository = resolvedRepository,
+                                onNavigateToBackup = {
+                                    transitionDirection = 1
+                                    activeDetailSection = FeatureDetailSection.BackupRestore
+                                }
                             )
                         }
 
@@ -1041,7 +1050,12 @@ private fun SettingsOverviewSection(
                 subtitle = stringResource(R.string.card_app_shortcuts_desc),
                 icon = Icons.Rounded.Apps,
                 iconColor = Color(0xFF22D3EE),
-                statusText = stringResource(R.string.card_app_shortcuts_status, settings.shortcutPackages.size),
+                statusText = if (settings.enableAppShortcuts) {
+                    stringResource(R.string.card_app_shortcuts_status, settings.shortcutPackages.size)
+                } else {
+                    stringResource(R.string.card_app_shortcuts_status_disabled)
+                },
+                statusColor = if (settings.enableAppShortcuts) Color(0xFF0F9F6E) else Color(0xFF94A3B8),
                 onClick = { onNavigateTo(FeatureDetailSection.AppShortcuts) }
             )
 
@@ -1088,6 +1102,15 @@ private fun SettingsOverviewSection(
                 statusColor = if (canEnable) Color(0xFF0F9F6E) else Color(0xFFE88C25),
                 onClick = { onNavigateTo(FeatureDetailSection.PermissionsCenter) }
             )
+
+            FeatureStudioNavigationCard(
+                title = stringResource(R.string.card_backup_restore_title),
+                subtitle = stringResource(R.string.card_backup_restore_desc),
+                icon = Icons.Rounded.SettingsBackupRestore,
+                iconColor = Color(0xFF06B6D4),
+                statusText = stringResource(R.string.card_backup_restore_status),
+                onClick = { onNavigateTo(FeatureDetailSection.BackupRestore) }
+            )
         }
 
         // Section 4: About & Community
@@ -1108,6 +1131,20 @@ private fun SettingsOverviewSection(
                 iconColor = Color(0xFFF59E0B),
                 onClick = { onNavigateTo(FeatureDetailSection.SupportCommunity) }
             )
+        }
+
+        if (settings.developerModeEnabled) {
+            SettingsCategoryGroup(title = stringResource(R.string.category_developer_options)) {
+                FeatureStudioNavigationCard(
+                    title = stringResource(R.string.card_developer_options_title),
+                    subtitle = stringResource(R.string.card_developer_options_desc),
+                    icon = Icons.Rounded.Tune,
+                    iconColor = Color(0xFF10B981),
+                    statusText = if (settings.recordLogs) stringResource(R.string.status_recording_active) else stringResource(R.string.status_active),
+                    statusColor = if (settings.recordLogs) Color(0xFFEF4444) else Color(0xFF10B981),
+                    onClick = { onNavigateTo(FeatureDetailSection.DeveloperOptions) }
+                )
+            }
         }
     }
 }
@@ -1314,8 +1351,10 @@ private fun DetailScreenHost(
                 FeatureDetailSection.ColorStudio -> stringResource(R.string.detail_title_color_studio)
                 FeatureDetailSection.GesturesGuide -> stringResource(R.string.detail_title_gestures_guide)
                 FeatureDetailSection.PermissionsCenter -> stringResource(R.string.detail_title_permissions_center)
+                FeatureDetailSection.BackupRestore -> stringResource(R.string.detail_title_backup_restore)
                 FeatureDetailSection.AboutApp -> stringResource(R.string.detail_title_about_app)
                 FeatureDetailSection.SupportCommunity -> stringResource(R.string.detail_title_support_community)
+                FeatureDetailSection.DeveloperOptions -> stringResource(R.string.detail_title_developer_options)
             }
             Text(
                 text = title,
@@ -1379,11 +1418,17 @@ private fun DetailScreenHost(
                     onRefreshPermissions = onRefreshPermissions
                 )
             }
+            FeatureDetailSection.BackupRestore -> {
+                BackupRestoreSection(settings = settings, repository = repository)
+            }
             FeatureDetailSection.AboutApp -> {
                 AboutSection(settings = settings, repository = repository)
             }
             FeatureDetailSection.SupportCommunity -> {
                 SupportSection()
+            }
+            FeatureDetailSection.DeveloperOptions -> {
+                DeveloperOptionsSection(settings = settings, repository = repository)
             }
         }
     }

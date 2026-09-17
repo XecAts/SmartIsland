@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -164,19 +165,23 @@ fun IslandOverlayView(
     val miniPillWidth = settings.width.dp
     val circleSize = settings.height.dp
     val compactShapes = compactNotificationShapes(notifications.size, expanded)
-    val hasCompanion = notifications.size >= 2
+    val hasCompanion = if (settings.enableNotchMode) false else notifications.size >= 2
     val collapsedGroupWidth = settings.width.dp + if (hasCompanion) compactGap + circleSize else 0.dp
     val collapsedMainLeft = (screenCenter + settings.xOffset.dp - settings.width.dp / 2f)
         .coerceIn(
             compactGap,
             (screenWidth - collapsedGroupWidth - compactGap).coerceAtLeast(compactGap)
         )
-    val collapsedMainOffset = if (isFullWidth) {
+    val collapsedMainOffset = if (settings.enableNotchMode) {
+        settings.xOffset.dp
+    } else if (isFullWidth) {
         collapsedMainLeft + settings.width.dp / 2f - screenCenter
     } else {
         if (hasCompanion) -(compactGap + circleSize) / 2f else 0.dp
     }
-    val expandedTopOffset = if (hasCompanion) {
+    val expandedTopOffset = if (settings.enableNotchMode) {
+        0.dp
+    } else if (hasCompanion) {
         statusBarHeight.dp.coerceAtLeast(circleSize + compactGap)
     } else {
         statusBarHeight.dp
@@ -282,13 +287,13 @@ fun IslandOverlayView(
 
     // Dual Pill (Multi-Tasking Split Island) Detection:
     // When 2 or more notifications exist (e.g. Music + Notification/Timer/Call), split into Main Pill + Secondary Bubble
-    val secondaryNotification = if (notifications.size >= 2) {
+    val secondaryNotification = if (!settings.enableNotchMode && notifications.size >= 2) {
         notifications.firstOrNull { it.key != activeNotification?.key }
     } else null
     val secondaryIndex = if (secondaryNotification != null) {
         notifications.indexOfFirst { it.key == secondaryNotification.key }
     } else -1
-    val tertiaryNotification = if (notifications.size >= 3) {
+    val tertiaryNotification = if (!settings.enableNotchMode && notifications.size >= 3) {
         notifications.firstOrNull {
             it.key != activeNotification?.key && it.key != secondaryNotification?.key
         }
@@ -296,7 +301,7 @@ fun IslandOverlayView(
     val tertiaryIndex = if (tertiaryNotification != null) {
         notifications.indexOfFirst { it.key == tertiaryNotification.key }
     } else -1
-    val isSplitMode = secondaryNotification != null
+    val isSplitMode = if (settings.enableNotchMode) false else secondaryNotification != null
     val secondaryIsPill = compactShapes.singleOrNull() == CompactNotificationShape.MiniPill
     val showTertiaryPill = compactShapes.size == 2 && tertiaryNotification != null
 
@@ -390,13 +395,33 @@ fun IslandOverlayView(
                                 // First tap on auto-hidden pill: awaken and reveal the pill
                                 isAutoHidden = false
                                 userInteractionTimestamp = System.currentTimeMillis()
-                            } else {
-                                // Empty notifications idle hiding: expand favorite shortcuts
+                            } else if (settings.enableAppShortcuts || notifications.isNotEmpty()) {
+                                // Empty notifications idle hiding: expand favorite shortcuts if enabled
                                 currentOnToggle()
                             }
                         }
                     }
             )
+        }
+
+        val mainShape = if (settings.enableNotchMode) {
+            if (currentExpanded) {
+                RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = 0.dp,
+                    bottomStart = 34.dp,
+                    bottomEnd = 34.dp
+                )
+            } else {
+                RoundedCornerShape(
+                    topStart = 0.dp,
+                    topEnd = 0.dp,
+                    bottomStart = safeRadius,
+                    bottomEnd = safeRadius
+                )
+            }
+        } else {
+            RoundedCornerShape(safeRadius)
         }
 
         // Inner Box: The actual visible pill container, managing the black background shape and size animations
@@ -419,14 +444,14 @@ fun IslandOverlayView(
                         }
                         Modifier.shadow(
                             elevation = activeMainShadow,
-                            shape = RoundedCornerShape(safeRadius),
+                            shape = mainShape,
                             clip = false,
                             ambientColor = Color.Black,
                             spotColor = Color.Black
                         )
                     } else Modifier
                 )
-                .clip(RoundedCornerShape(safeRadius))
+                .clip(mainShape)
                 .background(pillBackgroundColor.copy(alpha = settings.opacity))
                 .pointerInput(displayMetrics.density, isInputActive) {
                     if (isInputActive) return@pointerInput
@@ -478,7 +503,9 @@ fun IslandOverlayView(
                                     }
                                 } else {
                                     if (!isDragging || abs(dragOffset) < 10f) {
-                                        currentOnToggle()
+                                        if (notifications.isNotEmpty() || settings.enableAppShortcuts) {
+                                            currentOnToggle()
+                                        }
                                     }
                                 }
                                 break
@@ -545,6 +572,13 @@ fun IslandOverlayView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
+                        .then(
+                            if (settings.enableNotchMode) {
+                                Modifier.padding(top = (statusBarHeight.dp * 0.75f).coerceAtLeast(14.dp))
+                            } else {
+                                Modifier
+                            }
+                        )
                         .graphicsLayer {
                             alpha = expandedAlpha
                             scaleX = contentScale
@@ -574,7 +608,7 @@ fun IslandOverlayView(
 
         // Collapsed: secondary circle. Expanded with 2: the same item morphs
         // into a full-size pill. Expanded with 3+: it stays the circle on the right.
-        if (secondaryAlpha > 0f && secondaryNotification != null) {
+        if (!settings.enableNotchMode && secondaryAlpha > 0f && secondaryNotification != null) {
             Box(
                 modifier = Modifier
                     .absoluteOffset {
@@ -644,7 +678,7 @@ fun IslandOverlayView(
             }
         }
 
-        if (tertiaryAlpha > 0f && tertiaryNotification != null) {
+        if (!settings.enableNotchMode && tertiaryAlpha > 0f && tertiaryNotification != null) {
             Box(
                 modifier = Modifier
                     .absoluteOffset {
@@ -704,12 +738,9 @@ private fun SecondaryBubbleContent(
 ) {
     when (notification.mode) {
         IslandMode.Bluetooth -> {
-            Image(
-                painter = painterResource(id = com.agupta07505.smartisland.R.drawable.ic_bluetooth_device),
-                contentDescription = "Bluetooth Device",
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
+            BluetoothCollapsedRight(
+                notification = notification,
+                settings = settings
             )
         }
         IslandMode.Flashlight -> {

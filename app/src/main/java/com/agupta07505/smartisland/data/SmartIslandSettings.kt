@@ -63,7 +63,18 @@ data class SmartIslandSettings(
     val notificationCooldownExcludedPackages: Set<String> = emptySet(),
     val developerModeEnabled: Boolean = false,
     val recordLogs: Boolean = false,
-    val enableNotchMode: Boolean = false
+    val enableNotchMode: Boolean = false,
+    val enableSwipeActions: Boolean = true,
+    val swipeUpAction: String = "DismissCurrent",
+    val swipeHoldUpAction: String = "DismissAll",
+    val swipeDownAction: String = "FloatingWindow",
+    val swipeDownCollapsedAction: String = "Expand",
+    val swipeHorizontalCollapsedAction: String = "NextPrevious",
+    val enablePillSwipeActions: Boolean = true,
+    val pillSwipeUpAction: String = "DismissCurrent",
+    val pillSwipeDownAction: String = "Expand",
+    val pillSwipeLeftAction: String = "PreviousNotification",
+    val pillSwipeRightAction: String = "NextNotification"
 ) {
     fun toJson(appVersion: String = ""): String {
         val root = JSONObject()
@@ -143,6 +154,17 @@ data class SmartIslandSettings(
         settingsObj.put("developerModeEnabled", developerModeEnabled)
         settingsObj.put("recordLogs", recordLogs)
         settingsObj.put("enableNotchMode", enableNotchMode)
+        settingsObj.put("enableSwipeActions", enableSwipeActions)
+        settingsObj.put("swipeUpAction", swipeUpAction)
+        settingsObj.put("swipeHoldUpAction", swipeHoldUpAction)
+        settingsObj.put("swipeDownAction", swipeDownAction)
+        settingsObj.put("swipeDownCollapsedAction", swipeDownCollapsedAction)
+        settingsObj.put("swipeHorizontalCollapsedAction", swipeHorizontalCollapsedAction)
+        settingsObj.put("enablePillSwipeActions", enablePillSwipeActions)
+        settingsObj.put("pillSwipeUpAction", pillSwipeUpAction)
+        settingsObj.put("pillSwipeDownAction", pillSwipeDownAction)
+        settingsObj.put("pillSwipeLeftAction", pillSwipeLeftAction)
+        settingsObj.put("pillSwipeRightAction", pillSwipeRightAction)
 
         root.put("settings", settingsObj)
         return root.toString(2)
@@ -276,7 +298,18 @@ data class SmartIslandSettings(
                 notificationCooldownExcludedPackages = safeStringSet("notificationCooldownExcludedPackages", defaults.notificationCooldownExcludedPackages),
                 developerModeEnabled = obj.optBoolean("developerModeEnabled", defaults.developerModeEnabled),
                 recordLogs = obj.optBoolean("recordLogs", defaults.recordLogs),
-                enableNotchMode = obj.optBoolean("enableNotchMode", defaults.enableNotchMode)
+                enableNotchMode = obj.optBoolean("enableNotchMode", defaults.enableNotchMode),
+                enableSwipeActions = obj.optBoolean("enableSwipeActions", defaults.enableSwipeActions),
+                swipeUpAction = obj.optString("swipeUpAction", defaults.swipeUpAction),
+                swipeHoldUpAction = obj.optString("swipeHoldUpAction", defaults.swipeHoldUpAction),
+                swipeDownAction = obj.optString("swipeDownAction", defaults.swipeDownAction),
+                swipeDownCollapsedAction = obj.optString("swipeDownCollapsedAction", defaults.swipeDownCollapsedAction),
+                swipeHorizontalCollapsedAction = obj.optString("swipeHorizontalCollapsedAction", defaults.swipeHorizontalCollapsedAction),
+                enablePillSwipeActions = obj.optBoolean("enablePillSwipeActions", defaults.enablePillSwipeActions),
+                pillSwipeUpAction = obj.optString("pillSwipeUpAction", defaults.pillSwipeUpAction),
+                pillSwipeDownAction = obj.optString("pillSwipeDownAction", defaults.pillSwipeDownAction),
+                pillSwipeLeftAction = obj.optString("pillSwipeLeftAction", defaults.pillSwipeLeftAction),
+                pillSwipeRightAction = obj.optString("pillSwipeRightAction", defaults.pillSwipeRightAction)
             )
         }
     }

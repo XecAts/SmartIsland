@@ -90,6 +90,17 @@ class SmartIslandSettingsRepository(private val context: Context) {
         val DeveloperModeEnabled = booleanPreferencesKey("developer_mode_enabled")
         val RecordLogs = booleanPreferencesKey("record_logs")
         val EnableNotchMode = booleanPreferencesKey("enable_notch_mode")
+        val EnableSwipeActions = booleanPreferencesKey("enable_swipe_actions")
+        val SwipeUpAction = stringPreferencesKey("swipe_up_action")
+        val SwipeHoldUpAction = stringPreferencesKey("swipe_hold_up_action")
+        val SwipeDownAction = stringPreferencesKey("swipe_down_action")
+        val SwipeDownCollapsedAction = stringPreferencesKey("swipe_down_collapsed_action")
+        val SwipeHorizontalCollapsedAction = stringPreferencesKey("swipe_horizontal_collapsed_action")
+        val EnablePillSwipeActions = booleanPreferencesKey("enable_pill_swipe_actions")
+        val PillSwipeUpAction = stringPreferencesKey("pill_swipe_up_action")
+        val PillSwipeDownAction = stringPreferencesKey("pill_swipe_down_action")
+        val PillSwipeLeftAction = stringPreferencesKey("pill_swipe_left_action")
+        val PillSwipeRightAction = stringPreferencesKey("pill_swipe_right_action")
     }
 
     val settings: Flow<SmartIslandSettings> = context.smartIslandDataStore.data
@@ -215,7 +226,18 @@ class SmartIslandSettingsRepository(private val context: Context) {
                 notificationCooldownExcludedPackages = prefs[Keys.NotificationCooldownExcludedPackages] ?: defaults.notificationCooldownExcludedPackages,
                 developerModeEnabled = prefs[Keys.DeveloperModeEnabled] ?: defaults.developerModeEnabled,
                 recordLogs = prefs[Keys.RecordLogs] ?: defaults.recordLogs,
-                enableNotchMode = prefs[Keys.EnableNotchMode] ?: defaults.enableNotchMode
+                enableNotchMode = prefs[Keys.EnableNotchMode] ?: defaults.enableNotchMode,
+                enableSwipeActions = prefs[Keys.EnableSwipeActions] ?: defaults.enableSwipeActions,
+                swipeUpAction = prefs[Keys.SwipeUpAction] ?: defaults.swipeUpAction,
+                swipeHoldUpAction = prefs[Keys.SwipeHoldUpAction] ?: defaults.swipeHoldUpAction,
+                swipeDownAction = prefs[Keys.SwipeDownAction] ?: defaults.swipeDownAction,
+                swipeDownCollapsedAction = prefs[Keys.SwipeDownCollapsedAction] ?: defaults.swipeDownCollapsedAction,
+                swipeHorizontalCollapsedAction = prefs[Keys.SwipeHorizontalCollapsedAction] ?: defaults.swipeHorizontalCollapsedAction,
+                enablePillSwipeActions = prefs[Keys.EnablePillSwipeActions] ?: defaults.enablePillSwipeActions,
+                pillSwipeUpAction = prefs[Keys.PillSwipeUpAction] ?: defaults.pillSwipeUpAction,
+                pillSwipeDownAction = prefs[Keys.PillSwipeDownAction] ?: defaults.pillSwipeDownAction,
+                pillSwipeLeftAction = prefs[Keys.PillSwipeLeftAction] ?: defaults.pillSwipeLeftAction,
+                pillSwipeRightAction = prefs[Keys.PillSwipeRightAction] ?: defaults.pillSwipeRightAction
             )
         }
 
@@ -444,6 +466,39 @@ class SmartIslandSettingsRepository(private val context: Context) {
     suspend fun setEnableNotchMode(value: Boolean) = editSafely {
         it[Keys.EnableNotchMode] = value
     }
+    suspend fun setEnableSwipeActions(value: Boolean) = editSafely {
+        it[Keys.EnableSwipeActions] = value
+    }
+    suspend fun setSwipeUpAction(value: String) = editSafely {
+        it[Keys.SwipeUpAction] = value
+    }
+    suspend fun setSwipeHoldUpAction(value: String) = editSafely {
+        it[Keys.SwipeHoldUpAction] = value
+    }
+    suspend fun setSwipeDownAction(value: String) = editSafely {
+        it[Keys.SwipeDownAction] = value
+    }
+    suspend fun setSwipeDownCollapsedAction(value: String) = editSafely {
+        it[Keys.SwipeDownCollapsedAction] = value
+    }
+    suspend fun setSwipeHorizontalCollapsedAction(value: String) = editSafely {
+        it[Keys.SwipeHorizontalCollapsedAction] = value
+    }
+    suspend fun setEnablePillSwipeActions(value: Boolean) = editSafely {
+        it[Keys.EnablePillSwipeActions] = value
+    }
+    suspend fun setPillSwipeUpAction(value: String) = editSafely {
+        it[Keys.PillSwipeUpAction] = value
+    }
+    suspend fun setPillSwipeDownAction(value: String) = editSafely {
+        it[Keys.PillSwipeDownAction] = value
+    }
+    suspend fun setPillSwipeLeftAction(value: String) = editSafely {
+        it[Keys.PillSwipeLeftAction] = value
+    }
+    suspend fun setPillSwipeRightAction(value: String) = editSafely {
+        it[Keys.PillSwipeRightAction] = value
+    }
     suspend fun toggleNotificationCooldownExcludedPackage(packageName: String) = editSafely { prefs ->
         val current = prefs[Keys.NotificationCooldownExcludedPackages] ?: emptySet()
         prefs[Keys.NotificationCooldownExcludedPackages] = if (packageName in current) {
@@ -564,6 +619,17 @@ class SmartIslandSettingsRepository(private val context: Context) {
         prefs[Keys.DeveloperModeEnabled] = settings.developerModeEnabled
         prefs[Keys.RecordLogs] = settings.recordLogs
         prefs[Keys.EnableNotchMode] = settings.enableNotchMode
+        prefs[Keys.EnableSwipeActions] = settings.enableSwipeActions
+        prefs[Keys.SwipeUpAction] = settings.swipeUpAction
+        prefs[Keys.SwipeHoldUpAction] = settings.swipeHoldUpAction
+        prefs[Keys.SwipeDownAction] = settings.swipeDownAction
+        prefs[Keys.SwipeDownCollapsedAction] = settings.swipeDownCollapsedAction
+        prefs[Keys.SwipeHorizontalCollapsedAction] = settings.swipeHorizontalCollapsedAction
+        prefs[Keys.EnablePillSwipeActions] = settings.enablePillSwipeActions
+        prefs[Keys.PillSwipeUpAction] = settings.pillSwipeUpAction
+        prefs[Keys.PillSwipeDownAction] = settings.pillSwipeDownAction
+        prefs[Keys.PillSwipeLeftAction] = settings.pillSwipeLeftAction
+        prefs[Keys.PillSwipeRightAction] = settings.pillSwipeRightAction
     }
 
     suspend fun resetAllSettings() = restoreSettings(SmartIslandSettings.Default.copy(welcomeDialogShown = true))

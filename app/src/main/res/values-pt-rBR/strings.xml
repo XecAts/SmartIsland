@@ -254,6 +254,67 @@
     <string name="gesture_5_swipe_horizontal_sub">Alternar Entre Várias Notificações</string>
     <string name="gesture_5_swipe_horizontal_desc">Quando várias notificações estiverem enfileiradas no Smart Island, deslize horizontalmente para a esquerda ou direita no cartão expandido para navegar entre os alertas ativos.</string>
 
+    <!-- Swipe Customization & Disable Actions -->
+    <string name="enable_swipe_gestures_title">Ativar Gestos de Deslizar</string>
+    <string name="enable_swipe_gestures_desc">Ativa as ações de deslizar na ilha. Desative para desabilitar completamente todos os gestos e evitar toques acidentais.</string>
+    <string name="swipe_customization_title">Personalizar Ações de Deslizar</string>
+    <string name="swipe_customization_desc">Escolha a ação acionada por cada gesto ou desative gestos individuais para evitar toques acidentais.</string>
+    <string name="swipe_gesture_up_title">Deslizar para Cima (Expandido)</string>
+    <string name="swipe_gesture_up_desc">Deslize rapidamente para cima no cartão expandido</string>
+    <string name="swipe_gesture_hold_up_title">Segurar e Deslizar para Cima (Expandido)</string>
+    <string name="swipe_gesture_hold_up_desc">Segure por 300ms até vibrar, depois deslize para cima</string>
+    <string name="swipe_gesture_down_title">Deslizar para Baixo (Expandido)</string>
+    <string name="swipe_gesture_down_desc">Arraste para baixo a partir do cartão expandido</string>
+    <string name="swipe_gesture_down_collapsed_title">Deslizar para Baixo (Pílula Recolhida)</string>
+    <string name="swipe_gesture_down_collapsed_desc">Arraste para baixo na pílula preta recolhida</string>
+    <string name="swipe_gesture_horizontal_collapsed_title">Deslizar para Esquerda/Direita (Recolhida)</string>
+    <string name="swipe_gesture_horizontal_collapsed_desc">Deslize horizontalmente na pílula recolhida</string>
+    <string name="swipe_action_dismiss_current_title">Dispensar Notificação Atual</string>
+    <string name="swipe_action_dismiss_current_desc">Dispensa o alerta ativo exibido na ilha</string>
+    <string name="swipe_action_dismiss_all_title">Dispensar Todas as Notificações</string>
+    <string name="swipe_action_dismiss_all_desc">Limpa todos os cartões de notificação de uma vez</string>
+    <string name="swipe_action_collapse_title">Recolher Ilha</string>
+    <string name="swipe_action_collapse_desc">Recolhe o cartão expandido de volta para a pílula</string>
+    <string name="swipe_action_expand_title">Expandir Ilha</string>
+    <string name="swipe_action_expand_desc">Expande a pílula para ver os detalhes da notificação</string>
+    <string name="swipe_action_open_app_title">Abrir Aplicativo</string>
+    <string name="swipe_action_open_app_desc">Abre o aplicativo associado à notificação atual</string>
+    <string name="swipe_action_floating_window_title">Janela Flutuante Livre</string>
+    <string name="swipe_action_floating_window_desc">Abre o app atual no modo de janela flutuante multitarefa</string>
+    <string name="swipe_action_notification_shade_title">Abrir Painel de Notificações</string>
+    <string name="swipe_action_notification_shade_desc">Abre o painel de notificações do sistema</string>
+    <string name="swipe_action_next_previous_title">Alternar Notificação Ativa</string>
+    <string name="swipe_action_next_previous_desc">Alterna para a próxima ou anterior notificação na pilha</string>
+    <string name="swipe_action_none_title">Desativado</string>
+    <string name="swipe_action_none_desc">Nenhuma ação (desativa este gesto específico)</string>
+    <string name="swipe_action_next_notification_title">Próxima Notificação</string>
+    <string name="swipe_action_next_notification_desc">Avança para a próxima notificação na fila</string>
+    <string name="swipe_action_prev_notification_title">Notificação Anterior</string>
+    <string name="swipe_action_prev_notification_desc">Volta para a notificação anterior</string>
+    <string name="swipe_action_next_track_title">Próxima Faixa</string>
+    <string name="swipe_action_next_track_desc">Avança para a próxima música no player ativo</string>
+    <string name="swipe_action_prev_track_title">Faixa Anterior</string>
+    <string name="swipe_action_prev_track_desc">Volta para a música anterior no player ativo</string>
+    <string name="swipe_action_play_pause_title">Reproduzir / Pausar Mídia</string>
+    <string name="swipe_action_play_pause_desc">Alterna a reprodução da mídia atual</string>
+    <string name="swipe_action_dialog_title">Selecionar Ação para %1$s</string>
+
+    <!-- Pill Specific Swipe Strings -->
+    <string name="enable_pill_swipe_gestures_title">Ativar Gestos de Deslizar na Pílula</string>
+    <string name="enable_pill_swipe_gestures_desc">Ativa as ações de deslizar na pequena pílula recolhida. Desative para bloquear totalmente gestos na pílula e evitar toques acidentais.</string>
+    <string name="pill_swipe_customization_title">Ações de Deslizar na Pílula Recolhida</string>
+    <string name="pill_swipe_customization_desc">Personalize as ações ao deslizar sobre a pílula recolhida ou desative direções específicas.</string>
+    <string name="pill_swipe_left_title">Deslizar para Esquerda na Pílula</string>
+    <string name="pill_swipe_left_desc">Deslize horizontalmente para a esquerda sobre a pílula recolhida</string>
+    <string name="pill_swipe_right_title">Deslizar para Direita na Pílula</string>
+    <string name="pill_swipe_right_desc">Deslize horizontalmente para a direita sobre a pílula recolhida</string>
+    <string name="pill_swipe_up_title">Deslizar para Cima na Pílula</string>
+    <string name="pill_swipe_up_desc">Deslize para cima sobre a pílula recolhida</string>
+    <string name="pill_swipe_down_title">Deslizar para Baixo na Pílula</string>
+    <string name="pill_swipe_down_desc">Deslize para baixo sobre a pílula recolhida</string>
+    <string name="expanded_swipe_customization_title">Ações de Deslizar no Cartão Expandido</string>
+    <string name="expanded_swipe_customization_desc">Personalize as ações ao deslizar no cartão expandido</string>
+
     <!-- Notifications & Privacy Rules -->
     <string name="oem_rules_title">Perfil do Dispositivo e Regras do Fabricante</string>
     <string name="oem_rules_desc">Regras personalizadas para Xiaomi/HyperOS, Samsung, Vivo, Realme, OnePlus e outros</string>

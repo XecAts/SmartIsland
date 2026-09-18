@@ -7,6 +7,7 @@
 
 package com.agupta07505.smartisland.ui
 
+import com.agupta07505.smartisland.model.SwipeAction
 import com.agupta07505.smartisland.ui.expanded.IslandExpandedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -95,6 +96,7 @@ fun IslandOverlayView(
     onToggleExpanded: () -> Unit,
     onDismissNotification: () -> Unit,
     onOpenFloatingWindow: () -> Unit,
+    onOpenNotificationShade: () -> Unit = {},
     statusBarHeight: Float,
     modifier: Modifier = Modifier,
     isInputActive: Boolean = false,
@@ -108,8 +110,11 @@ fun IslandOverlayView(
     val currentOnDismiss by rememberUpdatedState(onDismissNotification)
     val currentOnDismissAll by rememberUpdatedState(onDismissAllNotifications)
     val currentOnOpenFloatingWindow by rememberUpdatedState(onOpenFloatingWindow)
+    val currentOnOpenNotificationShade by rememberUpdatedState(onOpenNotificationShade)
     val currentOnOpenNotification by rememberUpdatedState(onOpenNotification)
+    val currentOnPageSelected by rememberUpdatedState(onPageSelected)
     val currentExpanded by rememberUpdatedState(expanded)
+    val currentSettings by rememberUpdatedState(settings)
     val haptic = LocalHapticFeedback.current
 
     val scope = rememberCoroutineScope()
@@ -460,7 +465,8 @@ fun IslandOverlayView(
                         userInteractionTimestamp = System.currentTimeMillis()
                         val pressTimeMs = System.currentTimeMillis()
                         var isHoldRegistered = false
-                        var dragAccumulator = 0f
+                        var dragAccumulatorY = 0f
+                        var dragAccumulatorX = 0f
                         var isDragging = false
 
                         val holdJob = scope.launch {
@@ -481,19 +487,46 @@ fun IslandOverlayView(
                                 val totalElapsedMs = System.currentTimeMillis() - pressTimeMs
                                 val swipeUpThreshold = -SWIPE_THRESHOLD_DP * displayMetrics.density
                                 val swipeDownThreshold = SWIPE_THRESHOLD_DP * displayMetrics.density
+                                val swipeHorizontalThreshold = SWIPE_THRESHOLD_DP * displayMetrics.density
+                                val currentNotification = notifications.getOrNull(safeIndex)
 
                                 if (currentExpanded) {
-                                    if (isDragging && dragOffset < swipeUpThreshold) {
-                                        if (isHoldRegistered || totalElapsedMs >= HOLD_GESTURE_THRESHOLD_MS) {
-                                            currentOnDismissAll()
-                                        } else {
-                                            currentOnDismiss()
-                                        }
-                                    } else if (isDragging && dragOffset > swipeDownThreshold) {
-                                        currentOnOpenFloatingWindow()
+                                    if (isDragging && currentSettings.enableSwipeActions && dragOffset < swipeUpThreshold) {
+                                        val isHold = isHoldRegistered || totalElapsedMs >= HOLD_GESTURE_THRESHOLD_MS
+                                        val actionStr = if (isHold) currentSettings.swipeHoldUpAction else currentSettings.swipeUpAction
+                                        val action = SwipeAction.fromId(actionStr, if (isHold) SwipeAction.DismissAll else SwipeAction.DismissCurrent)
+                                        executeSwipeAction(
+                                            action = action,
+                                            currentNotification = currentNotification,
+                                            context = context,
+                                            onDismiss = currentOnDismiss,
+                                            onDismissAll = currentOnDismissAll,
+                                            onToggle = currentOnToggle,
+                                            onOpenNotification = currentOnOpenNotification,
+                                            onOpenFloatingWindow = currentOnOpenFloatingWindow,
+                                            onOpenNotificationShade = currentOnOpenNotificationShade,
+                                            onPageSelected = currentOnPageSelected,
+                                            notificationsSize = notifications.size,
+                                            currentIndex = safeIndex
+                                        )
+                                    } else if (isDragging && currentSettings.enableSwipeActions && dragOffset > swipeDownThreshold) {
+                                        val action = SwipeAction.fromId(currentSettings.swipeDownAction, SwipeAction.FloatingWindow)
+                                        executeSwipeAction(
+                                            action = action,
+                                            currentNotification = currentNotification,
+                                            context = context,
+                                            onDismiss = currentOnDismiss,
+                                            onDismissAll = currentOnDismissAll,
+                                            onToggle = currentOnToggle,
+                                            onOpenNotification = currentOnOpenNotification,
+                                            onOpenFloatingWindow = currentOnOpenFloatingWindow,
+                                            onOpenNotificationShade = currentOnOpenNotificationShade,
+                                            onPageSelected = currentOnPageSelected,
+                                            notificationsSize = notifications.size,
+                                            currentIndex = safeIndex
+                                        )
                                     } else if (!isDragging || abs(dragOffset) < 10f) {
                                         if (!isHoldRegistered) {
-                                            val currentNotification = notifications.getOrNull(safeIndex)
                                             if (currentNotification != null) {
                                                 currentOnOpenNotification(currentNotification)
                                             } else {
@@ -502,8 +535,85 @@ fun IslandOverlayView(
                                         }
                                     }
                                 } else {
-                                    if (!isDragging || abs(dragOffset) < 10f) {
-                                        if (notifications.isNotEmpty() || settings.enableAppShortcuts) {
+                                    // Collapsed state (Pill) gestures
+                                    val isPillSwipeEnabled = currentSettings.enableSwipeActions && currentSettings.enablePillSwipeActions
+                                    if (isDragging && isPillSwipeEnabled) {
+                                        val isHorizontal = abs(dragAccumulatorX) > abs(dragAccumulatorY)
+                                        if (isHorizontal) {
+                                            if (dragAccumulatorX < -swipeHorizontalThreshold) {
+                                                // Swiped Left on Pill
+                                                val action = SwipeAction.fromId(currentSettings.pillSwipeLeftAction, SwipeAction.PreviousNotification)
+                                                executeSwipeAction(
+                                                    action = action,
+                                                    currentNotification = currentNotification,
+                                                    context = context,
+                                                    onDismiss = currentOnDismiss,
+                                                    onDismissAll = currentOnDismissAll,
+                                                    onToggle = currentOnToggle,
+                                                    onOpenNotification = currentOnOpenNotification,
+                                                    onOpenFloatingWindow = currentOnOpenFloatingWindow,
+                                                    onOpenNotificationShade = currentOnOpenNotificationShade,
+                                                    onPageSelected = currentOnPageSelected,
+                                                    notificationsSize = notifications.size,
+                                                    currentIndex = safeIndex
+                                                )
+                                            } else if (dragAccumulatorX > swipeHorizontalThreshold) {
+                                                // Swiped Right on Pill
+                                                val action = SwipeAction.fromId(currentSettings.pillSwipeRightAction, SwipeAction.NextNotification)
+                                                executeSwipeAction(
+                                                    action = action,
+                                                    currentNotification = currentNotification,
+                                                    context = context,
+                                                    onDismiss = currentOnDismiss,
+                                                    onDismissAll = currentOnDismissAll,
+                                                    onToggle = currentOnToggle,
+                                                    onOpenNotification = currentOnOpenNotification,
+                                                    onOpenFloatingWindow = currentOnOpenFloatingWindow,
+                                                    onOpenNotificationShade = currentOnOpenNotificationShade,
+                                                    onPageSelected = currentOnPageSelected,
+                                                    notificationsSize = notifications.size,
+                                                    currentIndex = safeIndex
+                                                )
+                                            }
+                                        } else {
+                                            if (dragAccumulatorY < swipeUpThreshold) {
+                                                // Swiped Up on Pill
+                                                val action = SwipeAction.fromId(currentSettings.pillSwipeUpAction, SwipeAction.DismissCurrent)
+                                                executeSwipeAction(
+                                                    action = action,
+                                                    currentNotification = currentNotification,
+                                                    context = context,
+                                                    onDismiss = currentOnDismiss,
+                                                    onDismissAll = currentOnDismissAll,
+                                                    onToggle = currentOnToggle,
+                                                    onOpenNotification = currentOnOpenNotification,
+                                                    onOpenFloatingWindow = currentOnOpenFloatingWindow,
+                                                    onOpenNotificationShade = currentOnOpenNotificationShade,
+                                                    onPageSelected = currentOnPageSelected,
+                                                    notificationsSize = notifications.size,
+                                                    currentIndex = safeIndex
+                                                )
+                                            } else if (dragAccumulatorY > swipeDownThreshold) {
+                                                // Swiped Down on Pill
+                                                val action = SwipeAction.fromId(currentSettings.pillSwipeDownAction, SwipeAction.Expand)
+                                                executeSwipeAction(
+                                                    action = action,
+                                                    currentNotification = currentNotification,
+                                                    context = context,
+                                                    onDismiss = currentOnDismiss,
+                                                    onDismissAll = currentOnDismissAll,
+                                                    onToggle = currentOnToggle,
+                                                    onOpenNotification = currentOnOpenNotification,
+                                                    onOpenFloatingWindow = currentOnOpenFloatingWindow,
+                                                    onOpenNotificationShade = currentOnOpenNotificationShade,
+                                                    onPageSelected = currentOnPageSelected,
+                                                    notificationsSize = notifications.size,
+                                                    currentIndex = safeIndex
+                                                )
+                                            }
+                                        }
+                                    } else if (!isDragging || (abs(dragAccumulatorX) < 10f && abs(dragAccumulatorY) < 10f)) {
+                                        if (notifications.isNotEmpty() || currentSettings.enableAppShortcuts) {
                                             currentOnToggle()
                                         }
                                     }
@@ -513,13 +623,15 @@ fun IslandOverlayView(
                                 holdJob.cancel()
                                 break
                             } else {
-                                val dragAmount = change.positionChange().y
-                                if (abs(dragAmount) > 0.5f) {
+                                val dragAmountY = change.positionChange().y
+                                val dragAmountX = change.positionChange().x
+                                if (abs(dragAmountY) > 0.5f || abs(dragAmountX) > 0.5f) {
                                     isDragging = true
+                                    dragAccumulatorY += dragAmountY
+                                    dragAccumulatorX += dragAmountX
                                     if (currentExpanded) {
                                         change.consume()
-                                        dragAccumulator += dragAmount
-                                        dragOffset = dragAccumulator.coerceIn(
+                                        dragOffset = dragAccumulatorY.coerceIn(
                                             -DRAG_MAX_OFFSET_DP * displayMetrics.density,
                                             DRAG_MAX_OFFSET_DP * displayMetrics.density
                                         )
@@ -899,4 +1011,80 @@ internal fun compactNotificationShapes(
     !expanded -> listOf(CompactNotificationShape.Circle)
     notificationCount == 2 -> listOf(CompactNotificationShape.MiniPill)
     else -> listOf(CompactNotificationShape.MiniPill, CompactNotificationShape.Circle)
+}
+
+private fun executeSwipeAction(
+    action: SwipeAction,
+    currentNotification: IslandNotification?,
+    context: android.content.Context? = null,
+    onDismiss: () -> Unit,
+    onDismissAll: () -> Unit,
+    onToggle: () -> Unit,
+    onOpenNotification: (IslandNotification) -> Unit,
+    onOpenFloatingWindow: () -> Unit,
+    onOpenNotificationShade: () -> Unit,
+    onPageSelected: (Int) -> Unit,
+    notificationsSize: Int,
+    currentIndex: Int
+) {
+    when (action) {
+        SwipeAction.DismissCurrent -> onDismiss()
+        SwipeAction.DismissAll -> onDismissAll()
+        SwipeAction.Collapse -> onToggle()
+        SwipeAction.Expand -> onToggle()
+        SwipeAction.OpenApp -> {
+            if (currentNotification != null) {
+                onOpenNotification(currentNotification)
+            }
+        }
+        SwipeAction.FloatingWindow -> onOpenFloatingWindow()
+        SwipeAction.NotificationShade -> onOpenNotificationShade()
+        SwipeAction.NextPrevious, SwipeAction.NextNotification -> {
+            if (notificationsSize > 1) {
+                val nextIndex = (currentIndex + 1) % notificationsSize
+                onPageSelected(nextIndex)
+            }
+        }
+        SwipeAction.PreviousNotification -> {
+            if (notificationsSize > 1) {
+                val prevIndex = (currentIndex - 1 + notificationsSize) % notificationsSize
+                onPageSelected(prevIndex)
+            }
+        }
+        SwipeAction.NextTrack -> {
+            if (currentNotification?.mediaToken != null && context != null) {
+                runCatching {
+                    android.media.session.MediaController(context, currentNotification.mediaToken).transportControls.skipToNext()
+                }
+            } else if (notificationsSize > 1) {
+                val nextIndex = (currentIndex + 1) % notificationsSize
+                onPageSelected(nextIndex)
+            }
+        }
+        SwipeAction.PreviousTrack -> {
+            if (currentNotification?.mediaToken != null && context != null) {
+                runCatching {
+                    android.media.session.MediaController(context, currentNotification.mediaToken).transportControls.skipToPrevious()
+                }
+            } else if (notificationsSize > 1) {
+                val prevIndex = (currentIndex - 1 + notificationsSize) % notificationsSize
+                onPageSelected(prevIndex)
+            }
+        }
+        SwipeAction.PlayPause -> {
+            if (currentNotification?.mediaToken != null && context != null) {
+                runCatching {
+                    val controller = android.media.session.MediaController(context, currentNotification.mediaToken)
+                    if (currentNotification.mediaIsPlaying) {
+                        controller.transportControls.pause()
+                    } else {
+                        controller.transportControls.play()
+                    }
+                }
+            }
+        }
+        SwipeAction.None -> {
+            // Disabled / No action
+        }
+    }
 }

@@ -486,7 +486,7 @@ fun BackupRestoreSection(
                         R.string.dialog_restore_confirm_desc,
                         metadata?.settingsCount ?: 40,
                         dateStr,
-                        metadata?.appVersion ?: "6.0.0"
+                        metadata?.appVersion ?: "7.0.0"
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )

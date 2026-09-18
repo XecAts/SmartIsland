@@ -27,6 +27,7 @@ fun OverlayIsland(
     onOpenNotification: (IslandNotification) -> Unit,
     onLaunchApp: (String) -> Unit,
     onOpenFloatingWindow: () -> Unit,
+    onOpenNotificationShade: () -> Unit = {},
     modifier: Modifier = Modifier,
     isFullWidth: Boolean = true
 ) {
@@ -102,6 +103,7 @@ fun OverlayIsland(
         onDismissNotification = { viewModel.dismissCurrentNotification() },
         onDismissAllNotifications = { viewModel.dismissAllNotifications() },
         onOpenFloatingWindow = onOpenFloatingWindow,
+        onOpenNotificationShade = onOpenNotificationShade,
         statusBarHeight = statusBarHeight,
         isInputActive = isInputActive,
         onReplyStateChanged = { viewModel.setInputActive(it) },

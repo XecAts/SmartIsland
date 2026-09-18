@@ -254,6 +254,67 @@
     <string name="gesture_5_swipe_horizontal_sub">切换多条活动通知</string>
     <string name="gesture_5_swipe_horizontal_desc">当 Smart Island 中有多条通知排队时，在展开卡片上左右滑动即可翻页浏览。</string>
 
+    <!-- Swipe Customization & Disable Actions -->
+    <string name="enable_swipe_gestures_title">启用滑动手势</string>
+    <string name="enable_swipe_gestures_desc">启用灵动岛滑动手势。关闭后将完全禁用所有滑动手势，防止误触。</string>
+    <string name="swipe_customization_title">自定义滑动手势</string>
+    <string name="swipe_customization_desc">为每个手势配置对应操作，或单独禁用特定手势以防止误触。</string>
+    <string name="swipe_gesture_up_title">上滑（展开卡片）</string>
+    <string name="swipe_gesture_up_desc">在展开卡片上快速向上滑动</string>
+    <string name="swipe_gesture_hold_up_title">长按后上滑（展开卡片）</string>
+    <string name="swipe_gesture_hold_up_desc">长按300毫秒振动后向上滑动</string>
+    <string name="swipe_gesture_down_title">下滑（展开卡片）</string>
+    <string name="swipe_gesture_down_desc">在展开卡片上向下滑动</string>
+    <string name="swipe_gesture_down_collapsed_title">下滑（收起状态胶囊）</string>
+    <string name="swipe_gesture_down_collapsed_desc">在黑色小胶囊上向下滑动</string>
+    <string name="swipe_gesture_horizontal_collapsed_title">左右滑动（收起状态胶囊）</string>
+    <string name="swipe_gesture_horizontal_collapsed_desc">在黑色小胶囊上左右水平滑动</string>
+    <string name="swipe_action_dismiss_current_title">清除当前通知</string>
+    <string name="swipe_action_dismiss_current_desc">关闭灵动岛当前显示的通知</string>
+    <string name="swipe_action_dismiss_all_title">清除全部通知</string>
+    <string name="swipe_action_dismiss_all_desc">一键清除所有待处理通知</string>
+    <string name="swipe_action_collapse_title">收起灵动岛</string>
+    <string name="swipe_action_collapse_desc">将展开卡片收回至胶囊状态</string>
+    <string name="swipe_action_expand_title">展开灵动岛</string>
+    <string name="swipe_action_expand_desc">展开胶囊显示通知详情</string>
+    <string name="swipe_action_open_app_title">打开应用</string>
+    <string name="swipe_action_open_app_desc">直接打开当前通知对应的应用</string>
+    <string name="swipe_action_floating_window_title">自由小窗打开</string>
+    <string name="swipe_action_floating_window_desc">在小窗悬浮多任务模式下打开当前应用</string>
+    <string name="swipe_action_notification_shade_title">展开系统通知栏</string>
+    <string name="swipe_action_notification_shade_desc">拉下系统通知中心面板</string>
+    <string name="swipe_action_next_previous_title">切换活动通知</string>
+    <string name="swipe_action_next_previous_desc">在多条通知间切换下一条或上一条</string>
+    <string name="swipe_action_none_title">已禁用</string>
+    <string name="swipe_action_none_desc">无动作（禁用此手势，防止误触）</string>
+    <string name="swipe_action_next_notification_title">下一条通知</string>
+    <string name="swipe_action_next_notification_desc">切换至下一条排队中的通知</string>
+    <string name="swipe_action_prev_notification_title">上一条通知</string>
+    <string name="swipe_action_prev_notification_desc">切换至上一条通知</string>
+    <string name="swipe_action_next_track_title">下一首曲目</string>
+    <string name="swipe_action_next_track_desc">在当前播放器中切换下一首音乐</string>
+    <string name="swipe_action_prev_track_title">上一首曲目</string>
+    <string name="swipe_action_prev_track_desc">在当前播放器中重新播放或返回上一首音乐</string>
+    <string name="swipe_action_play_pause_title">播放 / 暂停媒体</string>
+    <string name="swipe_action_play_pause_desc">播放或暂停当前正在运行的媒体</string>
+    <string name="swipe_action_dialog_title">选择 %1$s 操作</string>
+
+    <!-- Pill Specific Swipe Strings -->
+    <string name="enable_pill_swipe_gestures_title">启用小胶囊滑动手势</string>
+    <string name="enable_pill_swipe_gestures_desc">在收起状态的黑色小胶囊上启用滑动手势。关闭后将完全禁用小胶囊滑动，防止误触。</string>
+    <string name="pill_swipe_customization_title">小胶囊滑动手势自定义</string>
+    <string name="pill_swipe_customization_desc">自定义在收起状态小胶囊上滑动的动作，或禁用指定滑动方向。</string>
+    <string name="pill_swipe_left_title">小胶囊向左滑动</string>
+    <string name="pill_swipe_left_desc">在收起状态黑色小胶囊上向左水平滑动</string>
+    <string name="pill_swipe_right_title">小胶囊向右滑动</string>
+    <string name="pill_swipe_right_desc">在收起状态黑色小胶囊上向右水平滑动</string>
+    <string name="pill_swipe_up_title">小胶囊向上滑动</string>
+    <string name="pill_swipe_up_desc">在收起状态黑色小胶囊上向上滑动</string>
+    <string name="pill_swipe_down_title">小胶囊向下滑动</string>
+    <string name="pill_swipe_down_desc">在收起状态黑色小胶囊上向下滑动</string>
+    <string name="expanded_swipe_customization_title">展开卡片滑动手势自定义</string>
+    <string name="expanded_swipe_customization_desc">自定义在展开状态卡片上的滑动手势操作</string>
+
     <!-- Notifications & Privacy Rules -->
     <string name="oem_rules_title">设备配置文件与厂商规则</string>
     <string name="oem_rules_desc">针对小米/HyperOS、三星、vivo、OPPO/Realme、一加等厂商的专属优化</string>

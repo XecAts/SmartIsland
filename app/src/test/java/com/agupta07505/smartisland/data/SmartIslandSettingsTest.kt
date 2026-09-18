@@ -46,6 +46,17 @@ class SmartIslandSettingsTest {
         assertEquals(false, settings.developerModeEnabled)
         assertEquals(false, settings.recordLogs)
         assertEquals(false, settings.enableNotchMode)
+        assertEquals(true, settings.enableSwipeActions)
+        assertEquals("DismissCurrent", settings.swipeUpAction)
+        assertEquals("DismissAll", settings.swipeHoldUpAction)
+        assertEquals("FloatingWindow", settings.swipeDownAction)
+        assertEquals("Expand", settings.swipeDownCollapsedAction)
+        assertEquals("NextPrevious", settings.swipeHorizontalCollapsedAction)
+        assertEquals(true, settings.enablePillSwipeActions)
+        assertEquals("DismissCurrent", settings.pillSwipeUpAction)
+        assertEquals("Expand", settings.pillSwipeDownAction)
+        assertEquals("PreviousNotification", settings.pillSwipeLeftAction)
+        assertEquals("NextNotification", settings.pillSwipeRightAction)
     }
 
     @Test
@@ -113,18 +124,76 @@ class SmartIslandSettingsTest {
             notificationHistoryRetentionHours = 48,
             developerModeEnabled = true,
             recordLogs = true,
-            enableNotchMode = true
+            enableNotchMode = true,
+            enableSwipeActions = false,
+            swipeUpAction = "Collapse",
+            swipeHoldUpAction = "None",
+            swipeDownAction = "NotificationShade",
+            swipeDownCollapsedAction = "DismissAll",
+            swipeHorizontalCollapsedAction = "None",
+            enablePillSwipeActions = false,
+            pillSwipeUpAction = "None",
+            pillSwipeDownAction = "NotificationShade",
+            pillSwipeLeftAction = "PreviousTrack",
+            pillSwipeRightAction = "NextTrack"
         )
 
-        val jsonString = original.toJson(appVersion = "6.0.0")
+        val jsonString = original.toJson(appVersion = "7.0.0")
         val restored = SmartIslandSettings.fromJson(jsonString)
 
         assertEquals(original, restored)
 
         val metadata = SmartIslandSettings.parseBackupMetadata(jsonString)
         org.junit.Assert.assertNotNull(metadata)
-        assertEquals("6.0.0", metadata?.appVersion)
+        assertEquals("7.0.0", metadata?.appVersion)
         assertEquals(SmartIslandSettings.BACKUP_FORMAT_VERSION, metadata?.formatVersion)
+    }
+
+    @Test
+    fun testSwipeActionModelAndSerialization() {
+        // Test SwipeAction.fromId
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.DismissCurrent, com.agupta07505.smartisland.model.SwipeAction.fromId("DismissCurrent"))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.DismissAll, com.agupta07505.smartisland.model.SwipeAction.fromId("dismissall"))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.NextTrack, com.agupta07505.smartisland.model.SwipeAction.fromId("NextTrack"))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.PreviousTrack, com.agupta07505.smartisland.model.SwipeAction.fromId("PreviousTrack"))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.PlayPause, com.agupta07505.smartisland.model.SwipeAction.fromId("PlayPause"))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.NextNotification, com.agupta07505.smartisland.model.SwipeAction.fromId("NextNotification"))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.PreviousNotification, com.agupta07505.smartisland.model.SwipeAction.fromId("PreviousNotification"))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.None, com.agupta07505.smartisland.model.SwipeAction.fromId("None"))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.None, com.agupta07505.smartisland.model.SwipeAction.fromId(null))
+        assertEquals(com.agupta07505.smartisland.model.SwipeAction.Expand, com.agupta07505.smartisland.model.SwipeAction.fromId("UnknownAction", default = com.agupta07505.smartisland.model.SwipeAction.Expand))
+
+        // Test disabled / custom swipe actions in JSON parsing
+        val json = """
+            {
+                "settings": {
+                    "enableSwipeActions": false,
+                    "swipeUpAction": "None",
+                    "swipeHoldUpAction": "Collapse",
+                    "swipeDownAction": "None",
+                    "swipeDownCollapsedAction": "NotificationShade",
+                    "swipeHorizontalCollapsedAction": "None",
+                    "enablePillSwipeActions": false,
+                    "pillSwipeUpAction": "None",
+                    "pillSwipeDownAction": "FloatingWindow",
+                    "pillSwipeLeftAction": "PlayPause",
+                    "pillSwipeRightAction": "NextTrack"
+                }
+            }
+        """.trimIndent()
+
+        val settings = SmartIslandSettings.fromJson(json)
+        assertEquals(false, settings.enableSwipeActions)
+        assertEquals("None", settings.swipeUpAction)
+        assertEquals("Collapse", settings.swipeHoldUpAction)
+        assertEquals("None", settings.swipeDownAction)
+        assertEquals("NotificationShade", settings.swipeDownCollapsedAction)
+        assertEquals("None", settings.swipeHorizontalCollapsedAction)
+        assertEquals(false, settings.enablePillSwipeActions)
+        assertEquals("None", settings.pillSwipeUpAction)
+        assertEquals("FloatingWindow", settings.pillSwipeDownAction)
+        assertEquals("PlayPause", settings.pillSwipeLeftAction)
+        assertEquals("NextTrack", settings.pillSwipeRightAction)
     }
 
     @Test

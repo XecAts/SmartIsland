@@ -254,6 +254,67 @@
     <string name="gesture_5_swipe_horizontal_sub">Switch Between Multiple Notifications</string>
     <string name="gesture_5_swipe_horizontal_desc">When multiple notifications are queued in Smart Island, swipe left or right horizontally on the expanded card to page between active alerts.</string>
 
+    <!-- Swipe Customization & Disable Actions -->
+    <string name="enable_swipe_gestures_title">Enable Swipe Gestures</string>
+    <string name="enable_swipe_gestures_desc">Enable swipe actions on the island. Turn off to completely disable all swipe gestures and prevent accidental actions.</string>
+    <string name="swipe_customization_title">Customize Swipe Actions</string>
+    <string name="swipe_customization_desc">Choose what action triggers for each swipe gesture, or disable individual gestures to avoid accidental triggers.</string>
+    <string name="swipe_gesture_up_title">Swipe Up (Expanded)</string>
+    <string name="swipe_gesture_up_desc">Quickly flick upward on the expanded card</string>
+    <string name="swipe_gesture_hold_up_title">Hold &amp; Swipe Up (Expanded)</string>
+    <string name="swipe_gesture_hold_up_desc">Hold 300ms until vibration, then swipe upward</string>
+    <string name="swipe_gesture_down_title">Swipe Down (Expanded)</string>
+    <string name="swipe_gesture_down_desc">Drag downward from the expanded card</string>
+    <string name="swipe_gesture_down_collapsed_title">Swipe Down (Collapsed Pill)</string>
+    <string name="swipe_gesture_down_collapsed_desc">Drag downward on the collapsed island pill</string>
+    <string name="swipe_gesture_horizontal_collapsed_title">Swipe Left / Right (Collapsed Pill)</string>
+    <string name="swipe_gesture_horizontal_collapsed_desc">Swipe left or right horizontally on the collapsed pill</string>
+    <string name="swipe_action_dismiss_current_title">Dismiss Current Notification</string>
+    <string name="swipe_action_dismiss_current_desc">Dismisses the active notification from the island</string>
+    <string name="swipe_action_dismiss_all_title">Dismiss All Notifications</string>
+    <string name="swipe_action_dismiss_all_desc">Dismisses all pending notifications at once</string>
+    <string name="swipe_action_collapse_title">Collapse Island</string>
+    <string name="swipe_action_collapse_desc">Collapses the expanded island back to a pill</string>
+    <string name="swipe_action_expand_title">Expand Island</string>
+    <string name="swipe_action_expand_desc">Expands the collapsed pill to show notification details</string>
+    <string name="swipe_action_open_app_title">Open App</string>
+    <string name="swipe_action_open_app_desc">Opens the app associated with the current notification</string>
+    <string name="swipe_action_floating_window_title">Freeform Floating Window</string>
+    <string name="swipe_action_floating_window_desc">Opens the current app in a freeform floating window</string>
+    <string name="swipe_action_notification_shade_title">Open Notification Shade</string>
+    <string name="swipe_action_notification_shade_desc">Expands the system notification panel</string>
+    <string name="swipe_action_next_previous_title">Switch Active Notification</string>
+    <string name="swipe_action_next_previous_desc">Cycles to the next or previous notification in the stack</string>
+    <string name="swipe_action_none_title">Disabled</string>
+    <string name="swipe_action_none_desc">Do nothing (disables this specific gesture)</string>
+    <string name="swipe_action_next_notification_title">Next Notification</string>
+    <string name="swipe_action_next_notification_desc">Switches forward to the next queued notification</string>
+    <string name="swipe_action_prev_notification_title">Previous Notification</string>
+    <string name="swipe_action_prev_notification_desc">Switches backward to the previous notification</string>
+    <string name="swipe_action_next_track_title">Next Media Track</string>
+    <string name="swipe_action_next_track_desc">Skips to the next song/track in the active media player</string>
+    <string name="swipe_action_prev_track_title">Previous Media Track</string>
+    <string name="swipe_action_prev_track_desc">Rewinds to the previous song/track in the active media player</string>
+    <string name="swipe_action_play_pause_title">Play / Pause Media</string>
+    <string name="swipe_action_play_pause_desc">Toggles playback of currently playing music or media</string>
+    <string name="swipe_action_dialog_title">Select Action for %1$s</string>
+
+    <!-- Pill Specific Swipe Strings -->
+    <string name="enable_pill_swipe_gestures_title">Enable Pill Swipe Gestures</string>
+    <string name="enable_pill_swipe_gestures_desc">Enable swipe actions on the collapsed island pill. Turn off to completely disable gestures on the pill and prevent accidental actions.</string>
+    <string name="pill_swipe_customization_title">Collapsed Pill Swipe Actions</string>
+    <string name="pill_swipe_customization_desc">Customize actions when swiping across the small island pill, or disable specific directions.</string>
+    <string name="pill_swipe_left_title">Swipe Left on Pill</string>
+    <string name="pill_swipe_left_desc">Flick or drag left horizontally across the collapsed pill</string>
+    <string name="pill_swipe_right_title">Swipe Right on Pill</string>
+    <string name="pill_swipe_right_desc">Flick or drag right horizontally across the collapsed pill</string>
+    <string name="pill_swipe_up_title">Swipe Up on Pill</string>
+    <string name="pill_swipe_up_desc">Flick upward on the collapsed pill</string>
+    <string name="pill_swipe_down_title">Swipe Down on Pill</string>
+    <string name="pill_swipe_down_desc">Flick or drag downward on the collapsed pill</string>
+    <string name="expanded_swipe_customization_title">Expanded Card Swipe Actions</string>
+    <string name="expanded_swipe_customization_desc">Customize actions when swiping on the expanded island card</string>
+
     <!-- Notifications & Privacy Rules -->
     <string name="oem_rules_title">Device Profile &amp; OEM Rules</string>
     <string name="oem_rules_desc">Tailored rules for Xiaomi, Samsung, Vivo, Realme, OnePlus &amp; more</string>

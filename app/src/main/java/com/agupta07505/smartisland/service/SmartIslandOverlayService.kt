@@ -457,6 +457,10 @@ class SmartIslandOverlayService : AccessibilityService() {
                         onOpenNotification = { notification -> openNotification(notification) },
                         onLaunchApp = { packageName -> launchApp(packageName) },
                         onOpenFloatingWindow = { openCurrentNotificationInFloatingWindow() },
+                        onOpenNotificationShade = {
+                            performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
+                            viewModel.collapse()
+                        },
                         isFullWidth = isTouchableRegionSupported
                     )
                 }

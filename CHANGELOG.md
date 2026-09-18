@@ -8,6 +8,29 @@ The format is inspired by Keep a Changelog, and this project uses the GNU Genera
 
 ### Added
 
+- **Configurable Companion Circle Position (`PositionsSection.kt`, `IslandOverlayView.kt`, `SmartIslandOverlayService.kt`, `SmartIslandSettings.kt`, `SmartIslandSettingsRepository.kt`)**:
+  - **Left or Right Placement Option**: Added `circlePosition` setting (`"right"` vs `"left"`, default `"right"`) allowing users to decide whether the multi-tasking companion circle appears on the left or right side of the main pill.
+  - **Optimized for Corner & Right-Aligned Camera Holes**: On devices with right-aligned punch-hole cameras (Samsung Galaxy S10, Huawei, Honor, etc.), placing the companion circle on the left prevents it from crowding the screen edge or colliding with the pill.
+  - **Dedicated UI Card in Positions & Sizing**: Interactive **"Companion Circle Position"** card featuring segmented Left and Right selector buttons with visual direction icons (`AlignHorizontalLeft` and `AlignHorizontalRight`) and status feedback.
+  - **Full Settings Persistence & Backup Support**: Backed by DataStore preference `Keys.CirclePosition` and fully serialized in JSON backup/export files.
+  - **100% Localization Parity**: Complete translations across English, Chinese (Simplified/Regional), and Portuguese (Standard/Brazil).
+
+### Fixed
+
+- **Companion Circle & Main Pill Collapsing / Overlap Fix (`IslandOverlayView.kt`, `SmartIslandOverlayService.kt`)**:
+  - **Reactive Window Mode Synchronization**: Converted `isTouchableRegionSupported` in `SmartIslandOverlayService` to a reactive `MutableStateFlow` collected by Compose (`OverlayIsland`). This resolves a desynchronization where Compose was stuck in non-full-width fallback mode while WindowManager was set to `MATCH_PARENT`, causing the pill and circle to drift, collide, or overlap.
+  - **Symmetric Anti-Collapse Geometry Clamping**: Derived unified layout boundary math ensuring the companion circle and main pill maintain at least `compactGap` (8dp) separation under all screen widths, camera x-offsets, and orientations for both left and right placements.
+  - **Dynamic Insets & Touch Bounds**: Updated `setupTouchableRegion`, `updateWindowLayoutParams`, and `collapsedParams` to compute exact bounding boxes encompassing both the pill and circle regardless of whether the circle is on the left or right.
+
+- **Alarms Mistakenly Categorized as Timers or Stopwatches (`NotificationFilter.kt`, `TimerStopwatchParser.kt`)**:
+  - Excluded alarm clock packages (`com.google.android.deskclock`, `com.sec.android.app.clockpackage`, `com.oneplus.deskclock`, `com.xiaomi.calendar`, etc.) when notifications contain alarm identifiers, categories (`CATEGORY_ALARM`), or alarm-specific text ("alarm", "ringing", "snooze", "dismiss", "wake up") so alarms remain standard high-priority notifications and do not overwrite or hijack the live timer/stopwatch UI.
+
+- **Pausing Timers from Smart Island Ending Instead of Pausing (`TimerExpanded.kt`, `StopwatchExpanded.kt`)**:
+  - Prioritized `"pause"` / `"freeze"` pending intents over generic `"stop"` / `"cancel"` intents across both expanded timer and stopwatch controls, ensuring tapping Pause pauses the timer countdown rather than dismissing or resetting it.
+
+- **Notification Flooding & Burst Handling on Reconnect (`SmartIslandNotificationListenerService.kt`)**:
+  - Added reconnection burst suppression (1,500ms window), 500ms alert audio debouncing per package, and notification coalescing to prevent rapid successive notification stacking from overloading the island.
+
 - **Dedicated Collapsed Pill Swipe Actions & Customization / Disable Controls (`GesturesSection.kt`, `IslandOverlayView.kt`, `SmartIslandSettings.kt`, `SmartIslandSettingsRepository.kt`, `SwipeAction.kt`)**:
   - **Independent Pill Gesture Master Switch**: Toggle `enablePillSwipeActions` allows users to enable or completely disable swipe gestures on the collapsed pill independently from expanded card gestures, keeping the pill tap-only and immune to accidental swipes.
   - **4-Directional Pill Gesture Customization**:
@@ -80,6 +103,15 @@ The format is inspired by Keep a Changelog, and this project uses the GNU Genera
 
 ### Fixed & Improved
 
+- **Sudden Notification Flood & Burst Prevention (`SmartIslandNotificationListenerService.kt`, `NotificationFilter.kt`)**:
+  - **Service Connect / Rebind Stale Tray Ingestion Protection**: During `onListenerConnected()`, only active notifications with persistent ongoing modes (`Music`, `IncomingCall`, `Timer`, `Stopwatch`, `Navigation`, `LiveActivity`, `DownloadUpload`, `Hotspot`, `ScreenRecording`) are restored. Stale standard notifications from the notification shade are no longer dumped into the island on startup/rebind.
+  - **Initial Sync Muting**: Suppresses notification sound and auto-expansion during listener connect synchronization (`isInitialSync = true`).
+  - **Burst Audio & UI Debouncing**: Enforced a `1200ms` debounce on notification sound playback and `1500ms` debounce on island auto-expansion to eliminate machine-gun audio spam and visual expansion thrashing during message bursts.
+  - **Per-Package Standard Notification Coalescing**: When an app posts a new standard notification, older standard notifications from the same package are cleanly replaced in the island repository, preventing chat apps from piling up dozens of separate pages.
+  - **Background Sync Notification Suppression**: Unconditionally suppresses transient and ongoing message sync / polling notifications ("Checking for messages...", "Syncing...").
+- **Alarm Classification & Timer Pause Fixes (`TimerStopwatchParser.kt`, `NotificationFilter.kt`, `TimerExpanded.kt`, `StopwatchExpanded.kt`, `IslandCollapsedContent.kt`)**:
+  - **Alarm Notifications Hijacked into Timer/Stopwatch**: Added `isAlarm()` check to properly classify clock alarms with snooze/dismiss actions as `IslandMode.Notification`, preventing them from displaying as broken timers or stopwatches.
+  - **Timer Pause Ending Instead of Pausing**: Fixed pause action resolution to prevent triggering stop/cancel intents, stopped elapsed time countdown while paused, and prevented paused timers from being misidentified as stopwatches.
 - **Bluetooth Watch Reconnection Spam Fix (`SystemEventReceiver.kt`, `NotificationFilter.kt`)**:
   - **Smartwatch & Wearable Connection Filtering**: Automatically filters out smartwatches, fitness bands, health trackers, and Bluetooth peripherals (mice, keyboards) from triggering audio Bluetooth connection popups in `SystemEventReceiver.kt`. Audio devices (headphones, earbuds, car audio, speakers) remain fully supported.
   - **Wearable Companion Status Notification Suppression**: `NotificationFilter.kt` automatically suppresses connection and sync status notifications from smartwatch companion services (`com.samsung.accessory`, `com.samsung.android.app.watchmanager`, `com.google.android.wearable.app`, etc.) and system Bluetooth (`com.android.bluetooth`).

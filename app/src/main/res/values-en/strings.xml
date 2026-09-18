@@ -554,4 +554,13 @@
     <string name="preset_iphone_notch">iPhone Notch</string>
     <string name="preset_iphone_notch_desc">175x35dp, top edge docked</string>
     <string name="y_offset_locked_notch_mode">Docked to top edge (0 dp) in Notch Mode</string>
+
+    <!-- Companion Circle Position -->
+    <string name="circle_position_card_title">Companion Circle Position</string>
+    <string name="circle_position_card_desc">Choose whether the secondary multi-tasking circle appears on the left or right side of the main pill.</string>
+    <string name="circle_position_right">Right Side</string>
+    <string name="circle_position_right_desc">Standard Dynamic Island placement</string>
+    <string name="circle_position_left">Left Side</string>
+    <string name="circle_position_left_desc">Recommended for right-aligned camera punch holes</string>
+    <string name="toast_circle_position_updated">Companion circle placed on %1$s</string>
 </resources>

@@ -101,6 +101,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
         val PillSwipeDownAction = stringPreferencesKey("pill_swipe_down_action")
         val PillSwipeLeftAction = stringPreferencesKey("pill_swipe_left_action")
         val PillSwipeRightAction = stringPreferencesKey("pill_swipe_right_action")
+        val CirclePosition = stringPreferencesKey("circle_position")
     }
 
     val settings: Flow<SmartIslandSettings> = context.smartIslandDataStore.data
@@ -237,7 +238,8 @@ class SmartIslandSettingsRepository(private val context: Context) {
                 pillSwipeUpAction = prefs[Keys.PillSwipeUpAction] ?: defaults.pillSwipeUpAction,
                 pillSwipeDownAction = prefs[Keys.PillSwipeDownAction] ?: defaults.pillSwipeDownAction,
                 pillSwipeLeftAction = prefs[Keys.PillSwipeLeftAction] ?: defaults.pillSwipeLeftAction,
-                pillSwipeRightAction = prefs[Keys.PillSwipeRightAction] ?: defaults.pillSwipeRightAction
+                pillSwipeRightAction = prefs[Keys.PillSwipeRightAction] ?: defaults.pillSwipeRightAction,
+                circlePosition = prefs[Keys.CirclePosition]?.takeIf { it in VALID_CIRCLE_POSITIONS } ?: defaults.circlePosition
             )
         }
 
@@ -499,6 +501,9 @@ class SmartIslandSettingsRepository(private val context: Context) {
     suspend fun setPillSwipeRightAction(value: String) = editSafely {
         it[Keys.PillSwipeRightAction] = value
     }
+    suspend fun setCirclePosition(value: String) = editSafely {
+        it[Keys.CirclePosition] = if (value in VALID_CIRCLE_POSITIONS) value else SmartIslandSettings.CIRCLE_POSITION_RIGHT
+    }
     suspend fun toggleNotificationCooldownExcludedPackage(packageName: String) = editSafely { prefs ->
         val current = prefs[Keys.NotificationCooldownExcludedPackages] ?: emptySet()
         prefs[Keys.NotificationCooldownExcludedPackages] = if (packageName in current) {
@@ -630,6 +635,11 @@ class SmartIslandSettingsRepository(private val context: Context) {
         prefs[Keys.PillSwipeDownAction] = settings.pillSwipeDownAction
         prefs[Keys.PillSwipeLeftAction] = settings.pillSwipeLeftAction
         prefs[Keys.PillSwipeRightAction] = settings.pillSwipeRightAction
+        prefs[Keys.CirclePosition] = if (settings.circlePosition in VALID_CIRCLE_POSITIONS) {
+            settings.circlePosition
+        } else {
+            SmartIslandSettings.CIRCLE_POSITION_RIGHT
+        }
     }
 
     suspend fun resetAllSettings() = restoreSettings(SmartIslandSettings.Default.copy(welcomeDialogShown = true))
@@ -662,5 +672,9 @@ class SmartIslandSettingsRepository(private val context: Context) {
         const val MAX_ARGB_COLOR = 0xFFFFFFFFL
         const val ALPHA_SHIFT = 24
         val VALID_LOCK_SCREEN_PRIVACY_VALUES = setOf("AppIconOnly", "FullContent")
+        val VALID_CIRCLE_POSITIONS = setOf(
+            SmartIslandSettings.CIRCLE_POSITION_RIGHT,
+            SmartIslandSettings.CIRCLE_POSITION_LEFT
+        )
     }
 }

@@ -265,4 +265,109 @@ class TimerStopwatchParserTest {
         assertEquals("00:45", TimerStopwatchParser.formatTime(45L))
         assertEquals("1:02:15", TimerStopwatchParser.formatTime(3735L))
     }
+
+    @Test
+    fun testAlarmNotificationNotDetectedAsTimerOrStopwatch() {
+        val extras = createBaseExtras()
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Alarm"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "07:00 AM"
+
+        val snooze = mockk<Notification.Action>()
+        snooze.title = "Snooze"
+        val dismiss = mockk<Notification.Action>()
+        dismiss.title = "Dismiss"
+
+        val notification = mockk<Notification>()
+        notification.extras = extras
+        notification.flags = Notification.FLAG_ONGOING_EVENT
+        notification.actions = arrayOf(snooze, dismiss)
+        notification.`when` = 0L
+        notification.tickerText = null
+        notification.category = Notification.CATEGORY_ALARM
+
+        val sbn = mockk<StatusBarNotification>()
+        every { sbn.packageName } returns "com.google.android.deskclock"
+        every { sbn.notification } returns notification
+
+        assertTrue(TimerStopwatchParser.isAlarm(sbn))
+        assertFalse(TimerStopwatchParser.isTimer(sbn))
+        assertFalse(TimerStopwatchParser.isStopwatch(sbn))
+    }
+
+    @Test
+    fun testUpcomingAlarmNotDetectedAsTimerOrStopwatch() {
+        val extras = createBaseExtras()
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Upcoming alarm"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "08:30 AM"
+
+        val dismiss = mockk<Notification.Action>()
+        dismiss.title = "Dismiss now"
+
+        val notification = mockk<Notification>()
+        notification.extras = extras
+        notification.flags = 0
+        notification.actions = arrayOf(dismiss)
+        notification.`when` = 0L
+        notification.tickerText = null
+        notification.category = Notification.CATEGORY_ALARM
+
+        val sbn = mockk<StatusBarNotification>()
+        every { sbn.packageName } returns "com.google.android.deskclock"
+        every { sbn.notification } returns notification
+
+        assertTrue(TimerStopwatchParser.isAlarm(sbn))
+        assertFalse(TimerStopwatchParser.isTimer(sbn))
+        assertFalse(TimerStopwatchParser.isStopwatch(sbn))
+    }
+
+    @Test
+    fun testPausedTimerDetectedAsTimerNotStopwatch() {
+        val extras = createBaseExtras()
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "04:52"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Paused"
+
+        val resume = mockk<Notification.Action>()
+        resume.title = "Resume"
+        val reset = mockk<Notification.Action>()
+        reset.title = "Reset"
+
+        val notification = mockk<Notification>()
+        notification.extras = extras
+        notification.flags = 0
+        notification.actions = arrayOf(resume, reset)
+        notification.`when` = 0L
+        notification.tickerText = null
+        notification.category = null
+
+        val sbn = mockk<StatusBarNotification>()
+        every { sbn.packageName } returns "com.google.android.deskclock"
+        every { sbn.notification } returns notification
+
+        assertTrue(TimerStopwatchParser.isTimer(sbn))
+        assertFalse(TimerStopwatchParser.isStopwatch(sbn))
+        assertTrue(TimerStopwatchParser.isTimerPaused(notification))
+        assertFalse(TimerStopwatchParser.isTimerFinished(notification))
+    }
+
+    @Test
+    fun testTimerFinishedDoesNotMatchPlusOneMinute() {
+        val extras = createBaseExtras()
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Timer"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Paused"
+
+        val addOne = mockk<Notification.Action>()
+        addOne.title = "+1:00"
+        val resume = mockk<Notification.Action>()
+        resume.title = "Resume"
+
+        val notification = mockk<Notification>()
+        notification.extras = extras
+        notification.flags = 0
+        notification.actions = arrayOf(addOne, resume)
+        notification.`when` = 0L
+        notification.tickerText = null
+        notification.category = null
+
+        assertFalse(TimerStopwatchParser.isTimerFinished(notification))
+    }
 }

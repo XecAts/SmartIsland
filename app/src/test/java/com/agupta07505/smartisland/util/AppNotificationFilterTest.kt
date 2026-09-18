@@ -335,4 +335,40 @@ class AppNotificationFilterTest {
         assertFalse(NotificationFilter.isWearableConnectionNotification("com.whatsapp", "Hey, watch this video!"))
         assertFalse(NotificationFilter.isWearableConnectionNotification("org.telegram.messenger", "I connected my new PC"))
     }
+
+    @Test
+    fun testMessageSyncNotificationSuppressedEvenIfNotOngoing() {
+        val mockPm = mockk<PackageManager>()
+        val appInfo = ApplicationInfo().apply { flags = 0 }
+        every { mockPm.getApplicationInfo(any(), 0) } returns appInfo
+
+        val mockSbn = mockk<StatusBarNotification>()
+        val mockNotif = mockk<Notification>()
+        mockNotif.flags = 0 // NOT ongoing
+        mockNotif.category = null
+        val extras = mockk<Bundle>(relaxed = true)
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "WhatsApp"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Checking for new messages..."
+        every { extras.getCharSequence(Notification.EXTRA_BIG_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_SUB_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_INFO_TEXT) } returns null
+        every { extras.getString(Notification.EXTRA_TEMPLATE) } returns null
+        every { extras.containsKey(Notification.EXTRA_MEDIA_SESSION) } returns false
+        every { extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) } returns 0
+        every { extras.getInt(Notification.EXTRA_PROGRESS, 0) } returns 0
+        every { extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false) } returns false
+        mockNotif.extras = extras
+        mockNotif.tickerText = null
+        mockNotif.actions = emptyArray()
+
+        every { mockSbn.packageName } returns "com.whatsapp"
+        every { mockSbn.notification } returns mockNotif
+
+        val isSuppressed = NotificationFilter.shouldSuppressFromIsland(
+            sbn = mockSbn,
+            packageManager = mockPm
+        )
+
+        assertTrue(isSuppressed)
+    }
 }

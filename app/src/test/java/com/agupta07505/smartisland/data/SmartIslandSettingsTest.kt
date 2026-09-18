@@ -57,6 +57,7 @@ class SmartIslandSettingsTest {
         assertEquals("Expand", settings.pillSwipeDownAction)
         assertEquals("PreviousNotification", settings.pillSwipeLeftAction)
         assertEquals("NextNotification", settings.pillSwipeRightAction)
+        assertEquals(SmartIslandSettings.CIRCLE_POSITION_RIGHT, settings.circlePosition)
     }
 
     @Test
@@ -135,7 +136,8 @@ class SmartIslandSettingsTest {
             pillSwipeUpAction = "None",
             pillSwipeDownAction = "NotificationShade",
             pillSwipeLeftAction = "PreviousTrack",
-            pillSwipeRightAction = "NextTrack"
+            pillSwipeRightAction = "NextTrack",
+            circlePosition = SmartIslandSettings.CIRCLE_POSITION_LEFT
         )
 
         val jsonString = original.toJson(appVersion = "7.0.0")
@@ -255,5 +257,20 @@ class SmartIslandSettingsTest {
         assertEquals(120, settings.autoHideTimeoutSeconds)
         assertEquals("AppIconOnly", settings.lockScreenPrivacy)
         assertEquals(SmartIslandSettings.Default.pillColor, settings.pillColor)
+    }
+
+    @Test
+    fun testCirclePositionSerializationAndDefaults() {
+        val leftJson = """{"settings": {"circlePosition": "left"}}"""
+        val settingsLeft = SmartIslandSettings.fromJson(leftJson)
+        assertEquals(SmartIslandSettings.CIRCLE_POSITION_LEFT, settingsLeft.circlePosition)
+
+        val rightJson = """{"settings": {"circlePosition": "right"}}"""
+        val settingsRight = SmartIslandSettings.fromJson(rightJson)
+        assertEquals(SmartIslandSettings.CIRCLE_POSITION_RIGHT, settingsRight.circlePosition)
+
+        val invalidJson = """{"settings": {"circlePosition": "top_center"}}"""
+        val settingsInvalid = SmartIslandSettings.fromJson(invalidJson)
+        assertEquals(SmartIslandSettings.CIRCLE_POSITION_RIGHT, settingsInvalid.circlePosition)
     }
 }

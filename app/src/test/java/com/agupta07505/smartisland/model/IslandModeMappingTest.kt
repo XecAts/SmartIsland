@@ -351,4 +351,29 @@ class IslandModeMappingTest {
 
         assertEquals(IslandMode.Stopwatch, notification.toIslandMode(sbn))
     }
+
+    @Test
+    fun testAlarmNotificationMapsToNotification() {
+        val notification = mockk<Notification>()
+        notification.flags = Notification.FLAG_ONGOING_EVENT
+        notification.category = Notification.CATEGORY_ALARM
+
+        val snooze = mockk<Notification.Action>()
+        snooze.title = "Snooze"
+        val dismiss = mockk<Notification.Action>()
+        dismiss.title = "Dismiss"
+        notification.actions = arrayOf(snooze, dismiss)
+        notification.`when` = 0L
+
+        val sbn = mockk<StatusBarNotification>()
+        val extras = createBaseExtras()
+        notification.extras = extras
+        every { sbn.packageName } returns "com.google.android.deskclock"
+        every { sbn.notification } returns notification
+
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Alarm"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "07:00 AM"
+
+        assertEquals(IslandMode.Notification, notification.toIslandMode(sbn))
+    }
 }

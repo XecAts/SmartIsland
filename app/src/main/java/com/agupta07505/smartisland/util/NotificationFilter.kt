@@ -77,7 +77,7 @@ object NotificationFilter {
 
         // Suppress background message syncing / polling notifications (e.g. Snapchat, WhatsApp, Telegram "Syncing messages", "Checking for messages")
         val isMessageSync = isMessageSyncNotification(titleText)
-        if (isOngoing && isMessageSync) {
+        if (isMessageSync) {
             return true
         }
 
@@ -86,13 +86,14 @@ object NotificationFilter {
             return true
         }
 
-        // Suppress ongoing notifications that are not calls, media/music playback, live activities, navigation, downloads/uploads, hotspot, screen recording, timer, or stopwatch
+        // Suppress ongoing notifications that are not calls, media/music playback, live activities, navigation, downloads/uploads, hotspot, screen recording, timer, stopwatch, or alarms
         if (isOngoing) {
             val isProgressNotification = !isMessageSync && (
                 notification.category == Notification.CATEGORY_PROGRESS ||
                 (notification.extras?.getInt(Notification.EXTRA_PROGRESS_MAX, 0) ?: 0) > 0
             )
-            if (!isProgressNotification && mode != IslandMode.IncomingCall && mode != IslandMode.Music && mode != IslandMode.LiveActivity && mode != IslandMode.Navigation && mode != IslandMode.DownloadUpload && mode != IslandMode.Hotspot && mode != IslandMode.ScreenRecording && mode != IslandMode.Timer && mode != IslandMode.Stopwatch) {
+            val isAlarmNotification = TimerStopwatchParser.isAlarm(notification, packageName)
+            if (!isProgressNotification && !isAlarmNotification && mode != IslandMode.IncomingCall && mode != IslandMode.Music && mode != IslandMode.LiveActivity && mode != IslandMode.Navigation && mode != IslandMode.DownloadUpload && mode != IslandMode.Hotspot && mode != IslandMode.ScreenRecording && mode != IslandMode.Timer && mode != IslandMode.Stopwatch) {
                 return true
             }
         }

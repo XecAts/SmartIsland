@@ -74,6 +74,8 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
     @Inject lateinit var historyRepository: INotificationHistoryRepository
     private var lastHistoryCleanupTime = 0L
     private val cooldownReleaseJobs = ConcurrentHashMap<String, Job>()
+    private var lastSoundPlayedTimeMs = 0L
+    private var lastAutoExpandTimeMs = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -117,6 +119,8 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
 
     override fun onDestroy() {
         isSystemConnected = false
+        lastSoundPlayedTimeMs = 0L
+        lastAutoExpandTimeMs = 0L
         cooldownReleaseJobs.values.forEach { it.cancel() }
         cooldownReleaseJobs.clear()
         NotificationCooldownManager.clear()
@@ -314,12 +318,17 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
                             settings.navigationEnabled,
                             settings.deviceType
                         )
+                        // On initial listener connect or rebind, only restore persistent ongoing activities.
+                        // Stale standard notifications from the notification shade are not imported to avoid sudden floods.
+                        if (!isPersistentIslandMode(mode)) {
+                            return@forEach
+                        }
                         if (settings.hideFromNotificationShade &&
                             shouldBeIslandOnly(sbn.notification, mode)
                         ) {
                             suppressSystemNotification(sbn.key)
                         }
-                        handleNotificationPosted(sbn, settings)
+                        handleNotificationPosted(sbn, settings, isInitialSync = true)
                     }
                 }
             }
@@ -415,7 +424,8 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
 
     private fun handleNotificationPosted(
         sbn: StatusBarNotification,
-        settings: SmartIslandSettings
+        settings: SmartIslandSettings,
+        isInitialSync: Boolean = false
     ) {
         if (sbn.packageName == packageName) return
         val notification = sbn.notification
@@ -483,6 +493,8 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
                     System.currentTimeMillis() + remSec * 1000L
                 } else if (notification.`when` > System.currentTimeMillis()) {
                     notification.`when`
+                } else if (existingNotif != null && existingNotif.mode == IslandMode.Timer && existingNotif.timeMillis > System.currentTimeMillis()) {
+                    existingNotif.timeMillis
                 } else {
                     System.currentTimeMillis()
                 }
@@ -542,7 +554,17 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
                 mode = mode,
                 contentIntent = notification.contentIntent
             ),
-            autoExpand = shouldIslandOnly && settings.autoExpandOnNotification
+            autoExpand = if (!isInitialSync && shouldIslandOnly && settings.autoExpandOnNotification) {
+                val now = SystemClock.elapsedRealtime()
+                if (now - lastAutoExpandTimeMs >= AUTO_EXPAND_DEBOUNCE_MS) {
+                    lastAutoExpandTimeMs = now
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
         )
 
         if (settings.enableNotificationHistory && mode != IslandMode.Music) {
@@ -572,8 +594,14 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
             }
         }
 
-        if (isNewNotif && (mode == IslandMode.Notification || shouldIslandOnly) && mode != IslandMode.DownloadUpload) {
+        if (!isInitialSync && isNewNotif && (mode == IslandMode.Notification || shouldIslandOnly) && mode != IslandMode.DownloadUpload) {
             playNotificationSound(sbn)
+        }
+
+        if (mode == IslandMode.Notification) {
+            val existing = notificationRepository.notifications.value
+            existing.filter { it.mode == IslandMode.Notification && it.packageName == sbn.packageName && it.key != sbn.key }
+                .forEach { notificationRepository.removeNotification(it.key) }
         }
 
         if (mode == IslandMode.Music) {
@@ -798,6 +826,9 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
     private fun playNotificationSound(sbn: StatusBarNotification) {
         if (currentSettings.disabledSoundPackages.contains(sbn.packageName)) return
         if (isBlockedByDoNotDisturb(sbn)) return
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastSoundPlayedTimeMs < SOUND_DEBOUNCE_MS) return
+        lastSoundPlayedTimeMs = now
         runCatchingLogged(TAG, "Failed to play notification sound for ${sbn.packageName}") {
             val audioManager = getSystemService(android.content.Context.AUDIO_SERVICE) as? AudioManager
             if (audioManager == null || audioManager.ringerMode != AudioManager.RINGER_MODE_NORMAL) return
@@ -1027,6 +1058,18 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
         cooldownReleaseJobs[packageName] = job
     }
 
+    private fun isPersistentIslandMode(mode: IslandMode): Boolean {
+        return mode == IslandMode.Music ||
+            mode == IslandMode.IncomingCall ||
+            mode == IslandMode.Timer ||
+            mode == IslandMode.Stopwatch ||
+            mode == IslandMode.Navigation ||
+            mode == IslandMode.LiveActivity ||
+            mode == IslandMode.DownloadUpload ||
+            mode == IslandMode.Hotspot ||
+            mode == IslandMode.ScreenRecording
+    }
+
     companion object {
         @Volatile
         var isSystemConnected: Boolean = false
@@ -1038,5 +1081,7 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
         private const val MAX_SUPPRESSED_KEYS = 100
         private const val SUPPRESSED_KEY_TTL_MS = 10 * 60 * 1000L
         private const val INITIAL_SUPPRESSION_WINDOW_MS = 1500L
+        private const val SOUND_DEBOUNCE_MS = 1200L
+        private const val AUTO_EXPAND_DEBOUNCE_MS = 1500L
     }
 }

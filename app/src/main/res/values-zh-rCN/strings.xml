@@ -554,4 +554,13 @@
     <string name="preset_iphone_notch">iPhone 刘海</string>
     <string name="preset_iphone_notch_desc">175x35dp，贴合顶部</string>
     <string name="y_offset_locked_notch_mode">刘海模式下已固定至屏幕顶部（0 dp）</string>
+
+    <!-- Companion Circle Position -->
+    <string name="circle_position_card_title">次级伴侣圆圈位置</string>
+    <string name="circle_position_card_desc">选择多任务次级独立小圆圈显示在主药丸的左侧还是右侧。</string>
+    <string name="circle_position_right">右侧</string>
+    <string name="circle_position_right_desc">标准灵动岛布局</string>
+    <string name="circle_position_left">左侧</string>
+    <string name="circle_position_left_desc">推荐右置挖孔屏设备使用</string>
+    <string name="toast_circle_position_updated">次级小圆圈已放置在%1$s</string>
 </resources>

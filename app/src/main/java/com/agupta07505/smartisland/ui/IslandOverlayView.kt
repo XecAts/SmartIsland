@@ -171,18 +171,33 @@ fun IslandOverlayView(
     val circleSize = settings.height.dp
     val compactShapes = compactNotificationShapes(notifications.size, expanded)
     val hasCompanion = if (settings.enableNotchMode) false else notifications.size >= 2
+    val isCircleLeft = settings.circlePosition == SmartIslandSettings.CIRCLE_POSITION_LEFT
     val collapsedGroupWidth = settings.width.dp + if (hasCompanion) compactGap + circleSize else 0.dp
-    val collapsedMainLeft = (screenCenter + settings.xOffset.dp - settings.width.dp / 2f)
-        .coerceIn(
-            compactGap,
-            (screenWidth - collapsedGroupWidth - compactGap).coerceAtLeast(compactGap)
-        )
+
+    val desiredMainLeft = screenCenter + settings.xOffset.dp - settings.width.dp / 2f
+    val (minMainLeft, maxMainLeft) = when {
+        !hasCompanion -> compactGap to (screenWidth - compactGap - settings.width.dp).coerceAtLeast(compactGap)
+        isCircleLeft -> (compactGap + circleSize + compactGap) to (screenWidth - compactGap - settings.width.dp).coerceAtLeast(compactGap + circleSize + compactGap)
+        else -> compactGap to (screenWidth - compactGap - collapsedGroupWidth).coerceAtLeast(compactGap)
+    }
+    val collapsedMainLeft = desiredMainLeft.coerceIn(minMainLeft, maxMainLeft)
+    val mainCenter = collapsedMainLeft + settings.width.dp / 2f
+    val circleLeft = if (isCircleLeft) {
+        collapsedMainLeft - compactGap - circleSize
+    } else {
+        collapsedMainLeft + settings.width.dp + compactGap
+    }
+    val circleCenter = circleLeft + circleSize / 2f
+    val groupStart = if (isCircleLeft && hasCompanion) circleLeft else collapsedMainLeft
+    val groupEnd = if (!isCircleLeft && hasCompanion) circleLeft + circleSize else collapsedMainLeft + settings.width.dp
+    val groupCenter = (groupStart + groupEnd) / 2f
+
     val collapsedMainOffset = if (settings.enableNotchMode) {
         settings.xOffset.dp
     } else if (isFullWidth) {
-        collapsedMainLeft + settings.width.dp / 2f - screenCenter
+        mainCenter - screenCenter
     } else {
-        if (hasCompanion) -(compactGap + circleSize) / 2f else 0.dp
+        mainCenter - groupCenter
     }
     val expandedTopOffset = if (settings.enableNotchMode) {
         0.dp
@@ -350,16 +365,24 @@ fun IslandOverlayView(
 
     val expandedCompactX = collapsedMainLeft
     val collapsedSecondaryOffset = if (isFullWidth) {
-        collapsedMainLeft + settings.width.dp + compactGap - screenCenter + circleSize / 2f
+        circleCenter - screenCenter
     } else {
-        (settings.width.dp + compactGap) / 2f
+        circleCenter - groupCenter
+    }
+    val secondaryExpandedOffset = if (isCircleLeft) {
+        val secWidth = if (secondaryIsPill) miniPillWidth else circleSize
+        val secCenter = expandedCompactX - compactGap - secWidth / 2f
+        if (isFullWidth) secCenter - screenCenter else -(miniPillWidth + compactGap) / 2f
+    } else {
+        val secCenter = if (secondaryIsPill) {
+            expandedCompactX + miniPillWidth / 2f
+        } else {
+            expandedCompactX + miniPillWidth + compactGap + circleSize / 2f
+        }
+        if (isFullWidth) secCenter - screenCenter else ((miniPillWidth + compactGap) / 2f)
     }
     val secondaryOffset by animateDpAsState(
-        targetValue = when {
-            !expanded -> collapsedSecondaryOffset
-            secondaryIsPill -> if (isFullWidth) (expandedCompactX - screenCenter + miniPillWidth / 2f) else 0.dp
-            else -> if (isFullWidth) (expandedCompactX + miniPillWidth + compactGap - screenCenter + circleSize / 2f) else ((miniPillWidth + compactGap) / 2f)
-        },
+        targetValue = if (!expanded) collapsedSecondaryOffset else secondaryExpandedOffset,
         animationSpec = spring(dampingRatio = 0.75f, stiffness = 520f),
         label = "secondaryOffset"
     )

@@ -434,6 +434,84 @@ fun PositionsSection(
             }
         }
 
+        // Card 1.5: Companion Circle Position (Left / Right)
+        if (!settings.enableNotchMode) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.circle_position_card_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.circle_position_card_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        val isLeft = settings.circlePosition == SmartIslandSettings.CIRCLE_POSITION_LEFT
+                        val isRight = !isLeft
+
+                        PresetCardItem(
+                            title = stringResource(R.string.circle_position_left),
+                            subtitle = stringResource(R.string.circle_position_left_desc),
+                            icon = Icons.AutoMirrored.Rounded.AlignHorizontalLeft,
+                            isSelected = isLeft,
+                            onClick = {
+                                scope.launch {
+                                    repository.setCirclePosition(SmartIslandSettings.CIRCLE_POSITION_LEFT)
+                                }
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.toast_circle_position_updated, context.getString(R.string.circle_position_left)),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        PresetCardItem(
+                            title = stringResource(R.string.circle_position_right),
+                            subtitle = stringResource(R.string.circle_position_right_desc),
+                            icon = Icons.AutoMirrored.Rounded.AlignHorizontalRight,
+                            isSelected = isRight,
+                            onClick = {
+                                scope.launch {
+                                    repository.setCirclePosition(SmartIslandSettings.CIRCLE_POSITION_RIGHT)
+                                }
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.toast_circle_position_updated, context.getString(R.string.circle_position_right)),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+        }
+
         // Card 2: Precision Dimensions & Offsets
         Card(
             modifier = Modifier.fillMaxWidth(),

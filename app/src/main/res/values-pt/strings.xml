@@ -554,4 +554,13 @@
     <string name="preset_iphone_notch">Notch iPhone</string>
     <string name="preset_iphone_notch_desc">175x35dp, fixado no topo</string>
     <string name="y_offset_locked_notch_mode">Fixado na borda superior (0 dp) no Modo Notch</string>
+
+    <!-- Companion Circle Position -->
+    <string name="circle_position_card_title">Posição do Círculo Auxiliar</string>
+    <string name="circle_position_card_desc">Escolha se o círculo secundário de multitarefa aparece no lado esquerdo ou direito da pílula principal.</string>
+    <string name="circle_position_right">Lado Direito</string>
+    <string name="circle_position_right_desc">Posicionamento padrão da Ilha Dinâmica</string>
+    <string name="circle_position_left">Lado Esquerdo</string>
+    <string name="circle_position_left_desc">Recomendado para câmeras punch hole alinhadas à direita</string>
+    <string name="toast_circle_position_updated">Círculo auxiliar posicionado no %1$s</string>
 </resources>

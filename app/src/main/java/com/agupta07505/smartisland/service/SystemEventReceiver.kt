@@ -7,6 +7,7 @@
 
 package com.agupta07505.smartisland.service
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothClass
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -283,12 +284,19 @@ class SystemEventReceiver(
         )
     }
 
+    @SuppressLint("MissingPermission")
     private fun isIgnoredBluetoothDevice(device: BluetoothDevice?, deviceName: String): Boolean {
         if (device == null) return false
 
-        val bluetoothClass = runCatching { device.bluetoothClass }.getOrNull()
-        val majorClass = runCatching { bluetoothClass?.majorDeviceClass }.getOrNull()
-        val deviceClass = runCatching { bluetoothClass?.deviceClass }.getOrNull()
+        val bluetoothClass = try {
+            device.bluetoothClass
+        } catch (e: SecurityException) {
+            null
+        } catch (e: Exception) {
+            null
+        }
+        val majorClass = bluetoothClass?.majorDeviceClass
+        val deviceClass = bluetoothClass?.deviceClass
 
         // 1. Explicitly allow Audio/Video devices (earbuds, headphones, car audio, speakers, headsets)
         if (majorClass == BluetoothClass.Device.Major.AUDIO_VIDEO) {

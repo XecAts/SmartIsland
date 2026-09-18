@@ -74,7 +74,8 @@ data class SmartIslandSettings(
     val pillSwipeUpAction: String = "DismissCurrent",
     val pillSwipeDownAction: String = "Expand",
     val pillSwipeLeftAction: String = "PreviousNotification",
-    val pillSwipeRightAction: String = "NextNotification"
+    val pillSwipeRightAction: String = "NextNotification",
+    val circlePosition: String = CIRCLE_POSITION_RIGHT
 ) {
     fun toJson(appVersion: String = ""): String {
         val root = JSONObject()
@@ -165,6 +166,7 @@ data class SmartIslandSettings(
         settingsObj.put("pillSwipeDownAction", pillSwipeDownAction)
         settingsObj.put("pillSwipeLeftAction", pillSwipeLeftAction)
         settingsObj.put("pillSwipeRightAction", pillSwipeRightAction)
+        settingsObj.put("circlePosition", circlePosition)
 
         root.put("settings", settingsObj)
         return root.toString(2)
@@ -178,6 +180,9 @@ data class SmartIslandSettings(
     )
 
     companion object {
+        const val CIRCLE_POSITION_RIGHT = "right"
+        const val CIRCLE_POSITION_LEFT = "left"
+
         val Default = SmartIslandSettings()
 
         const val BACKUP_FORMAT_VERSION = 1
@@ -309,7 +314,10 @@ data class SmartIslandSettings(
                 pillSwipeUpAction = obj.optString("pillSwipeUpAction", defaults.pillSwipeUpAction),
                 pillSwipeDownAction = obj.optString("pillSwipeDownAction", defaults.pillSwipeDownAction),
                 pillSwipeLeftAction = obj.optString("pillSwipeLeftAction", defaults.pillSwipeLeftAction),
-                pillSwipeRightAction = obj.optString("pillSwipeRightAction", defaults.pillSwipeRightAction)
+                pillSwipeRightAction = obj.optString("pillSwipeRightAction", defaults.pillSwipeRightAction),
+                circlePosition = obj.optString("circlePosition", defaults.circlePosition).let {
+                    if (it == CIRCLE_POSITION_LEFT || it == CIRCLE_POSITION_RIGHT) it else defaults.circlePosition
+                }
             )
         }
     }

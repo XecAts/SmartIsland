@@ -43,35 +43,63 @@ class IslandOverlayLayoutTest {
         val compactGapDp = 8f
         val edgePaddingDp = 8f
 
-        listOf(-130f, 0f, 130f).forEach { xOffsetDp ->
-            val mainWidthPx = widthDp * density
-            val circleSizePx = heightDp * density
-            val compactGapPx = compactGapDp * density
-            val edgePaddingPx = edgePaddingDp * density
-            val groupWidthPx = mainWidthPx + compactGapPx + circleSizePx
+        listOf(true, false).forEach { isCircleLeft ->
+            listOf(-130f, 0f, 130f).forEach { xOffsetDp ->
+                val mainWidthPx = widthDp * density
+                val circleSizePx = heightDp * density
+                val compactGapPx = compactGapDp * density
+                val edgePaddingPx = edgePaddingDp * density
+                val groupWidthPx = mainWidthPx + compactGapPx + circleSizePx
 
-            val desiredMainLeftPx = screenWidthPx / 2f + xOffsetDp * density - mainWidthPx / 2f
-            val maxMainLeftPx = (screenWidthPx - groupWidthPx - edgePaddingPx).coerceAtLeast(edgePaddingPx)
-            val mainLeftPx = desiredMainLeftPx.coerceIn(edgePaddingPx, maxMainLeftPx)
-            val groupCenterPx = mainLeftPx + groupWidthPx / 2f
-            val windowXPx = (groupCenterPx - screenWidthPx / 2f).toInt()
-            val windowWidthPx = (groupWidthPx + 32f * density).toInt()
+                val desiredMainLeftPx = screenWidthPx / 2f + xOffsetDp * density - mainWidthPx / 2f
+                val (minMainLeftPx, maxMainLeftPx) = when {
+                    isCircleLeft -> (edgePaddingPx + circleSizePx + compactGapPx) to (screenWidthPx - edgePaddingPx - mainWidthPx).coerceAtLeast(edgePaddingPx + circleSizePx + compactGapPx)
+                    else -> edgePaddingPx to (screenWidthPx - edgePaddingPx - groupWidthPx).coerceAtLeast(edgePaddingPx)
+                }
+                val mainLeftPx = desiredMainLeftPx.coerceIn(minMainLeftPx, maxMainLeftPx)
+                val groupStartPx = if (isCircleLeft) mainLeftPx - compactGapPx - circleSizePx else mainLeftPx
+                val groupEndPx = if (!isCircleLeft) mainLeftPx + mainWidthPx + compactGapPx + circleSizePx else mainLeftPx + mainWidthPx
+                val groupCenterPx = (groupStartPx + groupEndPx) / 2f
+                val windowXPx = (groupCenterPx - screenWidthPx / 2f).toInt()
+                val windowWidthPx = (groupWidthPx + 32f * density).toInt()
 
-            val windowLeftPx = screenWidthPx / 2f + windowXPx - windowWidthPx / 2f
-            val windowRightPx = screenWidthPx / 2f + windowXPx + windowWidthPx / 2f
+                val windowLeftPx = screenWidthPx / 2f + windowXPx - windowWidthPx / 2f
+                val windowRightPx = screenWidthPx / 2f + windowXPx + windowWidthPx / 2f
 
-            val circleLeftPx = mainLeftPx + mainWidthPx + compactGapPx
-            val circleRightPx = circleLeftPx + circleSizePx
+                val circleLeftPx = if (isCircleLeft) mainLeftPx - compactGapPx - circleSizePx else mainLeftPx + mainWidthPx + compactGapPx
+                val circleRightPx = circleLeftPx + circleSizePx
 
-            // Assert that the secondary circle is completely inside the window with at least 8px margin
-            org.junit.Assert.assertTrue(
-                "Circle left ($circleLeftPx) must be >= window left ($windowLeftPx)",
-                circleLeftPx >= windowLeftPx
-            )
-            org.junit.Assert.assertTrue(
-                "Circle right ($circleRightPx) must be <= window right ($windowRightPx)",
-                circleRightPx <= windowRightPx
-            )
+                // 1. Assert no overlap between main pill and circle (separation >= compactGapPx)
+                if (isCircleLeft) {
+                    val gap = mainLeftPx - circleRightPx
+                    org.junit.Assert.assertTrue(
+                        "Left circle must not collapse into pill, gap ($gap) >= compactGap ($compactGapPx)",
+                        gap >= compactGapPx - 0.01f
+                    )
+                } else {
+                    val gap = circleLeftPx - (mainLeftPx + mainWidthPx)
+                    org.junit.Assert.assertTrue(
+                        "Right circle must not collapse into pill, gap ($gap) >= compactGap ($compactGapPx)",
+                        gap >= compactGapPx - 0.01f
+                    )
+                }
+
+                // 2. Assert that the secondary circle is completely inside the window
+                org.junit.Assert.assertTrue(
+                    "Circle left ($circleLeftPx) must be >= window left ($windowLeftPx)",
+                    circleLeftPx >= windowLeftPx - 0.01f
+                )
+                org.junit.Assert.assertTrue(
+                    "Circle right ($circleRightPx) must be <= window right ($windowRightPx)",
+                    circleRightPx <= windowRightPx + 0.01f
+                )
+
+                // 3. Assert circle and pill are within screen bounds
+                org.junit.Assert.assertTrue(circleLeftPx >= edgePaddingPx - 0.01f)
+                org.junit.Assert.assertTrue(circleRightPx <= screenWidthPx - edgePaddingPx + 0.01f)
+                org.junit.Assert.assertTrue(mainLeftPx >= edgePaddingPx - 0.01f)
+                org.junit.Assert.assertTrue(mainLeftPx + mainWidthPx <= screenWidthPx - edgePaddingPx + 0.01f)
+            }
         }
     }
 

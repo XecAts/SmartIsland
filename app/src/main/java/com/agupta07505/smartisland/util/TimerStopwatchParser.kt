@@ -75,6 +75,76 @@ object TimerStopwatchParser {
         }
     }
 
+    private val ALARM_KEYWORDS = listOf(
+        "alarm", "upcoming alarm", "snooze", "snoozed", "wake up", "wake-up",
+        "alarme", "despertador", "wecker", "sveglia", "будильник", "闹钟", "アラーム"
+    )
+
+    private val SNOOZE_KEYWORDS = listOf(
+        "snooze", "snoozed", "rappeler", "posponer", "schlummern", "スヌーズ", "稍后提醒", "सोएं", "स्नूज़"
+    )
+
+    private val RESUME_KEYWORDS = listOf(
+        "resume", "start", "play", "continue", "unpause",
+        "reanudar", "reprendre", "weiter", "riprendi", "continuar", "शुरू", "继续", "再開", "возобновить"
+    )
+
+    private val PAUSE_KEYWORDS = listOf(
+        "pause", "pausa", "pausar", "sospendi", "interrompi", "onderbreek", "stoppa", "रोकें", "暂停", "一時停止", "пауза"
+    )
+
+    private val PAUSED_KEYWORDS = listOf(
+        "paused", "pause", "en pause", "pausado", "pausada", "angehalten", "sospeso", "sospesa", "रोक दिया गया", "已暂停", "一時停止中", "приостановлено"
+    )
+
+    private val ZERO_TIME_PATTERN = Pattern.compile("\\b0+[:.]00(?::00)?\\b")
+
+    /**
+     * Checks if a notification is an Alarm clock notification (upcoming alarm or firing alarm).
+     */
+    fun isAlarm(sbn: StatusBarNotification): Boolean {
+        val notification = sbn.notification ?: return false
+        val packageName = sbn.packageName.lowercase()
+        return isAlarm(notification, packageName)
+    }
+
+    /**
+     * Checks if a Notification is an Alarm clock notification.
+     */
+    fun isAlarm(notification: Notification, packageName: String = ""): Boolean {
+        val fullText = extractFullText(notification)
+        val actionLabels = extractActionLabels(notification)
+
+        // 1. Any snooze action or snooze keyword is uniquely an alarm feature
+        if (actionLabels.any { act -> SNOOZE_KEYWORDS.any { act.contains(it) } } ||
+            SNOOZE_KEYWORDS.any { fullText.contains(it) }
+        ) {
+            return true
+        }
+
+        // 2. Upcoming alarm phrasing
+        if (fullText.contains("upcoming alarm") || fullText.contains("alarm firing") || fullText.contains("alarm ringing")) {
+            return true
+        }
+
+        val hasTimerKeyword = TIMER_KEYWORDS.any { fullText.contains(it) } ||
+            actionLabels.any { it.contains("+1") || it.contains("timer") || it.contains("add 1") }
+        val hasTimerAction = actionLabels.any {
+            it.contains("pause") || it.contains("resume") || it.contains("reset") || it.contains("lap")
+        }
+
+        // 3. Category alarm or title contains alarm
+        val category = runCatching { notification.category }.getOrNull().orEmpty().lowercase()
+        val isCategoryAlarm = category == "alarm" || category == "category_alarm"
+        val hasAlarmKeyword = ALARM_KEYWORDS.any { fullText.contains(it) }
+
+        if ((isCategoryAlarm || hasAlarmKeyword) && !hasTimerKeyword && !hasTimerAction) {
+            return true
+        }
+
+        return false
+    }
+
     /**
      * Checks if a notification is a live Timer notification.
      */
@@ -88,13 +158,18 @@ object TimerStopwatchParser {
      * Checks if a Notification is a live Timer notification.
      */
     fun isTimer(notification: Notification, packageName: String = ""): Boolean {
-        val fullText = extractFullText(notification)
-        val actionLabels = extractActionLabels(notification)
+        // 0. Exclude alarms (alarms should never be treated as timers)
+        if (isAlarm(notification, packageName)) {
+            return false
+        }
 
         // 1. Exclude if clearly a stopwatch
         if (isStopwatch(notification, packageName)) {
             return false
         }
+
+        val fullText = extractFullText(notification)
+        val actionLabels = extractActionLabels(notification)
 
         // 2. Exclude non-timer system events (Hotspot, Screen Recording, Calls, Navigation)
         if (OemDeviceRules.isNonNavigationContent(packageName, fullText) &&
@@ -106,11 +181,6 @@ object TimerStopwatchParser {
             ) {
                 return false
             }
-        }
-
-        val category = runCatching { notification.category }.getOrNull().orEmpty().lowercase()
-        if (category == "alarm" || category == "category_alarm") {
-            return true
         }
 
         val extras = notification.extras
@@ -133,6 +203,7 @@ object TimerStopwatchParser {
         if (hasTimerAction) return true
         val notifWhen = runCatching { notification.`when` }.getOrDefault(0L)
         if (notifWhen > System.currentTimeMillis()) return true
+        if (isClockApp && isTimerPaused(notification) && !actionLabels.any { it.contains("lap") }) return true
         if (isClockApp && (hasTimerKeyword || (hasTimePattern && !actionLabels.any { it.contains("lap") }))) return true
         if (hasTimerKeyword && hasTimePattern) return true
 
@@ -152,6 +223,11 @@ object TimerStopwatchParser {
      * Checks if a Notification is a live Stopwatch notification.
      */
     fun isStopwatch(notification: Notification, packageName: String = ""): Boolean {
+        // 0. Exclude alarms (alarms should never be treated as stopwatches)
+        if (isAlarm(notification, packageName)) {
+            return false
+        }
+
         val fullText = extractFullText(notification)
         val actionLabels = extractActionLabels(notification)
 
@@ -186,7 +262,7 @@ object TimerStopwatchParser {
         if (hasLapAction) return true
         if (hasStopwatchKeyword) return true
         if (isClockApp && isChronometer && !isChronometerCountDown && !hasTimerKeyword) return true
-        if (isClockApp && (fullText.contains("stopwatch") || (actionLabels.any { it.contains("pause") || it.contains("resume") || it.contains("reset") } && !hasTimerKeyword && !isChronometerCountDown && notification.`when` <= System.currentTimeMillis()))) return true
+        if (isClockApp && fullText.contains("stopwatch")) return true
 
         return false
     }
@@ -206,7 +282,7 @@ object TimerStopwatchParser {
         )
         if (finishKeywords.any { fullText.contains(it) }) return true
 
-        val isZeroTime = fullText.contains("00:00") || fullText.contains("0:00") || fullText.contains("00:00:00")
+        val isZeroTime = ZERO_TIME_PATTERN.matcher(fullText).find()
         val flags = runCatching { notification.flags }.getOrDefault(0)
         val isOngoing = (flags and Notification.FLAG_ONGOING_EVENT) != 0
         if (isZeroTime && !isOngoing) return true
@@ -221,11 +297,9 @@ object TimerStopwatchParser {
         val actionLabels = extractActionLabels(notification)
         val fullText = extractFullText(notification)
 
-        val hasResumeAction = actionLabels.any {
-            it.contains("resume") || it.contains("start") || it.contains("play") || it.contains("continue") || it.contains("unpause")
-        }
-        val hasPauseAction = actionLabels.any { it.contains("pause") }
-        val hasPausedKeyword = fullText.contains("paused") || fullText.contains("pause")
+        val hasResumeAction = actionLabels.any { act -> RESUME_KEYWORDS.any { act.contains(it) } }
+        val hasPauseAction = actionLabels.any { act -> PAUSE_KEYWORDS.any { act.contains(it) } }
+        val hasPausedKeyword = PAUSED_KEYWORDS.any { fullText.contains(it) }
 
         if (hasResumeAction) return true
         if (hasPausedKeyword && !hasPauseAction) return true
@@ -294,6 +368,20 @@ object TimerStopwatchParser {
             if (parsed != null && parsed >= 0) return parsed
         }
 
+        return null
+    }
+
+    /**
+     * Extracts the remaining time in seconds from an IslandNotification.
+     */
+    fun parseTimerRemainingSeconds(notification: com.agupta07505.smartisland.model.IslandNotification): Long? {
+        val title = notification.title
+        val text = notification.text
+        for (field in listOf(title, text)) {
+            if (field.isBlank()) continue
+            val parsed = parseTimeStringToSeconds(field)
+            if (parsed != null && parsed >= 0) return parsed
+        }
         return null
     }
 

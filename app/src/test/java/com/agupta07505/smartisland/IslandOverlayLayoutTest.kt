@@ -139,4 +139,117 @@ class IslandOverlayLayoutTest {
         )
         assertEquals(340f, smallLandscapeWidth, 0.01f)
     }
+
+    @Test
+    fun notchModeExpandedTopOffsetClearsHardwareNotchAndStatusBar() {
+        val notchHeight = 35f
+        val statusBarHeightStandard = 24f
+        val statusBarHeightTall = 40f
+
+        // Notch mode: MUST clear both the hardware notch height and status bar height with a safe gap
+        val offsetStandard = com.agupta07505.smartisland.ui.calculateExpandedTopOffset(
+            enableNotchMode = true,
+            hasCompanion = false,
+            statusBarHeightDp = statusBarHeightStandard,
+            notchHeightDp = notchHeight
+        )
+        org.junit.Assert.assertTrue(
+            "Expanded offset in notch mode ($offsetStandard) must strictly exceed notch height ($notchHeight)",
+            offsetStandard >= notchHeight + 8f
+        )
+        org.junit.Assert.assertTrue(
+            "Expanded offset in notch mode ($offsetStandard) must strictly exceed status bar ($statusBarHeightStandard)",
+            offsetStandard >= statusBarHeightStandard + 8f
+        )
+        assertEquals(43f, offsetStandard, 0.01f)
+
+        // Tall notch device (e.g., Pixel 3 XL or iPhone deep notch)
+        val offsetTall = com.agupta07505.smartisland.ui.calculateExpandedTopOffset(
+            enableNotchMode = true,
+            hasCompanion = false,
+            statusBarHeightDp = statusBarHeightTall,
+            notchHeightDp = notchHeight
+        )
+        org.junit.Assert.assertTrue(
+            "Expanded offset on tall status bar ($offsetTall) must clear tall status bar ($statusBarHeightTall)",
+            offsetTall >= statusBarHeightTall + 8f
+        )
+        assertEquals(48f, offsetTall, 0.01f)
+
+        // Non-notch mode preserves standard status bar positioning
+        val normalOffset = com.agupta07505.smartisland.ui.calculateExpandedTopOffset(
+            enableNotchMode = false,
+            hasCompanion = false,
+            statusBarHeightDp = statusBarHeightStandard
+        )
+        assertEquals(statusBarHeightStandard, normalOffset, 0.01f)
+
+        val companionOffset = com.agupta07505.smartisland.ui.calculateExpandedTopOffset(
+            enableNotchMode = false,
+            hasCompanion = true,
+            statusBarHeightDp = statusBarHeightStandard,
+            circleSizeDp = 34f,
+            compactGapDp = 8f
+        )
+        assertEquals(42f, companionOffset, 0.01f)
+    }
+
+    @Test
+    fun secondaryBubbleExpandedOffsetShiftsRightInLeftCircleMode() {
+        val screenCenter = 200f
+        val expandedCompactX = 144f // main pill start
+        val miniPillWidth = 112f
+        val circleSize = 34f
+        val compactGap = 8f
+
+        val pillCenterOffset = (expandedCompactX + miniPillWidth / 2f) - screenCenter
+
+        // Collapsed left-side circle center offset: circle is to the LEFT of pill
+        val collapsedLeftCircleOffset = (expandedCompactX - compactGap - circleSize / 2f) - screenCenter
+
+        // 1. With ONLY 2 notifications (secondaryIsPill == true):
+        // In left-side circle mode, it MUST shift RIGHT to pill location
+        val expandedOffsetLeftMode = com.agupta07505.smartisland.ui.calculateSecondaryExpandedOffset(
+            secondaryIsPill = true,
+            isCircleLeft = true,
+            isFullWidth = true,
+            expandedCompactX = expandedCompactX,
+            screenCenter = screenCenter,
+            miniPillWidth = miniPillWidth,
+            circleSize = circleSize,
+            compactGap = compactGap
+        )
+        assertEquals(pillCenterOffset, expandedOffsetLeftMode, 0.01f)
+        org.junit.Assert.assertTrue(
+            "Left circle must shift to the right into pill position ($expandedOffsetLeftMode > $collapsedLeftCircleOffset)",
+            expandedOffsetLeftMode > collapsedLeftCircleOffset
+        )
+
+        // 2. Right-side circle mode also lands at pill location
+        val expandedOffsetRightMode = com.agupta07505.smartisland.ui.calculateSecondaryExpandedOffset(
+            secondaryIsPill = true,
+            isCircleLeft = false,
+            isFullWidth = true,
+            expandedCompactX = expandedCompactX,
+            screenCenter = screenCenter,
+            miniPillWidth = miniPillWidth,
+            circleSize = circleSize,
+            compactGap = compactGap
+        )
+        assertEquals(pillCenterOffset, expandedOffsetRightMode, 0.01f)
+
+        // 3. With 3+ notifications (secondaryIsPill == false):
+        // Left circle stays on the left
+        val threeNotifLeftOffset = com.agupta07505.smartisland.ui.calculateSecondaryExpandedOffset(
+            secondaryIsPill = false,
+            isCircleLeft = true,
+            isFullWidth = true,
+            expandedCompactX = expandedCompactX,
+            screenCenter = screenCenter,
+            miniPillWidth = miniPillWidth,
+            circleSize = circleSize,
+            compactGap = compactGap
+        )
+        assertEquals(collapsedLeftCircleOffset, threeNotifLeftOffset, 0.01f)
+    }
 }

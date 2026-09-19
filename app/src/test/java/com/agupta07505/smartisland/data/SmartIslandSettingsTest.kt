@@ -29,6 +29,7 @@ class SmartIslandSettingsTest {
         assertEquals(true, settings.enableShadow)
         assertEquals(14f, settings.shadowElevation)
         assertEquals(true, settings.enableMusicArtworkBackground)
+        assertEquals(true, settings.enableNotificationBackdrop)
         assertEquals(0xFF2563EBL, settings.bluetoothColor)
         assertEquals(0xFFF59E0BL, settings.flashlightColor)
         assertEquals(0xFFEF4444L, settings.screenRecordingColor)
@@ -119,6 +120,7 @@ class SmartIslandSettingsTest {
             enableShadow = true,
             shadowElevation = 18f,
             enableMusicArtworkBackground = false,
+            enableNotificationBackdrop = false,
             deviceType = "CUSTOM",
             allowNetworkChecks = false,
             enableNotificationHistory = true,

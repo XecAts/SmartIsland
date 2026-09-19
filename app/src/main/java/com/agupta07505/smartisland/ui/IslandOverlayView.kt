@@ -199,13 +199,14 @@ fun IslandOverlayView(
     } else {
         mainCenter - groupCenter
     }
-    val expandedTopOffset = if (settings.enableNotchMode) {
-        0.dp
-    } else if (hasCompanion) {
-        statusBarHeight.dp.coerceAtLeast(circleSize + compactGap)
-    } else {
-        statusBarHeight.dp
-    }
+    val expandedTopOffset = calculateExpandedTopOffset(
+        enableNotchMode = settings.enableNotchMode,
+        hasCompanion = hasCompanion,
+        statusBarHeightDp = statusBarHeight,
+        notchHeightDp = settings.height,
+        circleSizeDp = settings.height,
+        compactGapDp = COMPACT_INDICATOR_GAP_DP
+    ).dp
     val isIdleHiding = settings.hideWhenIdle && notifications.isEmpty()
 
     var isAutoHidden by remember { mutableStateOf(false) }
@@ -369,18 +370,16 @@ fun IslandOverlayView(
     } else {
         circleCenter - groupCenter
     }
-    val secondaryExpandedOffset = if (isCircleLeft) {
-        val secWidth = if (secondaryIsPill) miniPillWidth else circleSize
-        val secCenter = expandedCompactX - compactGap - secWidth / 2f
-        if (isFullWidth) secCenter - screenCenter else -(miniPillWidth + compactGap) / 2f
-    } else {
-        val secCenter = if (secondaryIsPill) {
-            expandedCompactX + miniPillWidth / 2f
-        } else {
-            expandedCompactX + miniPillWidth + compactGap + circleSize / 2f
-        }
-        if (isFullWidth) secCenter - screenCenter else ((miniPillWidth + compactGap) / 2f)
-    }
+    val secondaryExpandedOffset = calculateSecondaryExpandedOffset(
+        secondaryIsPill = secondaryIsPill,
+        isCircleLeft = isCircleLeft,
+        isFullWidth = isFullWidth,
+        expandedCompactX = expandedCompactX.value,
+        screenCenter = screenCenter.value,
+        miniPillWidth = miniPillWidth.value,
+        circleSize = circleSize.value,
+        compactGap = compactGap.value
+    ).dp
     val secondaryOffset by animateDpAsState(
         targetValue = if (!expanded) collapsedSecondaryOffset else secondaryExpandedOffset,
         animationSpec = spring(dampingRatio = 0.75f, stiffness = 520f),
@@ -432,22 +431,13 @@ fun IslandOverlayView(
             )
         }
 
-        val mainShape = if (settings.enableNotchMode) {
-            if (currentExpanded) {
-                RoundedCornerShape(
-                    topStart = 0.dp,
-                    topEnd = 0.dp,
-                    bottomStart = 34.dp,
-                    bottomEnd = 34.dp
-                )
-            } else {
-                RoundedCornerShape(
-                    topStart = 0.dp,
-                    topEnd = 0.dp,
-                    bottomStart = safeRadius,
-                    bottomEnd = safeRadius
-                )
-            }
+        val mainShape = if (settings.enableNotchMode && !currentExpanded) {
+            RoundedCornerShape(
+                topStart = 0.dp,
+                topEnd = 0.dp,
+                bottomStart = safeRadius,
+                bottomEnd = safeRadius
+            )
         } else {
             RoundedCornerShape(safeRadius)
         }
@@ -707,13 +697,6 @@ fun IslandOverlayView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight()
-                        .then(
-                            if (settings.enableNotchMode) {
-                                Modifier.padding(top = (statusBarHeight.dp * 0.75f).coerceAtLeast(14.dp))
-                            } else {
-                                Modifier
-                            }
-                        )
                         .graphicsLayer {
                             alpha = expandedAlpha
                             scaleX = contentScale
@@ -981,6 +964,45 @@ internal fun calculateExpandedWidth(
         (portraitWidth * ratio).coerceIn(340f, 440f)
     } else {
         screenWidthDp * ratio
+    }
+}
+
+internal fun calculateExpandedTopOffset(
+    enableNotchMode: Boolean,
+    hasCompanion: Boolean,
+    statusBarHeightDp: Float,
+    notchHeightDp: Float = 35f,
+    circleSizeDp: Float = 34f,
+    compactGapDp: Float = COMPACT_INDICATOR_GAP_DP
+): Float {
+    return if (enableNotchMode) {
+        maxOf(statusBarHeightDp, notchHeightDp) + 8f
+    } else if (hasCompanion) {
+        maxOf(statusBarHeightDp, circleSizeDp + compactGapDp)
+    } else {
+        statusBarHeightDp
+    }
+}
+
+internal fun calculateSecondaryExpandedOffset(
+    secondaryIsPill: Boolean,
+    isCircleLeft: Boolean,
+    isFullWidth: Boolean,
+    expandedCompactX: Float,
+    screenCenter: Float,
+    miniPillWidth: Float,
+    circleSize: Float,
+    compactGap: Float
+): Float {
+    return if (secondaryIsPill) {
+        val secCenter = expandedCompactX + miniPillWidth / 2f
+        if (isFullWidth) secCenter - screenCenter else 0f
+    } else if (isCircleLeft) {
+        val secCenter = expandedCompactX - compactGap - circleSize / 2f
+        if (isFullWidth) secCenter - screenCenter else -(miniPillWidth + compactGap) / 2f
+    } else {
+        val secCenter = expandedCompactX + miniPillWidth + compactGap + circleSize / 2f
+        if (isFullWidth) secCenter - screenCenter else ((miniPillWidth + compactGap) / 2f)
     }
 }
 private const val SWIPE_THRESHOLD_DP = 35f

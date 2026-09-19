@@ -16,43 +16,43 @@
     <string name="made_by">由 Animesh Gupta 用 ❤️ 制作</string>
 
     <!-- Navigation Tabs -->
-    <string name="tab_studio">工作室</string>
-    <string name="tab_position">挖孔与布局</string>
+    <string name="tab_studio">首页</string>
+    <string name="tab_position">布局</string>
     <string name="tab_settings">设置</string>
     <string name="tab_features">功能</string>
     <string name="tab_system">系统与关于</string>
 
     <!-- Master Switch & Status -->
-    <string name="master_switch_title">Smart Island 总开关</string>
-    <string name="master_switch_active_desc">悬浮窗已激活并浮动在状态栏上方</string>
-    <string name="master_switch_ready_desc">准备就绪。开启开关即可启动。</string>
-    <string name="master_switch_missing_desc">启动前缺少必要权限</string>
+    <string name="master_switch_title">Smart Island</string>
+    <string name="master_switch_active_desc">运行中</string>
+    <string name="master_switch_ready_desc">已关闭 — 点击开启</string>
+    <string name="master_switch_missing_desc">需要权限</string>
     <string name="status_active">运行中</string>
     <string name="status_ready">就绪</string>
     <string name="status_setup_needed">需要配置</string>
     <string name="status_action_required">需要操作</string>
-    <string name="btn_grant_required_permissions">授予必要权限以启用 →</string>
+    <string name="btn_grant_required_permissions">授予权限</string>
     <string name="enable_smart_island">启用 Smart Island</string>
     <string name="overlay_ready">悬浮窗服务已就绪</string>
     <string name="grant_overlay">授予悬浮窗权限以启动</string>
 
     <!-- Simulation Lab & Test Controls -->
-    <string name="simulation_lab_title">动态模拟实验室</string>
-    <string name="simulation_lab_desc">一键测试并模拟各类灵动岛模式</string>
-    <string name="mode_music_player">音乐播放器</string>
-    <string name="mode_incoming_call">来电呼入</string>
-    <string name="mode_notification">应用通知</string>
-    <string name="mode_battery_charge">电池充电</string>
-    <string name="mode_live_activity">实时活动</string>
-    <string name="mode_turn_navigation">路线导航</string>
-    <string name="mode_file_transfer">文件传输</string>
-    <string name="mode_hotspot_share">热点共享</string>
-    <string name="mode_bluetooth">蓝牙设备</string>
-    <string name="mode_flashlight">手电筒</string>
-    <string name="mode_screen_recording">屏幕录制</string>
-    <string name="mode_timer">计时器</string>
+    <string name="simulation_lab_title">试一试</string>
+    <string name="simulation_lab_desc">预览各种模式</string>
+    <string name="mode_music_player">音乐</string>
+    <string name="mode_incoming_call">来电</string>
+    <string name="mode_notification">通知</string>
+    <string name="mode_battery_charge">电池</string>
+    <string name="mode_live_activity">实时</string>
+    <string name="mode_turn_navigation">导航</string>
+    <string name="mode_file_transfer">传输</string>
+    <string name="mode_hotspot_share">热点</string>
+    <string name="mode_bluetooth">蓝牙</string>
+    <string name="mode_flashlight">闪光</string>
+    <string name="mode_screen_recording">录屏</string>
+    <string name="mode_timer">计时</string>
     <string name="mode_stopwatch">秒表</string>
-    <string name="btn_clear_all_test_notifications">清除所有测试通知</string>
+    <string name="btn_clear_all_test_notifications">清除</string>
     <string name="toast_cleared_test_notifications">已清除活跃的演示提示</string>
     <string name="quick_test_controls">快捷测试控制</string>
     <string name="btn_notify">通知</string>
@@ -189,6 +189,8 @@
     <string name="media_player_desc">配置音乐展开界面的动态发光背景与音频可视化动画</string>
     <string name="toggle_artwork_backdrop_title">氛围专辑封面发光背景</string>
     <string name="toggle_artwork_backdrop_desc">在音乐展开卡片中将专辑封面渲染为柔和的模糊发光背景</string>
+    <string name="toggle_notification_backdrop_title">通知氛围背景</string>
+    <string name="toggle_notification_backdrop_desc">在通知展开卡片中渲染丰富的媒体封面或氛围发光背景</string>
     <string name="color_studio_title">功能色彩工作室</string>
     <string name="color_studio_desc">为全部 11 种动态灵动岛模式自定义个性化指示灯颜色</string>
     <string name="color_battery_charging">电池充电</string>

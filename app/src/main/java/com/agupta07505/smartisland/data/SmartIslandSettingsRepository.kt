@@ -78,6 +78,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
         val EnableShadow = booleanPreferencesKey("enable_shadow")
         val ShadowElevation = floatPreferencesKey("shadow_elevation")
         val EnableMusicArtworkBackground = booleanPreferencesKey("enable_music_artwork_background")
+        val EnableNotificationBackdrop = booleanPreferencesKey("enable_notification_backdrop")
         val DeviceType = stringPreferencesKey("device_type")
         val AllowNetworkChecks = booleanPreferencesKey("allow_network_checks")
         val EnableNotificationHistory = booleanPreferencesKey("enable_notification_history")
@@ -217,6 +218,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
                     SmartIslandSettings.MAX_SHADOW_ELEVATION
                 ),
                 enableMusicArtworkBackground = prefs[Keys.EnableMusicArtworkBackground] ?: defaults.enableMusicArtworkBackground,
+                enableNotificationBackdrop = prefs[Keys.EnableNotificationBackdrop] ?: defaults.enableNotificationBackdrop,
                 deviceType = prefs[Keys.DeviceType] ?: defaults.deviceType,
                 allowNetworkChecks = prefs[Keys.AllowNetworkChecks] ?: defaults.allowNetworkChecks,
                 notificationHistoryRetentionHours = prefs[Keys.NotificationHistoryRetentionHours] ?: defaults.notificationHistoryRetentionHours,
@@ -255,6 +257,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
         )
     }
     suspend fun setEnableMusicArtworkBackground(value: Boolean) = editSafely { it[Keys.EnableMusicArtworkBackground] = value }
+    suspend fun setEnableNotificationBackdrop(value: Boolean) = editSafely { it[Keys.EnableNotificationBackdrop] = value }
     suspend fun setWidth(value: Float) = editSafely {
         it[Keys.Width] = validDimension(
             value,
@@ -612,6 +615,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
             SmartIslandSettings.MAX_SHADOW_ELEVATION
         )
         prefs[Keys.EnableMusicArtworkBackground] = settings.enableMusicArtworkBackground
+        prefs[Keys.EnableNotificationBackdrop] = settings.enableNotificationBackdrop
         prefs[Keys.DeviceType] = settings.deviceType
         prefs[Keys.AllowNetworkChecks] = settings.allowNetworkChecks
         prefs[Keys.EnableNotificationHistory] = settings.enableNotificationHistory

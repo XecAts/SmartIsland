@@ -16,43 +16,43 @@
     <string name="made_by">Feito com ❤️ por Animesh Gupta</string>
 
     <!-- Navigation Tabs -->
-    <string name="tab_studio">Estúdio</string>
-    <string name="tab_position">Entalhe e Layout</string>
+    <string name="tab_studio">Início</string>
+    <string name="tab_position">Layout</string>
     <string name="tab_settings">Configurações</string>
     <string name="tab_features">Recursos</string>
     <string name="tab_system">Sistema e Sobre</string>
 
     <!-- Master Switch & Status -->
-    <string name="master_switch_title">Interruptor Principal do Smart Island</string>
-    <string name="master_switch_active_desc">Sobreposição ativa e flutuando sobre a barra de status</string>
-    <string name="master_switch_ready_desc">Pronto para executar. Ative o interruptor para iniciar.</string>
-    <string name="master_switch_missing_desc">Permissões necessárias ausentes antes de iniciar</string>
+    <string name="master_switch_title">Smart Island</string>
+    <string name="master_switch_active_desc">Ativo</string>
+    <string name="master_switch_ready_desc">Desligado — toque para iniciar</string>
+    <string name="master_switch_missing_desc">Permissões necessárias</string>
     <string name="status_active">Ativo</string>
     <string name="status_ready">Pronto</string>
     <string name="status_setup_needed">Configuração Necessária</string>
     <string name="status_action_required">Ação Necessária</string>
-    <string name="btn_grant_required_permissions">Conceder permissões necessárias para ativar →</string>
+    <string name="btn_grant_required_permissions">Conceder Permissões</string>
     <string name="enable_smart_island">Ativar Smart Island</string>
     <string name="overlay_ready">O serviço de sobreposição está pronto</string>
     <string name="grant_overlay">Conceder permissão de sobreposição para iniciar</string>
 
     <!-- Simulation Lab & Test Controls -->
-    <string name="simulation_lab_title">Laboratório de Simulação Dinâmica</string>
-    <string name="simulation_lab_desc">Teste e simule qualquer modo do Smart Island com 1 toque</string>
-    <string name="mode_music_player">Player de Música</string>
-    <string name="mode_incoming_call">Chamada Recebida</string>
-    <string name="mode_notification">Notificação</string>
-    <string name="mode_battery_charge">Carga da Bateria</string>
-    <string name="mode_live_activity">Atividade ao Vivo</string>
-    <string name="mode_turn_navigation">Navegação GPS</string>
-    <string name="mode_file_transfer">Transferência de Arquivos</string>
-    <string name="mode_hotspot_share">Ponto de Acesso</string>
+    <string name="simulation_lab_title">Experimente</string>
+    <string name="simulation_lab_desc">Pré-visualize qualquer modo</string>
+    <string name="mode_music_player">Música</string>
+    <string name="mode_incoming_call">Chamada</string>
+    <string name="mode_notification">Alerta</string>
+    <string name="mode_battery_charge">Bateria</string>
+    <string name="mode_live_activity">Ao Vivo</string>
+    <string name="mode_turn_navigation">Nav</string>
+    <string name="mode_file_transfer">Transfer.</string>
+    <string name="mode_hotspot_share">Hotspot</string>
     <string name="mode_bluetooth">Bluetooth</string>
-    <string name="mode_flashlight">Lanterna</string>
-    <string name="mode_screen_recording">Gravação de Tela</string>
-    <string name="mode_timer">Temporizador</string>
+    <string name="mode_flashlight">Flash</string>
+    <string name="mode_screen_recording">Gravar</string>
+    <string name="mode_timer">Timer</string>
     <string name="mode_stopwatch">Cronômetro</string>
-    <string name="btn_clear_all_test_notifications">Limpar Todas as Notificações de Teste</string>
+    <string name="btn_clear_all_test_notifications">Limpar</string>
     <string name="toast_cleared_test_notifications">Alertas de demonstração ativos limpos</string>
     <string name="quick_test_controls">Controles de Teste Rápido</string>
     <string name="btn_notify">Notificar</string>
@@ -189,6 +189,8 @@
     <string name="media_player_desc">Configure a arte de fundo ambiente e animações do visualizador</string>
     <string name="toggle_artwork_backdrop_title">Fundo com Arte do Álbum em Brilho Ambiente</string>
     <string name="toggle_artwork_backdrop_desc">Renderize a arte do álbum suavemente desfocada como brilho de fundo na ilha de música expandida</string>
+    <string name="toggle_notification_backdrop_title">Fundo de Notificação em Brilho Ambiente</string>
+    <string name="toggle_notification_backdrop_desc">Renderize a arte da mídia ou brilho ambiente no fundo das notificações expandidas</string>
     <string name="color_studio_title">Estúdio de Cores de Destaque</string>
     <string name="color_studio_desc">Personalize as cores vibrantes dos indicadores para todos os 11 modos dinâmicos</string>
     <string name="color_battery_charging">Carregamento da Bateria</string>

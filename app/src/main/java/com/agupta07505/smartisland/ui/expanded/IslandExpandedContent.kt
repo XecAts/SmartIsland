@@ -25,6 +25,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Text
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -33,7 +34,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
@@ -82,6 +87,23 @@ fun IslandExpandedContent(
                     }
                 }
         ) {
+            if (settings.enableNotificationBackdrop) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    Color(settings.notificationDotColor).copy(alpha = 0.22f),
+                                    Color(settings.notificationDotColor).copy(alpha = 0.06f),
+                                    Color.Transparent
+                                ),
+                                center = Offset(0f, 0f),
+                                radius = 700f
+                            )
+                        )
+                )
+            }
             EmptyExpanded(settings = settings, apps = launcherApps, onLaunchApp = onLaunchApp)
         }
         return
@@ -213,6 +235,14 @@ fun IslandExpandedContent(
                                 onOpenNotification(notification)
                             }
                     ) {
+                        if (settings.enableNotificationBackdrop && notification.mode != IslandMode.Music) {
+                            NotificationBackdrop(
+                                notification = notification,
+                                settings = settings,
+                                modifier = Modifier.matchParentSize()
+                            )
+                        }
+
                         when (notification.mode) {
                             IslandMode.Notification -> NotificationExpanded(
                                 notification = notification,
@@ -407,3 +437,100 @@ private fun ShortcutApp(app: LaunchableApp, onClick: () -> Unit) {
         )
     }
 }
+
+@Composable
+private fun NotificationBackdrop(
+    notification: IslandNotification,
+    settings: SmartIslandSettings,
+    modifier: Modifier = Modifier
+) {
+    val artwork = notification.largeIcon ?: notification.icon
+    val imageBitmap = remember(artwork) {
+        if (artwork != null && !artwork.isRecycled) {
+            runCatching { artwork.asImageBitmap() }.getOrNull()
+        } else null
+    }
+
+    val accentColor = when (notification.mode) {
+        IslandMode.Battery -> Color(settings.batteryColor)
+        IslandMode.IncomingCall -> Color(settings.callColor)
+        IslandMode.LiveActivity -> Color(settings.liveActivityColor)
+        IslandMode.Navigation -> Color(settings.navigationColor)
+        IslandMode.DownloadUpload -> Color(settings.transferColor)
+        IslandMode.Hotspot -> Color(settings.hotspotColor)
+        IslandMode.Bluetooth -> Color(settings.bluetoothColor)
+        IslandMode.Flashlight -> Color(settings.flashlightColor)
+        IslandMode.ScreenRecording -> Color(settings.screenRecordingColor)
+        IslandMode.Timer -> Color(settings.timerColor)
+        IslandMode.Stopwatch -> Color(settings.stopwatchColor)
+        else -> Color(settings.notificationDotColor)
+    }
+
+    Box(modifier = modifier) {
+        if (imageBitmap != null) {
+            Image(
+                bitmap = imageBitmap,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer { alpha = 0.38f }
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Black.copy(alpha = 0.35f),
+                                Color.Black.copy(alpha = 0.85f)
+                            )
+                        )
+                    )
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                accentColor.copy(alpha = 0.22f),
+                                Color.Transparent
+                            ),
+                            center = Offset(0f, 0f),
+                            radius = 700f
+                        )
+                    )
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                accentColor.copy(alpha = 0.35f),
+                                accentColor.copy(alpha = 0.12f),
+                                Color.Transparent
+                            ),
+                            center = Offset(0f, 0f),
+                            radius = 750f
+                        )
+                    )
+            )
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.65f)
+                            )
+                        )
+                    )
+            )
+        }
+    }
+}
+

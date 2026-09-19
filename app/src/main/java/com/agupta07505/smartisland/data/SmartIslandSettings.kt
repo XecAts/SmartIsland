@@ -52,6 +52,7 @@ data class SmartIslandSettings(
     val enableShadow: Boolean = true,
     val shadowElevation: Float = 14f,
     val enableMusicArtworkBackground: Boolean = true,
+    val enableNotificationBackdrop: Boolean = true,
     val deviceType: String = "AUTO",
     val allowNetworkChecks: Boolean = true,
     val enableNotificationHistory: Boolean = false,
@@ -139,6 +140,7 @@ data class SmartIslandSettings(
         settingsObj.put("enableShadow", enableShadow)
         settingsObj.put("shadowElevation", shadowElevation.toDouble())
         settingsObj.put("enableMusicArtworkBackground", enableMusicArtworkBackground)
+        settingsObj.put("enableNotificationBackdrop", enableNotificationBackdrop)
         settingsObj.put("deviceType", deviceType)
         settingsObj.put("allowNetworkChecks", allowNetworkChecks)
         settingsObj.put("enableNotificationHistory", enableNotificationHistory)
@@ -292,6 +294,7 @@ data class SmartIslandSettings(
                 enableShadow = obj.optBoolean("enableShadow", defaults.enableShadow),
                 shadowElevation = safeFloat("shadowElevation", defaults.shadowElevation, MIN_SHADOW_ELEVATION, MAX_SHADOW_ELEVATION),
                 enableMusicArtworkBackground = obj.optBoolean("enableMusicArtworkBackground", defaults.enableMusicArtworkBackground),
+                enableNotificationBackdrop = obj.optBoolean("enableNotificationBackdrop", defaults.enableNotificationBackdrop),
                 deviceType = obj.optString("deviceType", defaults.deviceType),
                 allowNetworkChecks = obj.optBoolean("allowNetworkChecks", defaults.allowNetworkChecks),
                 enableNotificationHistory = obj.optBoolean("enableNotificationHistory", defaults.enableNotificationHistory),

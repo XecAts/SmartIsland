@@ -692,6 +692,9 @@ class SmartIslandOverlayService : AccessibilityService() {
             x = currentX
             y = currentY
             softInputMode = currentSoftInputMode
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
         }
         lastParams = params
         runCatchingLogged(TAG, "Failed to update view layout") { 
@@ -760,6 +763,9 @@ class SmartIslandOverlayService : AccessibilityService() {
             gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
             x = if (isTouchableRegionSupported.value) 0 else windowXPx
             y = if (settings.enableNotchMode) 0 else settings.yOffset.dpToPx()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
         }.also {
             lastParams = it
         }

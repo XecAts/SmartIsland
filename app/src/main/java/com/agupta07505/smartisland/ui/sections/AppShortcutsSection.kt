@@ -89,12 +89,12 @@ fun AppShortcutsSection(
         // Card 1: Launcher Configuration & Recent Apps
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(20.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 // Master Switch: Enable / Disable App Shortcut Launcher
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -228,12 +228,12 @@ fun AppShortcutsSection(
         // Card 2: App Selection Grid
         Card(
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(20.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            shape = RoundedCornerShape(16.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,

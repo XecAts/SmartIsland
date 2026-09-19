@@ -108,6 +108,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -271,7 +272,7 @@ fun SmartIslandHomeScreen(
             label = "ScreenTransition"
         ) { detailSection ->
             if (detailSection == null) {
-                val screenWidthDp = LocalContext.current.resources.configuration.screenWidthDp
+                val screenWidthDp = LocalConfiguration.current.screenWidthDp
                 val horizontalPad = when {
                     screenWidthDp < 360 -> 14.dp
                     screenWidthDp > 600 -> 28.dp
@@ -981,7 +982,7 @@ private fun DetailScreenHost(
 
     val isScrollableParent = section != FeatureDetailSection.NotificationHistory
     val scrollModifier = if (isScrollableParent) Modifier.verticalScroll(rememberScrollState()) else Modifier
-    val screenWidthDp = LocalContext.current.resources.configuration.screenWidthDp
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
     val horizontalPad = when {
         screenWidthDp < 360 -> 14.dp
         screenWidthDp > 600 -> 28.dp

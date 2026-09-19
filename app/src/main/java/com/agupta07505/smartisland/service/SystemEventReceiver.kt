@@ -23,7 +23,8 @@ import com.agupta07505.smartisland.model.IslandNotification
 import com.agupta07505.smartisland.util.runCatchingLogged
 
 class SystemEventReceiver(
-    private val notificationRepository: INotificationRepository
+    private val notificationRepository: INotificationRepository,
+    private val settingsProvider: () -> com.agupta07505.smartisland.data.SmartIslandSettings = { com.agupta07505.smartisland.data.SmartIslandSettings.Default }
 ) : BroadcastReceiver() {
 
     private var lastBatteryPct: Int = -1
@@ -136,25 +137,49 @@ class SystemEventReceiver(
                     }
                 }
                 Intent.ACTION_POWER_CONNECTED -> {
+                    if (!settingsProvider().enableBatteryMode) {
+                        notificationRepository.removeNotification("system_battery")
+                        return@runCatchingLogged
+                    }
                     isCurrentlyCharging = true
                     updateBatteryIsland(context, intent, autoExpand = true)
                 }
                 Intent.ACTION_POWER_DISCONNECTED -> {
+                    if (!settingsProvider().enableBatteryMode) {
+                        notificationRepository.removeNotification("system_battery")
+                        return@runCatchingLogged
+                    }
                     isCurrentlyCharging = false
                     updateBatteryState(context, intent, autoExpand = false)
                 }
                 Intent.ACTION_BATTERY_LOW -> {
+                    if (!settingsProvider().enableBatteryMode) {
+                        notificationRepository.removeNotification("system_battery")
+                        return@runCatchingLogged
+                    }
                     updateBatteryState(context, intent, autoExpand = true)
                 }
                 Intent.ACTION_BATTERY_OKAY -> {
+                    if (!settingsProvider().enableBatteryMode) {
+                        notificationRepository.removeNotification("system_battery")
+                        return@runCatchingLogged
+                    }
                     updateBatteryState(context, intent, autoExpand = false)
                 }
                 PowerManager.ACTION_POWER_SAVE_MODE_CHANGED -> {
+                    if (!settingsProvider().enableBatteryMode) {
+                        notificationRepository.removeNotification("system_battery")
+                        return@runCatchingLogged
+                    }
                     val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
                     val isPowerSave = powerManager?.isPowerSaveMode == true
                     updateBatteryState(context, intent, autoExpand = isPowerSave)
                 }
                 Intent.ACTION_BATTERY_CHANGED -> {
+                    if (!settingsProvider().enableBatteryMode) {
+                        notificationRepository.removeNotification("system_battery")
+                        return@runCatchingLogged
+                    }
                     val charging = isCharging(intent)
                     if (charging != isCurrentlyCharging) {
                         isCurrentlyCharging = charging

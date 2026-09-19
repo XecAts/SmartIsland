@@ -349,7 +349,9 @@
     <string name="toggle_show_in_landscape_title">横屏模式下保持显示</string>
     <string name="toggle_show_in_landscape_desc">设备旋转至横屏时继续显示灵动岛</string>
     <string name="toggle_bluetooth_battery_title">蓝牙电量与耳机动效</string>
-    <string name="toggle_bluetooth_battery_desc">显示已连接蓝牙设备电量百分比，并在灵动岛中与耳机图标平滑切换动效</string>
+    <string name="toggle_bluetooth_battery_desc">显示已连接设备的电量百分比并与耳机图标平滑交替展示</string>
+    <string name="toggle_battery_mode_title">电池与充电事件</string>
+    <string name="toggle_battery_mode_desc">在灵动岛展示充电状态、电量百分比、低电量提醒及省电模式</string>
     <string name="live_nav_services_title">实时活动与地图导航</string>
     <string name="live_nav_services_desc">实时外卖进度、网约车行程与地图转向箭头</string>
     <string name="toggle_live_activities_title">实时外卖与打车行程</string>

@@ -350,6 +350,8 @@
     <string name="toggle_show_in_landscape_desc">Keep Smart Island visible when rotating device to landscape orientation</string>
     <string name="toggle_bluetooth_battery_title">Bluetooth Battery &amp; Earbuds Animation</string>
     <string name="toggle_bluetooth_battery_desc">Show connected device battery percentage and smoothly alternate with the earbuds icon in the island</string>
+    <string name="toggle_battery_mode_title">Battery &amp; Charging Events</string>
+    <string name="toggle_battery_mode_desc">Show charging status, battery percentage, low battery alerts, and battery saver mode in the island</string>
     <string name="live_nav_services_title">Live Activities &amp; Navigation</string>
     <string name="live_nav_services_desc">Real-time delivery progress, rideshare tracking, and map direction arrows</string>
     <string name="toggle_live_activities_title">Live Delivery &amp; Ride Tracking</string>

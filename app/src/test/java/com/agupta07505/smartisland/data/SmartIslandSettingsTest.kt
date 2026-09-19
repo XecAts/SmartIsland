@@ -38,6 +38,7 @@ class SmartIslandSettingsTest {
         assertEquals(true, settings.enableAppShortcuts)
         assertEquals(true, settings.allowNetworkChecks)
         assertEquals(true, settings.showBluetoothBattery)
+        assertEquals(true, settings.enableBatteryMode)
         assertEquals(false, settings.enableNotificationCooldown)
         assertEquals(3, settings.notificationCooldownDurationMinutes)
         assertEquals(3, settings.notificationCooldownThreshold)

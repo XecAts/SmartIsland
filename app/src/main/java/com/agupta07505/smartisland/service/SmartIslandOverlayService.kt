@@ -221,7 +221,7 @@ class SmartIslandOverlayService : AccessibilityService() {
         }
         viewModel = initializedViewModel
         
-        systemEventReceiver = SystemEventReceiver(notificationRepository)
+        systemEventReceiver = SystemEventReceiver(notificationRepository, settingsProvider = { viewModel.settings.value })
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_POWER_CONNECTED)
             addAction(Intent.ACTION_POWER_DISCONNECTED)
@@ -537,8 +537,8 @@ class SmartIslandOverlayService : AccessibilityService() {
                         val circleSizePx = settingsVal.height * density
                         val compactGapPx = 8f * density
                         val edgePaddingPx = 8f * density
-                        val touchPaddingXPx = 24f * density
-                        val pillHeightPx = (settingsVal.height + 24f) * density
+                        val touchPaddingXPx = 48f * density
+                        val pillHeightPx = (settingsVal.height + 72f) * density
                         val groupWidthPx = mainWidthPx + if (isSplitMode) compactGapPx + circleSizePx else 0f
 
                         val desiredMainLeftPx = screenWidth / 2f +
@@ -645,12 +645,12 @@ class SmartIslandOverlayService : AccessibilityService() {
         val h = if (expanded) {
             WindowManager.LayoutParams.MATCH_PARENT
         } else {
-            ((settings.height + 24f) * density).toInt()
+            ((settings.height + 72f) * density).toInt()
         }
         val w = if (expanded || isTouchableRegionSupported.value) {
             WindowManager.LayoutParams.MATCH_PARENT
         } else {
-            (groupWidthPx + 32f * density).toInt()
+            (groupWidthPx + 64f * density).toInt()
         }
         val isInput = viewModel.isInputActive.value && expanded
         val focusFlags = if (isInput) 0 else WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
@@ -745,7 +745,7 @@ class SmartIslandOverlayService : AccessibilityService() {
         val w = if (isTouchableRegionSupported.value) {
             WindowManager.LayoutParams.MATCH_PARENT
         } else {
-            (groupWidthPx + 32f * density).toInt()
+            (groupWidthPx + 64f * density).toInt()
         }
         val currentFlags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
@@ -755,7 +755,7 @@ class SmartIslandOverlayService : AccessibilityService() {
 
         return WindowManager.LayoutParams(
             w,
-            ((settings.height + 24f) * density).toInt(),
+            ((settings.height + 72f) * density).toInt(),
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             currentFlags,
             PixelFormat.TRANSLUCENT

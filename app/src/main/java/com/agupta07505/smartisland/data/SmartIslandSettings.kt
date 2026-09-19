@@ -58,6 +58,7 @@ data class SmartIslandSettings(
     val enableNotificationHistory: Boolean = false,
     val notificationHistoryRetentionHours: Int = 72,
     val showBluetoothBattery: Boolean = true,
+    val enableBatteryMode: Boolean = true,
     val enableNotificationCooldown: Boolean = false,
     val notificationCooldownDurationMinutes: Int = 3,
     val notificationCooldownThreshold: Int = 3,
@@ -146,6 +147,7 @@ data class SmartIslandSettings(
         settingsObj.put("enableNotificationHistory", enableNotificationHistory)
         settingsObj.put("notificationHistoryRetentionHours", notificationHistoryRetentionHours)
         settingsObj.put("showBluetoothBattery", showBluetoothBattery)
+        settingsObj.put("enableBatteryMode", enableBatteryMode)
         settingsObj.put("enableNotificationCooldown", enableNotificationCooldown)
         settingsObj.put("notificationCooldownDurationMinutes", notificationCooldownDurationMinutes)
         settingsObj.put("notificationCooldownThreshold", notificationCooldownThreshold)
@@ -300,6 +302,7 @@ data class SmartIslandSettings(
                 enableNotificationHistory = obj.optBoolean("enableNotificationHistory", defaults.enableNotificationHistory),
                 notificationHistoryRetentionHours = obj.optInt("notificationHistoryRetentionHours", defaults.notificationHistoryRetentionHours).coerceIn(1, 720),
                 showBluetoothBattery = obj.optBoolean("showBluetoothBattery", defaults.showBluetoothBattery),
+                enableBatteryMode = obj.optBoolean("enableBatteryMode", defaults.enableBatteryMode),
                 enableNotificationCooldown = obj.optBoolean("enableNotificationCooldown", defaults.enableNotificationCooldown),
                 notificationCooldownDurationMinutes = obj.optInt("notificationCooldownDurationMinutes", defaults.notificationCooldownDurationMinutes).coerceIn(1, 60),
                 notificationCooldownThreshold = obj.optInt("notificationCooldownThreshold", defaults.notificationCooldownThreshold).coerceIn(2, 20),

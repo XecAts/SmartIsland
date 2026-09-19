@@ -45,14 +45,12 @@ class IslandViewModel(
 
     val visibleNotifications: StateFlow<List<IslandNotification>> = combine(
         notifications,
-        foregroundPackage
-    ) { list, fgPkg ->
-        if (fgPkg.isNullOrEmpty()) {
-            list
-        } else {
-            list.filterNot { notif ->
-                notif.mode == IslandMode.Music && notif.packageName == fgPkg
-            }
+        foregroundPackage,
+        settings
+    ) { list, fgPkg, s ->
+        list.filterNot { notif ->
+            (!s.enableBatteryMode && notif.mode == IslandMode.Battery) ||
+            (!fgPkg.isNullOrEmpty() && notif.mode == IslandMode.Music && notif.packageName == fgPkg)
         }
     }.stateIn(
         scope = viewModelScope,

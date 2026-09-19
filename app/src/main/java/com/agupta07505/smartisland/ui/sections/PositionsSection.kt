@@ -34,14 +34,12 @@ import androidx.compose.material.icons.rounded.CenterFocusStrong
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.FitScreen
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -785,41 +783,6 @@ fun PositionsSection(
                         }
                     )
                 }
-            }
-        }
-
-        // 6. Action Buttons (Reset & Backup)
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            OutlinedButton(
-                onClick = {
-                    scope.launch { repository.resetPosition() }
-                    Toast.makeText(context, context.getString(R.string.toast_reset_position), Toast.LENGTH_SHORT).show()
-                },
-                modifier = Modifier
-                    .weight(1f)
-                    .bounceClick {},
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Rounded.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.btn_reset_position), fontWeight = FontWeight.SemiBold)
-            }
-
-            OutlinedButton(
-                onClick = onNavigateToBackup,
-                modifier = Modifier
-                    .weight(1f)
-                    .bounceClick {},
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(Icons.Rounded.SettingsBackupRestore, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(6.dp))
-                Text(stringResource(R.string.btn_backup_restore_shortcut), fontWeight = FontWeight.SemiBold)
             }
         }
     }

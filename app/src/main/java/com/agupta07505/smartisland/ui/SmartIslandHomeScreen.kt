@@ -31,6 +31,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,7 +47,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -113,6 +113,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -668,20 +669,41 @@ private fun SimulationLabCard(
                 }
             }
 
-            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                modes.forEachIndexed { index, item ->
-                    ModeChipButton(
-                        label = modeLabels[index],
-                        icon = item.icon,
-                        iconTint = item.tint,
-                        isSelected = activeMode == item.mode,
-                        onClick = { onModeSelect(item.mode) }
-                    )
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val columns = when {
+                    maxWidth >= 330.dp -> 3
+                    maxWidth >= 210.dp -> 2
+                    else -> 1
+                }
+                val chunkedIndices = remember(modes.size, columns) {
+                    modes.indices.chunked(columns)
+                }
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    chunkedIndices.forEach { rowIndices ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            rowIndices.forEach { index ->
+                                val item = modes[index]
+                                ModeChipButton(
+                                    label = modeLabels[index],
+                                    icon = item.icon,
+                                    iconTint = item.tint,
+                                    isSelected = activeMode == item.mode,
+                                    onClick = { onModeSelect(item.mode) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            repeat(columns - rowIndices.size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -702,31 +724,35 @@ private fun ModeChipButton(
             .clip(RoundedCornerShape(10.dp))
             .background(
                 if (isSelected) iconTint.copy(alpha = 0.15f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
             )
             .border(
                 width = if (isSelected) 1.5.dp else 0.5.dp,
-                color = if (isSelected) iconTint.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                color = if (isSelected) iconTint.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f),
                 shape = RoundedCornerShape(10.dp)
             )
             .bounceClick(onClick)
-            .padding(horizontal = 10.dp, vertical = 7.dp)
+            .padding(horizontal = 6.dp, vertical = 9.dp),
+        contentAlignment = Alignment.Center
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
+            horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier.size(14.dp)
+                modifier = Modifier.size(15.dp)
             )
+            Spacer(Modifier.width(5.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = if (isSelected) iconTint else MaterialTheme.colorScheme.onSurface
+                color = if (isSelected) iconTint else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -829,17 +855,15 @@ private fun SettingsOverviewSection(
             )
         }
 
-        if (settings.developerModeEnabled) {
-            SettingsCategoryGroup(title = stringResource(R.string.category_developer_options)) {
-                FeatureStudioNavigationCard(
-                    title = stringResource(R.string.card_developer_options_title),
-                    icon = Icons.Rounded.Tune,
-                    iconColor = Color(0xFF10B981),
-                    statusText = if (settings.recordLogs) stringResource(R.string.status_recording_active) else null,
-                    statusColor = if (settings.recordLogs) Color(0xFFEF4444) else Color(0xFF10B981),
-                    onClick = { onNavigateTo(FeatureDetailSection.DeveloperOptions) }
-                )
-            }
+        SettingsCategoryGroup(title = stringResource(R.string.category_developer_options)) {
+            FeatureStudioNavigationCard(
+                title = stringResource(R.string.card_developer_options_title),
+                icon = Icons.Rounded.Tune,
+                iconColor = Color(0xFF10B981),
+                statusText = if (settings.recordLogs) stringResource(R.string.status_recording_active) else null,
+                statusColor = if (settings.recordLogs) Color(0xFFEF4444) else Color(0xFF10B981),
+                onClick = { onNavigateTo(FeatureDetailSection.DeveloperOptions) }
+            )
         }
     }
 }

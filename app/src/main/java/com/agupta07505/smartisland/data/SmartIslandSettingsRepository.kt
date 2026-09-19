@@ -84,6 +84,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
         val EnableNotificationHistory = booleanPreferencesKey("enable_notification_history")
         val NotificationHistoryRetentionHours = intPreferencesKey("notification_history_retention_hours")
         val ShowBluetoothBattery = booleanPreferencesKey("show_bluetooth_battery")
+        val EnableBatteryMode = booleanPreferencesKey("enable_battery_mode")
         val EnableNotificationCooldown = booleanPreferencesKey("enable_notification_cooldown")
         val NotificationCooldownDurationMinutes = intPreferencesKey("notification_cooldown_duration_minutes")
         val NotificationCooldownThreshold = intPreferencesKey("notification_cooldown_threshold")
@@ -221,8 +222,10 @@ class SmartIslandSettingsRepository(private val context: Context) {
                 enableNotificationBackdrop = prefs[Keys.EnableNotificationBackdrop] ?: defaults.enableNotificationBackdrop,
                 deviceType = prefs[Keys.DeviceType] ?: defaults.deviceType,
                 allowNetworkChecks = prefs[Keys.AllowNetworkChecks] ?: defaults.allowNetworkChecks,
+                enableNotificationHistory = prefs[Keys.EnableNotificationHistory] ?: defaults.enableNotificationHistory,
                 notificationHistoryRetentionHours = prefs[Keys.NotificationHistoryRetentionHours] ?: defaults.notificationHistoryRetentionHours,
                 showBluetoothBattery = prefs[Keys.ShowBluetoothBattery] ?: defaults.showBluetoothBattery,
+                enableBatteryMode = prefs[Keys.EnableBatteryMode] ?: defaults.enableBatteryMode,
                 enableNotificationCooldown = prefs[Keys.EnableNotificationCooldown] ?: defaults.enableNotificationCooldown,
                 notificationCooldownDurationMinutes = prefs[Keys.NotificationCooldownDurationMinutes] ?: defaults.notificationCooldownDurationMinutes,
                 notificationCooldownThreshold = prefs[Keys.NotificationCooldownThreshold] ?: defaults.notificationCooldownThreshold,
@@ -450,6 +453,9 @@ class SmartIslandSettingsRepository(private val context: Context) {
     suspend fun setShowBluetoothBattery(value: Boolean) = editSafely {
         it[Keys.ShowBluetoothBattery] = value
     }
+    suspend fun setEnableBatteryMode(value: Boolean) = editSafely {
+        it[Keys.EnableBatteryMode] = value
+    }
     suspend fun setEnableNotificationCooldown(value: Boolean) = editSafely {
         it[Keys.EnableNotificationCooldown] = value
     }
@@ -621,6 +627,7 @@ class SmartIslandSettingsRepository(private val context: Context) {
         prefs[Keys.EnableNotificationHistory] = settings.enableNotificationHistory
         prefs[Keys.NotificationHistoryRetentionHours] = settings.notificationHistoryRetentionHours
         prefs[Keys.ShowBluetoothBattery] = settings.showBluetoothBattery
+        prefs[Keys.EnableBatteryMode] = settings.enableBatteryMode
         prefs[Keys.EnableNotificationCooldown] = settings.enableNotificationCooldown
         prefs[Keys.NotificationCooldownDurationMinutes] = settings.notificationCooldownDurationMinutes
         prefs[Keys.NotificationCooldownThreshold] = settings.notificationCooldownThreshold

@@ -208,7 +208,7 @@ fun GesturesSection(
                                 .size(40.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    if (settings.enablePillSwipeActions && settings.enableSwipeActions)
+                                    if (settings.enablePillSwipeActions)
                                         MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                                     else
                                         MaterialTheme.colorScheme.outline.copy(alpha = 0.12f)
@@ -216,9 +216,9 @@ fun GesturesSection(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = if (settings.enablePillSwipeActions && settings.enableSwipeActions) Icons.Rounded.Swipe else Icons.Rounded.Block,
+                                imageVector = if (settings.enablePillSwipeActions) Icons.Rounded.Swipe else Icons.Rounded.Block,
                                 contentDescription = null,
-                                tint = if (settings.enablePillSwipeActions && settings.enableSwipeActions) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                                tint = if (settings.enablePillSwipeActions) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
                                 modifier = Modifier.size(22.dp)
                             )
                         }
@@ -286,7 +286,7 @@ fun GesturesSection(
                 val pillGestures = ConfigurableGesture.entries.filter { it.isPillGesture }
                 pillGestures.forEachIndexed { index, gesture ->
                     val currentAction = getActionForGesture(gesture, settings)
-                    val isActionDisabled = !settings.enableSwipeActions || !settings.enablePillSwipeActions || currentAction == SwipeAction.None
+                    val isActionDisabled = !settings.enablePillSwipeActions || currentAction == SwipeAction.None
 
                     Row(
                         modifier = Modifier
@@ -316,15 +316,26 @@ fun GesturesSection(
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
+                            val gestureLabel = when (gesture) {
+                                ConfigurableGesture.PillSwipeLeft -> "Swipe Left"
+                                ConfigurableGesture.PillSwipeRight -> "Swipe Right"
+                                ConfigurableGesture.PillSwipeUp -> "Swipe Up"
+                                ConfigurableGesture.PillSwipeDown -> "Swipe Down"
+                                else -> stringResource(gesture.titleRes)
+                            }
                             Column(modifier = Modifier.padding(end = 8.dp)) {
                                 Text(
-                                    text = stringResource(gesture.titleRes),
+                                    text = gestureLabel,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = stringResource(gesture.descRes),
+                                    text = if (isActionDisabled) {
+                                        stringResource(R.string.swipe_action_none_desc)
+                                    } else {
+                                        getSwipeActionDescription(currentAction)
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
@@ -362,7 +373,7 @@ fun GesturesSection(
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Text(
-                                    text = if (!settings.enableSwipeActions || !settings.enablePillSwipeActions) {
+                                    text = if (!settings.enablePillSwipeActions) {
                                         stringResource(R.string.swipe_action_none_title)
                                     } else {
                                         getSwipeActionTitle(currentAction)
@@ -518,15 +529,25 @@ fun GesturesSection(
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
+                            val gestureLabel = when (gesture) {
+                                ConfigurableGesture.ExpandedSwipeUp -> "Swipe Up"
+                                ConfigurableGesture.ExpandedSwipeHoldUp -> "Hold & Swipe Up"
+                                ConfigurableGesture.ExpandedSwipeDown -> "Swipe Down"
+                                else -> stringResource(gesture.titleRes)
+                            }
                             Column(modifier = Modifier.padding(end = 8.dp)) {
                                 Text(
-                                    text = stringResource(gesture.titleRes),
+                                    text = gestureLabel,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = stringResource(gesture.descRes),
+                                    text = if (isActionDisabled) {
+                                        stringResource(R.string.swipe_action_none_desc)
+                                    } else {
+                                        getSwipeActionDescription(currentAction)
+                                    },
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
@@ -634,11 +655,16 @@ fun GesturesSection(
                 val swipeHoldAction = getActionForGesture(ConfigurableGesture.ExpandedSwipeHoldUp, settings)
                 val swipeDownAction = getActionForGesture(ConfigurableGesture.ExpandedSwipeDown, settings)
                 val pillSwipeLeftAction = getActionForGesture(ConfigurableGesture.PillSwipeLeft, settings)
+                val pillSwipeRightAction = getActionForGesture(ConfigurableGesture.PillSwipeRight, settings)
 
                 val swipeUpSub = if (!settings.enableSwipeActions || swipeUpAction == SwipeAction.None) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(swipeUpAction)
                 val swipeHoldSub = if (!settings.enableSwipeActions || swipeHoldAction == SwipeAction.None) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(swipeHoldAction)
                 val swipeDownSub = if (!settings.enableSwipeActions || swipeDownAction == SwipeAction.None) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(swipeDownAction)
-                val pillLeftSub = if (!settings.enableSwipeActions || !settings.enablePillSwipeActions || pillSwipeLeftAction == SwipeAction.None) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(pillSwipeLeftAction)
+                val pillHorizontalSub = if (!settings.enablePillSwipeActions || (pillSwipeLeftAction == SwipeAction.None && pillSwipeRightAction == SwipeAction.None)) {
+                    stringResource(R.string.swipe_action_none_title)
+                } else {
+                    "${getSwipeActionTitle(pillSwipeLeftAction)} / ${getSwipeActionTitle(pillSwipeRightAction)}"
+                }
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
@@ -689,9 +715,9 @@ fun GesturesSection(
                     }
                     GestureSummaryBadge(
                         icon = Icons.Rounded.Swipe,
-                        label = stringResource(R.string.gesture_5_swipe_horizontal_title),
-                        sub = pillLeftSub,
-                        color = if (pillSwipeLeftAction == SwipeAction.None || !settings.enablePillSwipeActions || !settings.enableSwipeActions) Color(0xFF94A3B8) else Color(0xFFA855F7),
+                        label = "5. Swipe Left / Right",
+                        sub = pillHorizontalSub,
+                        color = if ((pillSwipeLeftAction == SwipeAction.None && pillSwipeRightAction == SwipeAction.None) || !settings.enablePillSwipeActions) Color(0xFF94A3B8) else Color(0xFFA855F7),
                         isSelected = selectedTab == 4,
                         onClick = { selectedTab = 4 },
                         modifier = Modifier.fillMaxWidth()
@@ -727,7 +753,7 @@ fun GesturesSection(
         when (selectedTab) {
             0 -> GestureDetailCard(
                 gestureNumber = "1 / 5",
-                gestureName = stringResource(R.string.gesture_1_tap_title),
+                gestureName = "Tap Island",
                 actionBadge = stringResource(R.string.gesture_1_tap_sub),
                 badgeColor = Color(0xFF38BDF8),
                 icon = Icons.Rounded.TouchApp,
@@ -745,7 +771,7 @@ fun GesturesSection(
                 val isOff = !settings.enableSwipeActions || action == SwipeAction.None
                 GestureDetailCard(
                     gestureNumber = "2 / 5",
-                    gestureName = stringResource(R.string.gesture_2_swipe_up_title),
+                    gestureName = "Swipe Up",
                     actionBadge = if (isOff) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(action),
                     badgeColor = if (isOff) Color(0xFF94A3B8) else Color(0xFFEF4444),
                     icon = Icons.Rounded.ArrowUpward,
@@ -764,7 +790,7 @@ fun GesturesSection(
                 val isOff = !settings.enableSwipeActions || action == SwipeAction.None
                 GestureDetailCard(
                     gestureNumber = "3 / 5",
-                    gestureName = stringResource(R.string.gesture_3_hold_swipe_up_title),
+                    gestureName = "Hold & Swipe Up",
                     actionBadge = if (isOff) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(action),
                     badgeColor = if (isOff) Color(0xFF94A3B8) else Color(0xFFF59E0B),
                     icon = Icons.Rounded.DeleteSweep,
@@ -783,7 +809,7 @@ fun GesturesSection(
                 val isOff = !settings.enableSwipeActions || action == SwipeAction.None
                 GestureDetailCard(
                     gestureNumber = "4 / 5",
-                    gestureName = stringResource(R.string.gesture_4_swipe_down_title),
+                    gestureName = "Swipe Down",
                     actionBadge = if (isOff) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(action),
                     badgeColor = if (isOff) Color(0xFF94A3B8) else Color(0xFF10B981),
                     icon = Icons.Rounded.ArrowDownward,
@@ -798,22 +824,25 @@ fun GesturesSection(
                 )
             }
             4 -> {
-                val action = getActionForGesture(ConfigurableGesture.PillSwipeLeft, settings)
-                val isOff = !settings.enableSwipeActions || !settings.enablePillSwipeActions || action == SwipeAction.None
+                val leftAction = getActionForGesture(ConfigurableGesture.PillSwipeLeft, settings)
+                val rightAction = getActionForGesture(ConfigurableGesture.PillSwipeRight, settings)
+                val isLeftOff = !settings.enablePillSwipeActions || leftAction == SwipeAction.None
+                val isRightOff = !settings.enablePillSwipeActions || rightAction == SwipeAction.None
+                val allOff = isLeftOff && isRightOff
                 GestureDetailCard(
                     gestureNumber = "5 / 5",
-                    gestureName = stringResource(R.string.gesture_5_swipe_horizontal_title),
-                    actionBadge = if (isOff) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(action),
-                    badgeColor = if (isOff) Color(0xFF94A3B8) else Color(0xFFA855F7),
+                    gestureName = "Swipe Left / Right",
+                    actionBadge = if (allOff) stringResource(R.string.swipe_action_none_title) else "Left / Right",
+                    badgeColor = if (allOff) Color(0xFF94A3B8) else Color(0xFFA855F7),
                     icon = Icons.Rounded.Swipe,
-                    overview = if (isOff) stringResource(R.string.swipe_action_none_desc) else stringResource(R.string.gesture_5_swipe_horizontal_desc),
+                    overview = if (allOff) stringResource(R.string.swipe_action_none_desc) else "Flick or drag horizontally across the collapsed pill to switch between active notifications or media tracks.",
                     steps = listOf(
-                        "Touch Position: Place your finger on the small collapsed island pill.",
-                        "Finger Motion: Flick or swipe horizontally to the LEFT or RIGHT.",
-                        "Current Pill Left Action: ${if (isOff) "Disabled" else getSwipeActionTitle(action) + " — " + getSwipeActionDescription(action)}",
-                        "Current Pill Right Action: ${getSwipeActionTitle(getActionForGesture(ConfigurableGesture.PillSwipeRight, settings))}"
+                        "Touch Position: Place your finger on the small collapsed island pill at the top of your screen.",
+                        "Finger Motion: Flick or drag horizontally to the left or to the right.",
+                        "Swipe Left Action: ${if (isLeftOff) "Disabled" else getSwipeActionTitle(leftAction) + " — " + getSwipeActionDescription(leftAction)}",
+                        "Swipe Right Action: ${if (isRightOff) "Disabled" else getSwipeActionTitle(rightAction) + " — " + getSwipeActionDescription(rightAction)}"
                     ),
-                    proTip = "You can customize Left and Right swipes separately (e.g. Next/Previous Media Track for music, or Next/Previous Notification)."
+                    proTip = "You can customize Left and Right swipes separately in the Collapsed Pill Swipe Actions card above (e.g. Previous/Next Track or Previous/Next Notification)."
                 )
             }
         }
@@ -1064,6 +1093,7 @@ private fun GestureDetailCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
+                    modifier = Modifier.weight(1f),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -1076,7 +1106,7 @@ private fun GestureDetailCard(
                     ) {
                         Icon(icon, contentDescription = null, tint = badgeColor, modifier = Modifier.size(24.dp))
                     }
-                    Column {
+                    Column(modifier = Modifier.weight(1f, fill = false)) {
                         Text(
                             text = gestureNumber,
                             fontSize = 11.sp,
@@ -1087,10 +1117,14 @@ private fun GestureDetailCard(
                             text = gestureName,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+
+                Spacer(Modifier.width(8.dp))
 
                 Surface(
                     shape = RoundedCornerShape(8.dp),
@@ -1102,6 +1136,7 @@ private fun GestureDetailCard(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         color = badgeColor,
+                        maxLines = 1,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }

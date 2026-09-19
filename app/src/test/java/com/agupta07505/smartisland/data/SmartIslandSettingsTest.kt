@@ -44,7 +44,7 @@ class SmartIslandSettingsTest {
         assertEquals(emptySet<String>(), settings.notificationCooldownExcludedPackages)
         assertEquals(false, settings.enableNotificationHistory)
         assertEquals(72, settings.notificationHistoryRetentionHours)
-        assertEquals(false, settings.developerModeEnabled)
+        assertEquals(true, settings.developerModeEnabled)
         assertEquals(false, settings.recordLogs)
         assertEquals(false, settings.enableNotchMode)
         assertEquals(true, settings.enableSwipeActions)

@@ -62,7 +62,7 @@ data class SmartIslandSettings(
     val notificationCooldownDurationMinutes: Int = 3,
     val notificationCooldownThreshold: Int = 3,
     val notificationCooldownExcludedPackages: Set<String> = emptySet(),
-    val developerModeEnabled: Boolean = false,
+    val developerModeEnabled: Boolean = true,
     val recordLogs: Boolean = false,
     val enableNotchMode: Boolean = false,
     val enableSwipeActions: Boolean = true,

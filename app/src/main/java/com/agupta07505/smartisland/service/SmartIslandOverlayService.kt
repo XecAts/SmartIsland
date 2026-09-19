@@ -537,8 +537,8 @@ class SmartIslandOverlayService : AccessibilityService() {
                         val circleSizePx = settingsVal.height * density
                         val compactGapPx = 8f * density
                         val edgePaddingPx = 8f * density
-                        val touchPaddingPx = 6f * density
-                        val pillHeightPx = (settingsVal.height + 16f) * density
+                        val touchPaddingXPx = 24f * density
+                        val pillHeightPx = (settingsVal.height + 24f) * density
                         val groupWidthPx = mainWidthPx + if (isSplitMode) compactGapPx + circleSizePx else 0f
 
                         val desiredMainLeftPx = screenWidth / 2f +
@@ -551,9 +551,9 @@ class SmartIslandOverlayService : AccessibilityService() {
                         val mainLeftPx = desiredMainLeftPx.coerceIn(minMainLeftPx, maxMainLeftPx)
                         val groupStartPx = if (isCircleLeft && isSplitMode) mainLeftPx - compactGapPx - circleSizePx else mainLeftPx
                         val groupEndPx = if (!isCircleLeft && isSplitMode) mainLeftPx + mainWidthPx + compactGapPx + circleSizePx else mainLeftPx + mainWidthPx
-                        val left = (groupStartPx - touchPaddingPx).toInt().coerceAtLeast(0)
+                        val left = (groupStartPx - touchPaddingXPx).toInt().coerceAtLeast(0)
                         val top = 0
-                        val right = (groupEndPx + touchPaddingPx).toInt().coerceAtMost(screenWidth)
+                        val right = (groupEndPx + touchPaddingXPx).toInt().coerceAtMost(screenWidth)
                         val bottom = pillHeightPx.toInt()
                         
                         android.util.Log.d(TAG, "onComputeInternalInsets: region set to ($left, $top, $right, $bottom), isSplitMode=$isSplitMode")
@@ -645,7 +645,7 @@ class SmartIslandOverlayService : AccessibilityService() {
         val h = if (expanded) {
             WindowManager.LayoutParams.MATCH_PARENT
         } else {
-            ((settings.height + 16f) * density).toInt()
+            ((settings.height + 24f) * density).toInt()
         }
         val w = if (expanded || isTouchableRegionSupported.value) {
             WindowManager.LayoutParams.MATCH_PARENT
@@ -755,7 +755,7 @@ class SmartIslandOverlayService : AccessibilityService() {
 
         return WindowManager.LayoutParams(
             w,
-            ((settings.height + 16f) * density).toInt(),
+            ((settings.height + 24f) * density).toInt(),
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY,
             currentFlags,
             PixelFormat.TRANSLUCENT

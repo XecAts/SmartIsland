@@ -119,7 +119,6 @@ fun AboutSection(
     var contributors by remember { mutableStateOf<List<GitHubContributor>>(emptyList()) }
     var recentCommits by remember { mutableStateOf<List<GitHubCommit>>(emptyList()) }
     var isLoadingInsights by remember { mutableStateOf(false) }
-    var devClickCount by remember { mutableStateOf(0) }
 
     fun checkUpdates() {
         if (!settings.allowNetworkChecks) {
@@ -199,37 +198,7 @@ fun AboutSection(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
-                        Column(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .clickable {
-                                    if (settings.developerModeEnabled) {
-                                        Toast.makeText(
-                                            context,
-                                            context.getString(R.string.toast_dev_mode_already_active),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } else {
-                                        devClickCount++
-                                        val remaining = 7 - devClickCount
-                                        if (remaining in 1..4) {
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(R.string.toast_dev_mode_steps_remaining, remaining),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        } else if (remaining <= 0) {
-                                            devClickCount = 0
-                                            scope.launch { repository?.setDeveloperModeEnabled(true) }
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(R.string.toast_dev_mode_enabled),
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                        }
-                                    }
-                                }
-                        ) {
+                        Column {
                             Text(
                                 text = stringResource(R.string.github_update_center_title),
                                 style = MaterialTheme.typography.titleMedium,

@@ -119,6 +119,7 @@ fun IslandOverlayView(
 
     val scope = rememberCoroutineScope()
     var dragOffset by remember { mutableStateOf(0f) }
+    var pillDragOffsetX by remember { mutableStateOf(0f) }
 
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -448,7 +449,7 @@ fun IslandOverlayView(
                 .width(safeWidth)
                 .height(safeHeight)
                 .graphicsLayer {
-                    translationX = animatedXOffset.toPx()
+                    translationX = animatedXOffset.toPx() + (if (!currentExpanded) pillDragOffsetX else 0f)
                     translationY = yOffset.toPx() + dragOffset
                     scaleX = switchScaleAnim.value
                     scaleY = switchScaleAnim.value
@@ -498,12 +499,11 @@ fun IslandOverlayView(
                                 change.consume()
                                 holdJob.cancel()
                                 val totalElapsedMs = System.currentTimeMillis() - pressTimeMs
-                                val swipeUpThreshold = -SWIPE_THRESHOLD_DP * displayMetrics.density
-                                val swipeDownThreshold = SWIPE_THRESHOLD_DP * displayMetrics.density
-                                val swipeHorizontalThreshold = SWIPE_THRESHOLD_DP * displayMetrics.density
                                 val currentNotification = notifications.getOrNull(safeIndex)
 
                                 if (currentExpanded) {
+                                    val swipeUpThreshold = -SWIPE_THRESHOLD_DP * displayMetrics.density
+                                    val swipeDownThreshold = SWIPE_THRESHOLD_DP * displayMetrics.density
                                     if (isDragging && currentSettings.enableSwipeActions && dragOffset < swipeUpThreshold) {
                                         val isHold = isHoldRegistered || totalElapsedMs >= HOLD_GESTURE_THRESHOLD_MS
                                         val actionStr = if (isHold) currentSettings.swipeHoldUpAction else currentSettings.swipeUpAction
@@ -538,7 +538,7 @@ fun IslandOverlayView(
                                             notificationsSize = notifications.size,
                                             currentIndex = safeIndex
                                         )
-                                    } else if (!isDragging || abs(dragOffset) < 10f) {
+                                    } else if (!isDragging || abs(dragOffset) < 10f * displayMetrics.density) {
                                         if (!isHoldRegistered) {
                                             if (currentNotification != null) {
                                                 currentOnOpenNotification(currentNotification)
@@ -548,12 +548,15 @@ fun IslandOverlayView(
                                         }
                                     }
                                 } else {
-                                    // Collapsed state (Pill) gestures
-                                    val isPillSwipeEnabled = currentSettings.enableSwipeActions && currentSettings.enablePillSwipeActions
-                                    if (isDragging && isPillSwipeEnabled) {
-                                        val isHorizontal = abs(dragAccumulatorX) > abs(dragAccumulatorY)
-                                        if (isHorizontal) {
-                                            if (dragAccumulatorX < -swipeHorizontalThreshold) {
+                                    // Collapsed state (In-Pill Gestures)
+                                    val isPillSwipeEnabled = currentSettings.enablePillSwipeActions
+                                    val pillThreshold = PILL_SWIPE_THRESHOLD_DP * displayMetrics.density
+                                    val absX = abs(dragAccumulatorX)
+                                    val absY = abs(dragAccumulatorY)
+
+                                    if (isPillSwipeEnabled && (absX >= pillThreshold || absY >= pillThreshold)) {
+                                        if (absX > absY) {
+                                            if (dragAccumulatorX < -pillThreshold) {
                                                 // Swiped Left on Pill
                                                 val action = SwipeAction.fromId(currentSettings.pillSwipeLeftAction, SwipeAction.PreviousNotification)
                                                 executeSwipeAction(
@@ -570,7 +573,7 @@ fun IslandOverlayView(
                                                     notificationsSize = notifications.size,
                                                     currentIndex = safeIndex
                                                 )
-                                            } else if (dragAccumulatorX > swipeHorizontalThreshold) {
+                                            } else if (dragAccumulatorX > pillThreshold) {
                                                 // Swiped Right on Pill
                                                 val action = SwipeAction.fromId(currentSettings.pillSwipeRightAction, SwipeAction.NextNotification)
                                                 executeSwipeAction(
@@ -589,7 +592,7 @@ fun IslandOverlayView(
                                                 )
                                             }
                                         } else {
-                                            if (dragAccumulatorY < swipeUpThreshold) {
+                                            if (dragAccumulatorY < -pillThreshold) {
                                                 // Swiped Up on Pill
                                                 val action = SwipeAction.fromId(currentSettings.pillSwipeUpAction, SwipeAction.DismissCurrent)
                                                 executeSwipeAction(
@@ -606,7 +609,7 @@ fun IslandOverlayView(
                                                     notificationsSize = notifications.size,
                                                     currentIndex = safeIndex
                                                 )
-                                            } else if (dragAccumulatorY > swipeDownThreshold) {
+                                            } else if (dragAccumulatorY > pillThreshold) {
                                                 // Swiped Down on Pill
                                                 val action = SwipeAction.fromId(currentSettings.pillSwipeDownAction, SwipeAction.Expand)
                                                 executeSwipeAction(
@@ -625,15 +628,18 @@ fun IslandOverlayView(
                                                 )
                                             }
                                         }
-                                    } else if (!isDragging || (abs(dragAccumulatorX) < 10f && abs(dragAccumulatorY) < 10f)) {
-                                        if (notifications.isNotEmpty() || currentSettings.enableAppShortcuts) {
-                                            currentOnToggle()
+                                    } else {
+                                        // Tap on collapsed pill: expands or reveals
+                                        if (!isHoldRegistered) {
+                                            if (settings.autoHidePill && isAutoHidden) {
+                                                isAutoHidden = false
+                                                userInteractionTimestamp = System.currentTimeMillis()
+                                            } else if (notifications.isNotEmpty() || currentSettings.enableAppShortcuts) {
+                                                currentOnToggle()
+                                            }
                                         }
                                     }
                                 }
-                                break
-                            } else if (change.isConsumed) {
-                                holdJob.cancel()
                                 break
                             } else {
                                 val dragAmountY = change.positionChange().y
@@ -642,11 +648,20 @@ fun IslandOverlayView(
                                     isDragging = true
                                     dragAccumulatorY += dragAmountY
                                     dragAccumulatorX += dragAmountX
+                                    change.consume()
                                     if (currentExpanded) {
-                                        change.consume()
                                         dragOffset = dragAccumulatorY.coerceIn(
                                             -DRAG_MAX_OFFSET_DP * displayMetrics.density,
                                             DRAG_MAX_OFFSET_DP * displayMetrics.density
+                                        )
+                                    } else {
+                                        pillDragOffsetX = (dragAccumulatorX * 0.35f).coerceIn(
+                                            -24f * displayMetrics.density,
+                                            24f * displayMetrics.density
+                                        )
+                                        dragOffset = (dragAccumulatorY * 0.35f).coerceIn(
+                                            -12f * displayMetrics.density,
+                                            12f * displayMetrics.density
                                         )
                                     }
                                 }
@@ -654,9 +669,24 @@ fun IslandOverlayView(
                         }
 
                         holdJob.cancel()
-                        if (dragOffset != 0f) {
+                        if (pillDragOffsetX != 0f) {
+                            val startPillOffset = pillDragOffsetX
                             scope.launch {
-                                androidx.compose.animation.core.Animatable(dragOffset).animateTo(
+                                androidx.compose.animation.core.Animatable(startPillOffset).animateTo(
+                                    targetValue = 0f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium
+                                    )
+                                ) {
+                                    pillDragOffsetX = value
+                                }
+                            }
+                        }
+                        if (dragOffset != 0f) {
+                            val startDrag = dragOffset
+                            scope.launch {
+                                androidx.compose.animation.core.Animatable(startDrag).animateTo(
                                     targetValue = 0f,
                                     animationSpec = spring(
                                         dampingRatio = Spring.DampingRatioMediumBouncy,
@@ -1006,6 +1036,7 @@ internal fun calculateSecondaryExpandedOffset(
     }
 }
 private const val SWIPE_THRESHOLD_DP = 35f
+private const val PILL_SWIPE_THRESHOLD_DP = 14f
 private const val DRAG_MAX_OFFSET_DP = 100f
 private const val COMPACT_INDICATOR_GAP_DP = 8f
 private const val HOLD_GESTURE_THRESHOLD_MS = 300L
@@ -1072,6 +1103,9 @@ private fun executeSwipeAction(
     notificationsSize: Int,
     currentIndex: Int
 ) {
+    if (context != null && action != SwipeAction.None) {
+        triggerHapticVibration(context)
+    }
     when (action) {
         SwipeAction.DismissCurrent -> onDismiss()
         SwipeAction.DismissAll -> onDismissAll()
@@ -1088,12 +1122,20 @@ private fun executeSwipeAction(
             if (notificationsSize > 1) {
                 val nextIndex = (currentIndex + 1) % notificationsSize
                 onPageSelected(nextIndex)
+            } else if (currentNotification?.mediaToken != null && context != null) {
+                runCatching {
+                    android.media.session.MediaController(context, currentNotification.mediaToken).transportControls.skipToNext()
+                }
             }
         }
         SwipeAction.PreviousNotification -> {
             if (notificationsSize > 1) {
                 val prevIndex = (currentIndex - 1 + notificationsSize) % notificationsSize
                 onPageSelected(prevIndex)
+            } else if (currentNotification?.mediaToken != null && context != null) {
+                runCatching {
+                    android.media.session.MediaController(context, currentNotification.mediaToken).transportControls.skipToPrevious()
+                }
             }
         }
         SwipeAction.NextTrack -> {

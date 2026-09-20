@@ -842,14 +842,13 @@ private fun SettingsOverviewSection(
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_updates_downloads_title),
                 icon = Icons.Rounded.CloudDownload,
-                statusText = stringResource(R.string.card_updates_downloads_desc),
                 onClick = { onNavigateTo(FeatureDetailSection.UpdatesAndDownloads) }
             )
 
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_about_app_title),
                 icon = Icons.Rounded.Info,
-                statusText = stringResource(R.string.card_about_app_desc, com.agupta07505.smartisland.BuildConfig.VERSION_NAME),
+                statusText = "v${com.agupta07505.smartisland.BuildConfig.VERSION_NAME}",
                 onClick = { onNavigateTo(FeatureDetailSection.AboutApp) }
             )
 
@@ -928,14 +927,19 @@ private fun FeatureStudioNavigationCard(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f)
         )
         if (statusText != null) {
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = statusText,
                 color = statusColor,
                 style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Spacer(modifier = Modifier.width(4.dp))
         }

@@ -141,4 +141,80 @@ class PillGestureActionTest {
 
         assertTrue("Swipe Expand must trigger onToggle", toggled)
     }
+
+    @Test
+    fun nextNotificationCyclesEndlesslyBothDirections() {
+        var selectedPage = -1
+
+        // 2 notifications, currently at index 1 -> swipe next should wrap to index 0
+        executeSwipeAction(
+            action = SwipeAction.NextNotification,
+            currentNotification = null,
+            context = null,
+            onDismiss = {},
+            onDismissAll = {},
+            onToggle = {},
+            onOpenNotification = {},
+            onOpenFloatingWindow = {},
+            onOpenNotificationShade = {},
+            onPageSelected = { selectedPage = it },
+            notificationsSize = 2,
+            currentIndex = 1
+        )
+        assertEquals(0, selectedPage)
+
+        // 2 notifications, currently at index 0 -> swipe prev should wrap to index 1
+        executeSwipeAction(
+            action = SwipeAction.PreviousNotification,
+            currentNotification = null,
+            context = null,
+            onDismiss = {},
+            onDismissAll = {},
+            onToggle = {},
+            onOpenNotification = {},
+            onOpenFloatingWindow = {},
+            onOpenNotificationShade = {},
+            onPageSelected = { selectedPage = it },
+            notificationsSize = 2,
+            currentIndex = 0
+        )
+        assertEquals(1, selectedPage)
+    }
+
+    @Test
+    fun nextTrackAndPreviousTrackDoNotChangeNotificationIndex() {
+        var selectedPage = -1
+
+        executeSwipeAction(
+            action = SwipeAction.NextTrack,
+            currentNotification = null,
+            context = null,
+            onDismiss = {},
+            onDismissAll = {},
+            onToggle = {},
+            onOpenNotification = {},
+            onOpenFloatingWindow = {},
+            onOpenNotificationShade = {},
+            onPageSelected = { selectedPage = it },
+            notificationsSize = 3,
+            currentIndex = 0
+        )
+        assertEquals("NextTrack must not switch notifications", -1, selectedPage)
+
+        executeSwipeAction(
+            action = SwipeAction.PreviousTrack,
+            currentNotification = null,
+            context = null,
+            onDismiss = {},
+            onDismissAll = {},
+            onToggle = {},
+            onOpenNotification = {},
+            onOpenFloatingWindow = {},
+            onOpenNotificationShade = {},
+            onPageSelected = { selectedPage = it },
+            notificationsSize = 3,
+            currentIndex = 1
+        )
+        assertEquals("PreviousTrack must not switch notifications", -1, selectedPage)
+    }
 }

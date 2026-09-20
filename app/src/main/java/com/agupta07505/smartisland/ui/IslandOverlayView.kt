@@ -7,8 +7,10 @@
 
 package com.agupta07505.smartisland.ui
 
+import com.agupta07505.smartisland.data.SmartIslandCommand
 import com.agupta07505.smartisland.model.SwipeAction
 import com.agupta07505.smartisland.ui.expanded.IslandExpandedContent
+import com.agupta07505.smartisland.ui.expanded.trySendFirstAction
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDp
@@ -115,6 +117,9 @@ fun IslandOverlayView(
     val currentOnPageSelected by rememberUpdatedState(onPageSelected)
     val currentExpanded by rememberUpdatedState(expanded)
     val currentSettings by rememberUpdatedState(settings)
+    val safeIndex = selectedIndex.coerceIn(0, (notifications.size - 1).coerceAtLeast(0))
+    val currentNotifications by rememberUpdatedState(notifications)
+    val currentSelectedIndex by rememberUpdatedState(safeIndex)
     val haptic = LocalHapticFeedback.current
 
     val scope = rememberCoroutineScope()
@@ -152,7 +157,6 @@ fun IslandOverlayView(
         easing = FastOutSlowInEasing
     )
 
-    val safeIndex = selectedIndex.coerceIn(0, (notifications.size - 1).coerceAtLeast(0))
     val activeNotification = notifications.getOrNull(safeIndex)
     val activeMode = activeNotification?.mode ?: IslandMode.Empty
 
@@ -423,7 +427,7 @@ fun IslandOverlayView(
                                 // First tap on auto-hidden pill: awaken and reveal the pill
                                 isAutoHidden = false
                                 userInteractionTimestamp = System.currentTimeMillis()
-                            } else if (settings.enableAppShortcuts || notifications.isNotEmpty()) {
+                            } else if (settings.enableAppShortcuts || currentNotifications.isNotEmpty()) {
                                 // Empty notifications idle hiding: expand favorite shortcuts if enabled
                                 currentOnToggle()
                             }
@@ -501,7 +505,7 @@ fun IslandOverlayView(
                                 change.consume()
                                 holdJob.cancel()
                                 val totalElapsedMs = System.currentTimeMillis() - pressTimeMs
-                                val currentNotification = notifications.getOrNull(safeIndex)
+                                val currentNotification = currentNotifications.getOrNull(currentSelectedIndex)
 
                                 if (wasExpandedAtStart) {
                                     val swipeUpThreshold = -SWIPE_THRESHOLD_DP * displayMetrics.density
@@ -521,8 +525,8 @@ fun IslandOverlayView(
                                             onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                             onOpenNotificationShade = currentOnOpenNotificationShade,
                                             onPageSelected = currentOnPageSelected,
-                                            notificationsSize = notifications.size,
-                                            currentIndex = safeIndex
+                                            notificationsSize = currentNotifications.size,
+                                            currentIndex = currentSelectedIndex
                                         )
                                     } else if (isDragging && currentSettings.enableSwipeActions && dragOffset > swipeDownThreshold) {
                                         val action = SwipeAction.fromId(currentSettings.swipeDownAction, SwipeAction.FloatingWindow)
@@ -537,8 +541,8 @@ fun IslandOverlayView(
                                             onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                             onOpenNotificationShade = currentOnOpenNotificationShade,
                                             onPageSelected = currentOnPageSelected,
-                                            notificationsSize = notifications.size,
-                                            currentIndex = safeIndex
+                                            notificationsSize = currentNotifications.size,
+                                            currentIndex = currentSelectedIndex
                                         )
                                     } else if (!isDragging || abs(dragOffset) < 10f * displayMetrics.density) {
                                         if (!isHoldRegistered) {
@@ -573,8 +577,8 @@ fun IslandOverlayView(
                                                         onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                                         onOpenNotificationShade = currentOnOpenNotificationShade,
                                                         onPageSelected = currentOnPageSelected,
-                                                        notificationsSize = notifications.size,
-                                                        currentIndex = safeIndex
+                                                        notificationsSize = currentNotifications.size,
+                                                        currentIndex = currentSelectedIndex
                                                     )
                                                 } else if (dragAccumulatorX > pillThreshold) {
                                                     val action = SwipeAction.fromId(currentSettings.pillSwipeRightAction, SwipeAction.NextNotification)
@@ -589,8 +593,8 @@ fun IslandOverlayView(
                                                         onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                                         onOpenNotificationShade = currentOnOpenNotificationShade,
                                                         onPageSelected = currentOnPageSelected,
-                                                        notificationsSize = notifications.size,
-                                                        currentIndex = safeIndex
+                                                        notificationsSize = currentNotifications.size,
+                                                        currentIndex = currentSelectedIndex
                                                     )
                                                 }
                                             } else {
@@ -607,8 +611,8 @@ fun IslandOverlayView(
                                                         onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                                         onOpenNotificationShade = currentOnOpenNotificationShade,
                                                         onPageSelected = currentOnPageSelected,
-                                                        notificationsSize = notifications.size,
-                                                        currentIndex = safeIndex
+                                                        notificationsSize = currentNotifications.size,
+                                                        currentIndex = currentSelectedIndex
                                                     )
                                                 } else if (dragAccumulatorY > pillThreshold) {
                                                     val action = SwipeAction.fromId(currentSettings.pillSwipeDownAction, SwipeAction.Expand)
@@ -623,8 +627,8 @@ fun IslandOverlayView(
                                                         onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                                         onOpenNotificationShade = currentOnOpenNotificationShade,
                                                         onPageSelected = currentOnPageSelected,
-                                                        notificationsSize = notifications.size,
-                                                        currentIndex = safeIndex
+                                                        notificationsSize = currentNotifications.size,
+                                                        currentIndex = currentSelectedIndex
                                                     )
                                                 }
                                             }
@@ -634,7 +638,7 @@ fun IslandOverlayView(
                                                 if (settings.autoHidePill && isAutoHidden) {
                                                     isAutoHidden = false
                                                     userInteractionTimestamp = System.currentTimeMillis()
-                                                } else if (notifications.isNotEmpty() || currentSettings.enableAppShortcuts) {
+                                                } else if (currentNotifications.isNotEmpty() || currentSettings.enableAppShortcuts) {
                                                     currentOnToggle()
                                                 }
                                             }
@@ -650,6 +654,9 @@ fun IslandOverlayView(
                                     dragAccumulatorY += dragAmountY
                                     dragAccumulatorX += dragAmountX
                                     change.consume()
+                                    if (abs(dragAccumulatorY) > 5f * displayMetrics.density || abs(dragAccumulatorX) > 5f * displayMetrics.density) {
+                                        holdJob.cancel()
+                                    }
                                     if (wasExpandedAtStart) {
                                         dragOffset = dragAccumulatorY.coerceIn(
                                             -DRAG_MAX_OFFSET_DP * displayMetrics.density,
@@ -674,7 +681,7 @@ fun IslandOverlayView(
                                             if (absX >= pillThreshold || absY >= pillThreshold) {
                                                 pillGestureTriggered = true
                                                 holdJob.cancel()
-                                                val currentNotification = notifications.getOrNull(safeIndex)
+                                                val currentNotification = currentNotifications.getOrNull(currentSelectedIndex)
 
                                                 if (absX > absY) {
                                                     if (dragAccumulatorX < -pillThreshold) {
@@ -690,8 +697,8 @@ fun IslandOverlayView(
                                                             onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                                             onOpenNotificationShade = currentOnOpenNotificationShade,
                                                             onPageSelected = currentOnPageSelected,
-                                                            notificationsSize = notifications.size,
-                                                            currentIndex = safeIndex
+                                                            notificationsSize = currentNotifications.size,
+                                                            currentIndex = currentSelectedIndex
                                                         )
                                                     } else if (dragAccumulatorX > pillThreshold) {
                                                         val action = SwipeAction.fromId(currentSettings.pillSwipeRightAction, SwipeAction.NextNotification)
@@ -706,8 +713,8 @@ fun IslandOverlayView(
                                                             onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                                             onOpenNotificationShade = currentOnOpenNotificationShade,
                                                             onPageSelected = currentOnPageSelected,
-                                                            notificationsSize = notifications.size,
-                                                            currentIndex = safeIndex
+                                                            notificationsSize = currentNotifications.size,
+                                                            currentIndex = currentSelectedIndex
                                                         )
                                                     }
                                                 } else {
@@ -724,8 +731,8 @@ fun IslandOverlayView(
                                                             onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                                             onOpenNotificationShade = currentOnOpenNotificationShade,
                                                             onPageSelected = currentOnPageSelected,
-                                                            notificationsSize = notifications.size,
-                                                            currentIndex = safeIndex
+                                                            notificationsSize = currentNotifications.size,
+                                                            currentIndex = currentSelectedIndex
                                                         )
                                                     } else if (dragAccumulatorY > pillThreshold) {
                                                         val action = SwipeAction.fromId(currentSettings.pillSwipeDownAction, SwipeAction.Expand)
@@ -740,8 +747,8 @@ fun IslandOverlayView(
                                                             onOpenFloatingWindow = currentOnOpenFloatingWindow,
                                                             onOpenNotificationShade = currentOnOpenNotificationShade,
                                                             onPageSelected = currentOnPageSelected,
-                                                            notificationsSize = notifications.size,
-                                                            currentIndex = safeIndex
+                                                            notificationsSize = currentNotifications.size,
+                                                            currentIndex = currentSelectedIndex
                                                         )
                                                     }
                                                 }
@@ -1173,8 +1180,23 @@ internal fun compactNotificationShapes(
     else -> listOf(CompactNotificationShape.MiniPill, CompactNotificationShape.Circle)
 }
 
-private fun trySkipMedia(context: android.content.Context?, token: android.media.session.MediaSession.Token?, forward: Boolean): Boolean {
+private fun trySkipMedia(
+    context: android.content.Context?,
+    notification: IslandNotification?,
+    forward: Boolean
+): Boolean {
     if (context == null) return false
+
+    // 1. Direct notification action PendingIntent (e.g. Spotify, YouTube Music, podcasts)
+    val actionSent = if (forward) {
+        notification.trySendFirstAction(context, "next", "skip", "forward")
+    } else {
+        notification.trySendFirstAction(context, "previous", "prev", "rewind")
+    }
+    if (actionSent) return true
+
+    // 2. Notification MediaSession token
+    val token = notification?.mediaToken
     if (token != null) {
         val success = runCatching {
             val controller = android.media.session.MediaController(context, token)
@@ -1183,20 +1205,41 @@ private fun trySkipMedia(context: android.content.Context?, token: android.media
         }.getOrDefault(false)
         if (success) return true
     }
-    return runCatching {
-        val mm = context.getSystemService(android.content.Context.MEDIA_SESSION_SERVICE) as? android.media.session.MediaSessionManager
-        val component = android.content.ComponentName(context, com.agupta07505.smartisland.service.SmartIslandNotificationListenerService::class.java)
-        val sessions = mm?.getActiveSessions(component)
-        val active = sessions?.firstOrNull()
-        if (active != null) {
-            if (forward) active.transportControls.skipToNext() else active.transportControls.skipToPrevious()
-            true
-        } else false
-    }.getOrDefault(false)
+
+    // 3. Delegate to NotificationListenerService via SmartIslandCommand
+    runCatching {
+        val repo = SmartIslandRepositories.notificationRepository(context)
+        if (forward) {
+            repo.sendCommand(SmartIslandCommand.SkipNext(notification?.packageName))
+        } else {
+            repo.sendCommand(SmartIslandCommand.SkipPrevious(notification?.packageName))
+        }
+    }
+
+    // 4. Fallback: AudioManager media key events
+    runCatching {
+        val audioManager = context.getSystemService(android.content.Context.AUDIO_SERVICE) as? android.media.AudioManager
+        val keyCode = if (forward) android.view.KeyEvent.KEYCODE_MEDIA_NEXT else android.view.KeyEvent.KEYCODE_MEDIA_PREVIOUS
+        val down = android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, keyCode)
+        val up = android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, keyCode)
+        audioManager?.dispatchMediaKeyEvent(down)
+        audioManager?.dispatchMediaKeyEvent(up)
+    }
+
+    return true
 }
 
-private fun tryPlayPauseMedia(context: android.content.Context?, notification: IslandNotification?) {
+private fun tryPlayPauseMedia(
+    context: android.content.Context?,
+    notification: IslandNotification?
+) {
     if (context == null) return
+
+    // 1. Direct notification action PendingIntent
+    val actionSent = notification.trySendFirstAction(context, "play", "pause", "resume", "toggle")
+    if (actionSent) return
+
+    // 2. Notification MediaSession token
     val token = notification?.mediaToken
     if (token != null) {
         val success = runCatching {
@@ -1210,16 +1253,21 @@ private fun tryPlayPauseMedia(context: android.content.Context?, notification: I
         }.getOrDefault(false)
         if (success) return
     }
+
+    // 3. Delegate to NotificationListenerService via SmartIslandCommand
     runCatching {
-        val mm = context.getSystemService(android.content.Context.MEDIA_SESSION_SERVICE) as? android.media.session.MediaSessionManager
-        val component = android.content.ComponentName(context, com.agupta07505.smartisland.service.SmartIslandNotificationListenerService::class.java)
-        val sessions = mm?.getActiveSessions(component)
-        val active = sessions?.firstOrNull()
-        if (active != null) {
-            val playbackState = active.playbackState?.state
-            val isPlaying = playbackState == android.media.session.PlaybackState.STATE_PLAYING
-            if (isPlaying) active.transportControls.pause() else active.transportControls.play()
-        }
+        val repo = SmartIslandRepositories.notificationRepository(context)
+        repo.sendCommand(SmartIslandCommand.PlayPause(notification?.packageName))
+    }
+
+    // 4. Fallback: AudioManager media key events
+    runCatching {
+        val audioManager = context.getSystemService(android.content.Context.AUDIO_SERVICE) as? android.media.AudioManager
+        val keyCode = android.view.KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+        val down = android.view.KeyEvent(android.view.KeyEvent.ACTION_DOWN, keyCode)
+        val up = android.view.KeyEvent(android.view.KeyEvent.ACTION_UP, keyCode)
+        audioManager?.dispatchMediaKeyEvent(down)
+        audioManager?.dispatchMediaKeyEvent(up)
     }
 }
 
@@ -1257,7 +1305,7 @@ internal fun executeSwipeAction(
                 val nextIndex = (currentIndex + 1) % notificationsSize
                 onPageSelected(nextIndex)
             } else {
-                trySkipMedia(context, currentNotification?.mediaToken, forward = true)
+                trySkipMedia(context, currentNotification, forward = true)
             }
         }
         SwipeAction.PreviousNotification -> {
@@ -1265,20 +1313,14 @@ internal fun executeSwipeAction(
                 val prevIndex = (currentIndex - 1 + notificationsSize) % notificationsSize
                 onPageSelected(prevIndex)
             } else {
-                trySkipMedia(context, currentNotification?.mediaToken, forward = false)
+                trySkipMedia(context, currentNotification, forward = false)
             }
         }
         SwipeAction.NextTrack -> {
-            if (!trySkipMedia(context, currentNotification?.mediaToken, forward = true) && notificationsSize > 1) {
-                val nextIndex = (currentIndex + 1) % notificationsSize
-                onPageSelected(nextIndex)
-            }
+            trySkipMedia(context, currentNotification, forward = true)
         }
         SwipeAction.PreviousTrack -> {
-            if (!trySkipMedia(context, currentNotification?.mediaToken, forward = false) && notificationsSize > 1) {
-                val prevIndex = (currentIndex - 1 + notificationsSize) % notificationsSize
-                onPageSelected(prevIndex)
-            }
+            trySkipMedia(context, currentNotification, forward = false)
         }
         SwipeAction.PlayPause -> {
             tryPlayPauseMedia(context, currentNotification)

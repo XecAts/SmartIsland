@@ -110,6 +110,31 @@ class SmartIslandNotificationListenerService : NotificationListenerService() {
                                     ?.transportControls
                                     ?.seekTo(command.positionMs)
                             }
+                            is SmartIslandCommand.SkipNext -> {
+                                val controller = command.packageName?.let { bestControllerFor(it) }
+                                    ?: activeMediaControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+                                    ?: activeMediaControllers.firstOrNull()
+                                controller?.transportControls?.skipToNext()
+                            }
+                            is SmartIslandCommand.SkipPrevious -> {
+                                val controller = command.packageName?.let { bestControllerFor(it) }
+                                    ?: activeMediaControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+                                    ?: activeMediaControllers.firstOrNull()
+                                controller?.transportControls?.skipToPrevious()
+                            }
+                            is SmartIslandCommand.PlayPause -> {
+                                val controller = command.packageName?.let { bestControllerFor(it) }
+                                    ?: activeMediaControllers.firstOrNull { it.playbackState?.state == PlaybackState.STATE_PLAYING }
+                                    ?: activeMediaControllers.firstOrNull()
+                                if (controller != null) {
+                                    val isPlaying = controller.playbackState?.state == PlaybackState.STATE_PLAYING
+                                    if (isPlaying) {
+                                        controller.transportControls.pause()
+                                    } else {
+                                        controller.transportControls.play()
+                                    }
+                                }
+                            }
                         }
                     }
                 }

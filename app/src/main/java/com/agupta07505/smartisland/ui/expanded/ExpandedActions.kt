@@ -17,11 +17,11 @@ import com.agupta07505.smartisland.model.IslandNotification
 import com.agupta07505.smartisland.data.SmartIslandCommand
 import com.agupta07505.smartisland.util.runCatchingLogged
 
-fun IslandNotification?.sendFirstAction(context: Context, vararg keywords: String) {
-    if (this == null) return
+fun IslandNotification?.trySendFirstAction(context: Context, vararg keywords: String): Boolean {
+    if (this == null) return false
     val action = this.actionIntents.firstOrNull { act ->
         keywords.any { keyword -> act.title.contains(keyword, ignoreCase = true) }
-    } ?: return
+    } ?: return false
     if (action.pendingIntent != null) {
         triggerAction(context, this.packageName, action.pendingIntent, action.title, this.contentIntent)
         val notificationRepository = SmartIslandRepositories.notificationRepository(context)
@@ -35,7 +35,13 @@ fun IslandNotification?.sendFirstAction(context: Context, vararg keywords: Strin
             notificationRepository.removeNotification(this.key)
             notificationRepository.sendCommand(SmartIslandCommand.CancelNotification(this.key))
         }
+        return true
     }
+    return false
+}
+
+fun IslandNotification?.sendFirstAction(context: Context, vararg keywords: String) {
+    trySendFirstAction(context, *keywords)
 }
 
 fun formatDuration(valueMs: Long?): String {

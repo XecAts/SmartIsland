@@ -339,4 +339,7 @@ class SmartIslandNotificationRepository : INotificationRepository {
 sealed interface SmartIslandCommand {
     data class CancelNotification(val key: String) : SmartIslandCommand
     data class SeekTo(val packageName: String, val positionMs: Long) : SmartIslandCommand
+    data class SkipNext(val packageName: String? = null) : SmartIslandCommand
+    data class SkipPrevious(val packageName: String? = null) : SmartIslandCommand
+    data class PlayPause(val packageName: String? = null) : SmartIslandCommand
 }

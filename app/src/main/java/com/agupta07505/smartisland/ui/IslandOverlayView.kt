@@ -478,6 +478,7 @@ fun IslandOverlayView(
                         val down = awaitFirstDown(requireUnconsumed = false)
                         userInteractionTimestamp = System.currentTimeMillis()
                         val pressTimeMs = System.currentTimeMillis()
+                        val wasExpandedAtStart = currentExpanded
                         var isHoldRegistered = false
                         var dragAccumulatorY = 0f
                         var dragAccumulatorX = 0f
@@ -502,7 +503,7 @@ fun IslandOverlayView(
                                 val totalElapsedMs = System.currentTimeMillis() - pressTimeMs
                                 val currentNotification = notifications.getOrNull(safeIndex)
 
-                                if (currentExpanded) {
+                                if (wasExpandedAtStart) {
                                     val swipeUpThreshold = -SWIPE_THRESHOLD_DP * displayMetrics.density
                                     val swipeDownThreshold = SWIPE_THRESHOLD_DP * displayMetrics.density
                                     if (isDragging && currentSettings.enableSwipeActions && dragOffset < swipeUpThreshold) {
@@ -649,7 +650,7 @@ fun IslandOverlayView(
                                     dragAccumulatorY += dragAmountY
                                     dragAccumulatorX += dragAmountX
                                     change.consume()
-                                    if (currentExpanded) {
+                                    if (wasExpandedAtStart) {
                                         dragOffset = dragAccumulatorY.coerceIn(
                                             -DRAG_MAX_OFFSET_DP * displayMetrics.density,
                                             DRAG_MAX_OFFSET_DP * displayMetrics.density
@@ -1119,7 +1120,7 @@ internal fun calculateSecondaryExpandedOffset(
     }
 }
 private const val SWIPE_THRESHOLD_DP = 35f
-private const val PILL_SWIPE_THRESHOLD_DP = 10f
+private const val PILL_SWIPE_THRESHOLD_DP = 16f
 private const val DRAG_MAX_OFFSET_DP = 100f
 private const val COMPACT_INDICATOR_GAP_DP = 8f
 private const val HOLD_GESTURE_THRESHOLD_MS = 300L
@@ -1222,7 +1223,7 @@ private fun tryPlayPauseMedia(context: android.content.Context?, notification: I
     }
 }
 
-private fun executeSwipeAction(
+internal fun executeSwipeAction(
     action: SwipeAction,
     currentNotification: IslandNotification?,
     context: android.content.Context? = null,
@@ -1255,20 +1256,16 @@ private fun executeSwipeAction(
             if (notificationsSize > 1) {
                 val nextIndex = (currentIndex + 1) % notificationsSize
                 onPageSelected(nextIndex)
-            } else if (!trySkipMedia(context, currentNotification?.mediaToken, forward = true)) {
-                if (notificationsSize == 1) {
-                    onDismiss()
-                }
+            } else {
+                trySkipMedia(context, currentNotification?.mediaToken, forward = true)
             }
         }
         SwipeAction.PreviousNotification -> {
             if (notificationsSize > 1) {
                 val prevIndex = (currentIndex - 1 + notificationsSize) % notificationsSize
                 onPageSelected(prevIndex)
-            } else if (!trySkipMedia(context, currentNotification?.mediaToken, forward = false)) {
-                if (notificationsSize == 1) {
-                    onDismiss()
-                }
+            } else {
+                trySkipMedia(context, currentNotification?.mediaToken, forward = false)
             }
         }
         SwipeAction.NextTrack -> {

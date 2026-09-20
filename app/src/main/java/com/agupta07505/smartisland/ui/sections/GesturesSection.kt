@@ -675,7 +675,7 @@ fun GesturesSection(
                             icon = Icons.Rounded.TouchApp,
                             label = stringResource(R.string.gesture_1_tap_title),
                             sub = stringResource(R.string.gesture_1_tap_sub),
-                            color = Color(0xFF38BDF8),
+                            color = MaterialTheme.colorScheme.primary,
                             isSelected = selectedTab == 0,
                             onClick = { selectedTab = 0 },
                             modifier = Modifier.weight(1f)
@@ -684,7 +684,7 @@ fun GesturesSection(
                             icon = Icons.Rounded.ArrowUpward,
                             label = stringResource(R.string.gesture_2_swipe_up_title),
                             sub = swipeUpSub,
-                            color = if (swipeUpAction == SwipeAction.None || !settings.enableSwipeActions) Color(0xFF94A3B8) else Color(0xFFEF4444),
+                            color = if (swipeUpAction == SwipeAction.None || !settings.enableSwipeActions) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
                             isSelected = selectedTab == 1,
                             onClick = { selectedTab = 1 },
                             modifier = Modifier.weight(1f)
@@ -698,7 +698,7 @@ fun GesturesSection(
                             icon = Icons.Rounded.DeleteSweep,
                             label = stringResource(R.string.gesture_3_hold_swipe_up_title),
                             sub = swipeHoldSub,
-                            color = if (swipeHoldAction == SwipeAction.None || !settings.enableSwipeActions) Color(0xFF94A3B8) else Color(0xFFF59E0B),
+                            color = if (swipeHoldAction == SwipeAction.None || !settings.enableSwipeActions) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
                             isSelected = selectedTab == 2,
                             onClick = { selectedTab = 2 },
                             modifier = Modifier.weight(1f)
@@ -707,7 +707,7 @@ fun GesturesSection(
                             icon = Icons.Rounded.ArrowDownward,
                             label = stringResource(R.string.gesture_4_swipe_down_title),
                             sub = swipeDownSub,
-                            color = if (swipeDownAction == SwipeAction.None || !settings.enableSwipeActions) Color(0xFF94A3B8) else Color(0xFF10B981),
+                            color = if (swipeDownAction == SwipeAction.None || !settings.enableSwipeActions) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
                             isSelected = selectedTab == 3,
                             onClick = { selectedTab = 3 },
                             modifier = Modifier.weight(1f)
@@ -717,7 +717,7 @@ fun GesturesSection(
                         icon = Icons.Rounded.Swipe,
                         label = "5. Swipe Left / Right",
                         sub = pillHorizontalSub,
-                        color = if ((pillSwipeLeftAction == SwipeAction.None && pillSwipeRightAction == SwipeAction.None) || !settings.enablePillSwipeActions) Color(0xFF94A3B8) else Color(0xFFA855F7),
+                        color = if ((pillSwipeLeftAction == SwipeAction.None && pillSwipeRightAction == SwipeAction.None) || !settings.enablePillSwipeActions) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
                         isSelected = selectedTab == 4,
                         onClick = { selectedTab = 4 },
                         modifier = Modifier.fillMaxWidth()
@@ -755,7 +755,7 @@ fun GesturesSection(
                 gestureNumber = "1 / 5",
                 gestureName = "Tap Island",
                 actionBadge = stringResource(R.string.gesture_1_tap_sub),
-                badgeColor = Color(0xFF38BDF8),
+                badgeColor = MaterialTheme.colorScheme.primary,
                 icon = Icons.Rounded.TouchApp,
                 overview = stringResource(R.string.gesture_1_tap_desc),
                 steps = listOf(
@@ -773,7 +773,7 @@ fun GesturesSection(
                     gestureNumber = "2 / 5",
                     gestureName = "Swipe Up",
                     actionBadge = if (isOff) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(action),
-                    badgeColor = if (isOff) Color(0xFF94A3B8) else Color(0xFFEF4444),
+                    badgeColor = if (isOff) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
                     icon = Icons.Rounded.ArrowUpward,
                     overview = if (isOff) stringResource(R.string.swipe_action_none_desc) else stringResource(R.string.gesture_2_swipe_up_desc),
                     steps = listOf(
@@ -792,7 +792,7 @@ fun GesturesSection(
                     gestureNumber = "3 / 5",
                     gestureName = "Hold & Swipe Up",
                     actionBadge = if (isOff) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(action),
-                    badgeColor = if (isOff) Color(0xFF94A3B8) else Color(0xFFF59E0B),
+                    badgeColor = if (isOff) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
                     icon = Icons.Rounded.DeleteSweep,
                     overview = if (isOff) stringResource(R.string.swipe_action_none_desc) else stringResource(R.string.gesture_3_hold_swipe_up_desc),
                     steps = listOf(
@@ -811,7 +811,7 @@ fun GesturesSection(
                     gestureNumber = "4 / 5",
                     gestureName = "Swipe Down",
                     actionBadge = if (isOff) stringResource(R.string.swipe_action_none_title) else getSwipeActionTitle(action),
-                    badgeColor = if (isOff) Color(0xFF94A3B8) else Color(0xFF10B981),
+                    badgeColor = if (isOff) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
                     icon = Icons.Rounded.ArrowDownward,
                     overview = if (isOff) stringResource(R.string.swipe_action_none_desc) else stringResource(R.string.gesture_4_swipe_down_desc),
                     steps = listOf(
@@ -833,7 +833,7 @@ fun GesturesSection(
                     gestureNumber = "5 / 5",
                     gestureName = "Swipe Left / Right",
                     actionBadge = if (allOff) stringResource(R.string.swipe_action_none_title) else "Left / Right",
-                    badgeColor = if (allOff) Color(0xFF94A3B8) else Color(0xFFA855F7),
+                    badgeColor = if (allOff) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
                     icon = Icons.Rounded.Swipe,
                     overview = if (allOff) stringResource(R.string.swipe_action_none_desc) else "Flick or drag horizontally across the collapsed pill to switch between active notifications or media tracks.",
                     steps = listOf(
@@ -1207,7 +1207,7 @@ private fun GestureDetailCard(
                     Icon(
                         Icons.Rounded.Lightbulb,
                         contentDescription = "Pro Tip",
-                        tint = Color(0xFFFACC15),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -1215,7 +1215,7 @@ private fun GestureDetailCard(
                             text = "PRO TIP",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFFFACC15)
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = proTip,

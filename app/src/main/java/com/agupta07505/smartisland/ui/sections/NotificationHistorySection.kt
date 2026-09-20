@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -47,6 +48,7 @@ import androidx.compose.material.icons.automirrored.rounded.Launch
 import androidx.compose.material.icons.rounded.AllInbox
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ContentCopy
@@ -65,6 +67,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -181,6 +185,7 @@ fun NotificationHistorySection(
     var searchQuery by remember { mutableStateOf("") }
     var selectedFilterPackage by remember { mutableStateOf<String?>(null) }
     var showClearAllConfirm by remember { mutableStateOf(false) }
+    var showAppFilterDialog by remember { mutableStateOf(false) }
     var showDeleteByAppDialog by remember { mutableStateOf(false) }
     var packageToDeleteConfirm by remember { mutableStateOf<AppNotificationSummary?>(null) }
     var selectedEntryForDetails by remember { mutableStateOf<NotificationHistoryEntry?>(null) }
@@ -280,6 +285,20 @@ fun NotificationHistorySection(
         )
     }
 
+    // App Filter Dialog
+    if (showAppFilterDialog) {
+        AppFilterDialog(
+            appSummaries = appSummaries,
+            totalCount = historyEntries.size,
+            selectedPackage = selectedFilterPackage,
+            onDismiss = { showAppFilterDialog = false },
+            onSelectFilter = { pkg ->
+                selectedFilterPackage = pkg
+                showAppFilterDialog = false
+            }
+        )
+    }
+
     // Delete By App Manager Dialog
     if (showDeleteByAppDialog) {
         DeleteByAppDialog(
@@ -348,13 +367,13 @@ fun NotificationHistorySection(
                                 modifier = Modifier
                                     .size(42.dp)
                                     .clip(CircleShape)
-                                    .background(Color(0xFF38BDF8).copy(alpha = 0.15f)),
+                                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     Icons.Rounded.History,
                                     contentDescription = null,
-                                    tint = Color(0xFF38BDF8),
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -368,7 +387,7 @@ fun NotificationHistorySection(
                                  Text(
                                      text = if (settings.enableNotificationHistory) "Logging active • On-device private" else "Disabled",
                                      style = MaterialTheme.typography.bodySmall,
-                                     color = if (settings.enableNotificationHistory) Color(0xFF10B981) else MaterialTheme.colorScheme.onSurfaceVariant
+                                     color = if (settings.enableNotificationHistory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                                  )
                             }
                         }
@@ -398,7 +417,7 @@ fun NotificationHistorySection(
                             Icon(
                                 Icons.Rounded.Security,
                                 contentDescription = null,
-                                tint = Color(0xFF10B981),
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
@@ -500,14 +519,32 @@ fun NotificationHistorySection(
                                     720 to R.string.retention_30d,
                                     -1 to R.string.retention_forever
                                 )
-                                val currentRetentionRes = retentionResMap[settings.notificationHistoryRetentionHours] ?: R.string.retention_72h
 
                                 OutlinedButton(
                                     onClick = { retentionMenuExpanded = true },
                                     shape = RoundedCornerShape(8.dp),
                                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                                 ) {
-                                    Text(stringResource(currentRetentionRes), style = MaterialTheme.typography.labelSmall)
+                                    Icon(
+                                        Icons.Rounded.FilterList,
+                                        contentDescription = "Retention filter",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(
+                                        text = when (settings.notificationHistoryRetentionHours) {
+                                            24 -> "24 Hours"
+                                            72 -> "3 Days"
+                                            168 -> "7 Days"
+                                            720 -> "30 Days"
+                                            -1 -> "Forever"
+                                            else -> "3 Days"
+                                        },
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Spacer(Modifier.width(2.dp))
                                     Icon(Icons.Rounded.ArrowDropDown, contentDescription = null, modifier = Modifier.size(16.dp))
                                 }
 
@@ -516,8 +553,25 @@ fun NotificationHistorySection(
                                     onDismissRequest = { retentionMenuExpanded = false }
                                 ) {
                                     retentionResMap.forEach { (hours, resId) ->
+                                        val isSelected = settings.notificationHistoryRetentionHours == hours
                                         DropdownMenuItem(
-                                            text = { Text(stringResource(resId)) },
+                                            text = {
+                                                Text(
+                                                    text = stringResource(resId),
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                                )
+                                            },
+                                            trailingIcon = if (isSelected) {
+                                                {
+                                                    Icon(
+                                                        Icons.Rounded.Check,
+                                                        contentDescription = "Selected",
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(16.dp)
+                                                    )
+                                                }
+                                            } else null,
                                             onClick = {
                                                 retentionMenuExpanded = false
                                                 if (repository != null) {
@@ -559,6 +613,80 @@ fun NotificationHistorySection(
                             modifier = Modifier.fillMaxWidth()
                         )
 
+                        // Quick App Filter Chips (All Apps at top/start, followed by individual apps)
+                        if (appSummaries.isNotEmpty()) {
+                            LazyRow(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                item(key = "filter_chip_all") {
+                                    val isAllSelected = selectedFilterPackage == null
+                                    FilterChip(
+                                        selected = isAllSelected,
+                                        onClick = { selectedFilterPackage = null },
+                                        leadingIcon = {
+                                            Icon(
+                                                Icons.Rounded.AllInbox,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        },
+                                        label = {
+                                            Text(
+                                                text = stringResource(R.string.filter_all_apps) + " (${historyEntries.size})",
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isAllSelected) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    )
+                                }
+
+                                items(appSummaries, key = { it.packageName }) { app ->
+                                    val isSelected = selectedFilterPackage == app.packageName
+                                    val appIcon = rememberAppIcon(app.packageName)
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = {
+                                            selectedFilterPackage = if (isSelected) null else app.packageName
+                                        },
+                                        leadingIcon = {
+                                            if (appIcon != null) {
+                                                Image(
+                                                    bitmap = appIcon,
+                                                    contentDescription = app.appName,
+                                                    modifier = Modifier
+                                                        .size(16.dp)
+                                                        .clip(CircleShape)
+                                                )
+                                            } else {
+                                                Icon(
+                                                    Icons.Rounded.Apps,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(16.dp)
+                                                )
+                                            }
+                                        },
+                                        label = {
+                                            Text(
+                                                text = "${app.appName} (${app.count})",
+                                                fontSize = 12.sp,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                            )
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                        )
+                                    )
+                                }
+                            }
+                        }
+
                         // Active Filter Badge (if any)
                         if (!selectedFilterPackage.isNullOrBlank()) {
                             val activeAppName = appSummaries.find { it.packageName == selectedFilterPackage }?.appName ?: selectedFilterPackage
@@ -588,14 +716,19 @@ fun NotificationHistorySection(
                             }
                         }
 
-                        // Action Buttons: Delete By App & Clear All
+                        // Action Buttons: Filter by App, Delete By App & Clear All
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "${filteredEntries.size} saved",
+                                text = if (selectedFilterPackage != null) {
+                                    val activeName = appSummaries.find { it.packageName == selectedFilterPackage }?.appName ?: selectedFilterPackage
+                                    "$activeName: ${filteredEntries.size} logs"
+                                } else {
+                                    "${filteredEntries.size} saved"
+                                },
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -603,12 +736,33 @@ fun NotificationHistorySection(
                             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                                 if (appSummaries.isNotEmpty()) {
                                     OutlinedButton(
+                                        onClick = { showAppFilterDialog = true },
+                                        shape = RoundedCornerShape(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                        modifier = Modifier.height(32.dp)
+                                    ) {
+                                        Icon(Icons.Rounded.FilterList, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                                        Spacer(Modifier.width(4.dp))
+                                        Text(
+                                            text = if (selectedFilterPackage != null) {
+                                                appSummaries.find { it.packageName == selectedFilterPackage }?.appName ?: stringResource(R.string.filter_by_app)
+                                            } else {
+                                                stringResource(R.string.filter_by_app)
+                                            },
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+
+                                    OutlinedButton(
                                         onClick = { showDeleteByAppDialog = true },
                                         shape = RoundedCornerShape(8.dp),
                                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                                         modifier = Modifier.height(32.dp)
                                     ) {
-                                        Icon(Icons.Rounded.Apps, contentDescription = null, modifier = Modifier.size(14.dp))
+                                        Icon(Icons.Rounded.Delete, contentDescription = null, modifier = Modifier.size(14.dp))
                                         Spacer(Modifier.width(4.dp))
                                         Text(stringResource(R.string.btn_delete_app_history), fontSize = 11.sp, fontWeight = FontWeight.SemiBold)
                                     }
@@ -925,6 +1079,205 @@ private fun NotificationHistoryItemCard(
                     Icon(Icons.Rounded.ContentCopy, contentDescription = null, modifier = Modifier.size(12.dp))
                     Spacer(Modifier.width(4.dp))
                     Text("Copy", fontSize = 11.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppFilterDialog(
+    appSummaries: List<AppNotificationSummary>,
+    totalCount: Int,
+    selectedPackage: String?,
+    onDismiss: () -> Unit,
+    onSelectFilter: (String?) -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 260.dp, max = 520.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Icon(Icons.Rounded.FilterList, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Text(
+                            text = stringResource(R.string.filter_by_app),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    IconButton(onClick = onDismiss, modifier = Modifier.size(28.dp)) {
+                        Icon(Icons.Rounded.Close, contentDescription = "Close", modifier = Modifier.size(18.dp))
+                    }
+                }
+
+                Text(
+                    text = "Select an app to view its notifications, or choose All Apps to see all logs together.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // TOP OPTION: "All Apps" (view all app notifications together)
+                    item(key = "filter_dialog_all_apps") {
+                        val isAllSelected = selectedPackage == null
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isAllSelected)
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            border = if (isAllSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectFilter(null) }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.AllInbox,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = stringResource(R.string.filter_all_apps),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.filter_all_apps_desc) + " ($totalCount)",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                if (isAllSelected) {
+                                    Icon(
+                                        Icons.Rounded.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Individual App Items
+                    items(appSummaries, key = { it.packageName }) { app ->
+                        val isSelected = selectedPackage == app.packageName
+                        val icon = rememberAppIcon(app.packageName)
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected)
+                                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                else
+                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectFilter(app.packageName) }
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                if (icon != null) {
+                                    Image(
+                                        bitmap = icon,
+                                        contentDescription = app.appName,
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                    )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(36.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = app.appName.firstOrNull()?.uppercase() ?: "A",
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = app.appName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Text(
+                                        text = "${app.count} notification${if (app.count == 1) "" else "s"}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                if (isSelected) {
+                                    Icon(
+                                        Icons.Rounded.Check,
+                                        contentDescription = "Selected",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

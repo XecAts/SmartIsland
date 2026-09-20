@@ -67,7 +67,6 @@ fun SupportSection() {
                     label = stringResource(R.string.star_on_github),
                     subtitle = stringResource(R.string.star_on_github_desc),
                     icon = Icons.Rounded.Star,
-                    iconTint = Color(0xFFF59E0B),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/agupta07505/SmartIsland"))
                         runCatchingLogged("SupportSection", "Failed to open Star on GitHub link") {
@@ -81,7 +80,6 @@ fun SupportSection() {
                     label = stringResource(R.string.join_telegram),
                     subtitle = stringResource(R.string.join_telegram_desc),
                     icon = Icons.Rounded.People,
-                    iconTint = Color(0xFF0284C7),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://telegram.me/SmartIslandApp"))
                         runCatchingLogged("SupportSection", "Failed to open Telegram Community link") {
@@ -95,7 +93,6 @@ fun SupportSection() {
                     label = stringResource(R.string.request_feature),
                     subtitle = stringResource(R.string.request_feature_desc),
                     icon = Icons.Rounded.Feedback,
-                    iconTint = Color(0xFF10B981),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/agupta07505/SmartIsland/issues/new?template=feature_request.md"))
                         runCatchingLogged("SupportSection", "Failed to open Feature Request link") {
@@ -109,7 +106,6 @@ fun SupportSection() {
                     label = stringResource(R.string.report_bug),
                     subtitle = stringResource(R.string.report_bug_desc),
                     icon = Icons.Rounded.BugReport,
-                    iconTint = Color(0xFFEF4444),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/agupta07505/SmartIsland/issues/new?template=bug_report.md"))
                         runCatchingLogged("SupportSection", "Failed to open Bug Report link") {
@@ -123,7 +119,6 @@ fun SupportSection() {
                     label = stringResource(R.string.license_title),
                     subtitle = stringResource(R.string.license_desc),
                     icon = Icons.Rounded.Gavel,
-                    iconTint = Color(0xFFA855F7),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/agupta07505/SmartIsland/blob/main/LICENSE"))
                         runCatchingLogged("SupportSection", "Failed to open License link") {

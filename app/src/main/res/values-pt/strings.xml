@@ -384,6 +384,24 @@
     <string name="apps_enabled_count">%1$d de %2$d ativados</string>
     <string name="no_installed_apps_found">Nenhum aplicativo instalado encontrado</string>
     <string name="no_apps_matching_query">Nenhum aplicativo encontrado para \"%1$s\"</string>
+    <string name="btn_manage_apps">Selecionar Aplicativos para Gerenciar</string>
+    <string name="all_apps_enabled_note">Todos os aplicativos estão ativos com som no Smart Island.</string>
+    <string name="customized_apps_title">Aplicativos Personalizados (%1$d)</string>
+    <string name="app_options_title">Configurações de %1$s</string>
+    <string name="option_island_notifications">Notificações do Smart Island</string>
+    <string name="option_island_notifications_desc">Exibir notificações deste aplicativo na pílula e na visualização expandida da ilha</string>
+    <string name="option_island_sound">Som de Notificação da Ilha</string>
+    <string name="option_island_sound_desc">Tocar efeito sonoro quando este aplicativo alertar no Smart Island</string>
+    <string name="option_cooldown_bypass">Ignorar Cooldown Anti-Spam</string>
+    <string name="option_cooldown_bypass_desc">Sempre alertar imediatamente, mesmo durante rajadas rápidas de mensagens</string>
+    <string name="tag_excluded_from_island">Excluído da Ilha</string>
+    <string name="tag_sound_muted">Som Silenciado</string>
+    <string name="tag_cooldown_bypassed">Cooldown Ignorado</string>
+    <string name="filter_tab_all">Todos (%1$d)</string>
+    <string name="filter_tab_customized">Personalizados (%1$d)</string>
+    <string name="filter_tab_excluded">Excluídos (%1$d)</string>
+    <string name="filter_tab_muted">Silenciados (%1$d)</string>
+    <string name="btn_reset_default">Redefinir para Padrão</string>
 
     <!-- Notification History -->
     <string name="history_title">Histórico de Notificações</string>
@@ -405,6 +423,9 @@
     <string name="retention_7d">7 Dias (1 Semana)</string>
     <string name="retention_30d">30 Dias (1 Mês)</string>
     <string name="retention_forever">Manter para Sempre</string>
+    <string name="filter_all_apps">Todos os Apps</string>
+    <string name="filter_all_apps_desc">Ver todas as notificações de apps juntas</string>
+    <string name="filter_by_app">Filtrar por App</string>
 
     <!-- App Shortcuts -->
     <string name="shortcuts_title">Inicializador Rápido com Ilha Vazia</string>

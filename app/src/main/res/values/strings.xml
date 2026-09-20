@@ -118,6 +118,19 @@
     <string name="detail_title_notification_history">Notification History Log</string>
     <string name="detail_title_color_studio">Appearance, Opacity &amp; Colors</string>
     <string name="detail_title_gestures_guide">Gesture Guide &amp; Playground</string>
+    <string name="card_updates_downloads_title">Updates &amp; Downloads</string>
+    <string name="card_updates_downloads_desc">Download stats, update checker &amp; changelogs</string>
+    <string name="detail_title_updates_downloads">App Updates &amp; Downloads</string>
+    <string name="total_downloads_title">Total Downloads</string>
+    <string name="total_downloads_subtitle">Official GitHub APK Downloads</string>
+    <string name="current_version_title">Current Version</string>
+    <string name="btn_check_for_updates">Check for updates</string>
+    <string name="btn_checking_for_updates">Checking for updates…</string>
+    <string name="changelogs_title">Changelogs</string>
+    <string name="changelogs_desc">Release notes and update history</string>
+    <string name="status_up_to_date">Smart Island is up to date</string>
+    <string name="status_update_available">New version %1$s is available</string>
+    <string name="btn_download_apk">Download APK</string>
     <string name="detail_title_permissions_center">Permissions &amp; Setup Center</string>
     <string name="detail_title_about_app">About Smart Island</string>
     <string name="detail_title_support_community">Support &amp; Feedback</string>
@@ -384,6 +397,24 @@
     <string name="apps_enabled_count">%1$d of %2$d enabled</string>
     <string name="no_installed_apps_found">No installed apps found</string>
     <string name="no_apps_matching_query">No apps matching \"%1$s\"</string>
+    <string name="btn_manage_apps">Select Apps to Manage</string>
+    <string name="all_apps_enabled_note">All installed apps are currently active with sound in Smart Island.</string>
+    <string name="customized_apps_title">Customized Apps (%1$d)</string>
+    <string name="app_options_title">%1$s Settings</string>
+    <string name="option_island_notifications">Smart Island Notifications</string>
+    <string name="option_island_notifications_desc">Display notifications from this app in the island pill and expanded view</string>
+    <string name="option_island_sound">Island Notification Sound</string>
+    <string name="option_island_sound_desc">Play sound effect when this app alerts in Smart Island</string>
+    <string name="option_cooldown_bypass">Bypass Anti-Spam Cooldown</string>
+    <string name="option_cooldown_bypass_desc">Always alert immediately, even during rapid message bursts</string>
+    <string name="tag_excluded_from_island">Excluded from Island</string>
+    <string name="tag_sound_muted">Sound Muted</string>
+    <string name="tag_cooldown_bypassed">Cooldown Bypassed</string>
+    <string name="filter_tab_all">All (%1$d)</string>
+    <string name="filter_tab_customized">Customized (%1$d)</string>
+    <string name="filter_tab_excluded">Excluded (%1$d)</string>
+    <string name="filter_tab_muted">Muted (%1$d)</string>
+    <string name="btn_reset_default">Reset to Default</string>
 
     <!-- Notification History -->
     <string name="history_title">Notification History Log</string>
@@ -405,6 +436,9 @@
     <string name="retention_7d">7 Days (1 Week)</string>
     <string name="retention_30d">30 Days (1 Month)</string>
     <string name="retention_forever">Keep Forever</string>
+    <string name="filter_all_apps">All Apps</string>
+    <string name="filter_all_apps_desc">View all app notifications together</string>
+    <string name="filter_by_app">Filter by App</string>
 
     <!-- App Shortcuts -->
     <string name="shortcuts_title">Empty Island Quick Launcher</string>

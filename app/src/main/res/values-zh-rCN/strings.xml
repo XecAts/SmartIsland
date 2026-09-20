@@ -384,6 +384,24 @@
     <string name="apps_enabled_count">已启用 %1$d / %2$d 个应用</string>
     <string name="no_installed_apps_found">未找到已安装的应用</string>
     <string name="no_apps_matching_query">未找到匹配“%1$s”的应用</string>
+    <string name="btn_manage_apps">选择要管理的应用</string>
+    <string name="all_apps_enabled_note">所有已安装应用当前均在灵动岛中正常启用提示音。</string>
+    <string name="customized_apps_title">自定义应用 (%1$d)</string>
+    <string name="app_options_title">%1$s 设置</string>
+    <string name="option_island_notifications">灵动岛通知</string>
+    <string name="option_island_notifications_desc">在灵动岛胶囊和展开卡片中显示此应用的通知</string>
+    <string name="option_island_sound">灵动岛提示音</string>
+    <string name="option_island_sound_desc">此应用在灵动岛中弹出提示时播放提示音</string>
+    <string name="option_cooldown_bypass">绕过防刷屏冷却</string>
+    <string name="option_cooldown_bypass_desc">即使在频繁连续通知时也始终立即提醒</string>
+    <string name="tag_excluded_from_island">已从灵动岛排除</string>
+    <string name="tag_sound_muted">提示音已静音</string>
+    <string name="tag_cooldown_bypassed">已绕过冷却</string>
+    <string name="filter_tab_all">全部 (%1$d)</string>
+    <string name="filter_tab_customized">已自定义 (%1$d)</string>
+    <string name="filter_tab_excluded">已排除 (%1$d)</string>
+    <string name="filter_tab_muted">已静音 (%1$d)</string>
+    <string name="btn_reset_default">恢复默认设置</string>
 
     <!-- Notification History -->
     <string name="history_title">通知历史记录</string>
@@ -405,6 +423,9 @@
     <string name="retention_7d">7 天（1 周）</string>
     <string name="retention_30d">30 天（1 个月）</string>
     <string name="retention_forever">永久保存</string>
+    <string name="filter_all_apps">所有应用</string>
+    <string name="filter_all_apps_desc">一起查看所有应用通知</string>
+    <string name="filter_by_app">按应用筛选</string>
 
     <!-- App Shortcuts -->
     <string name="shortcuts_title">无通知时灵动岛快捷启动</string>

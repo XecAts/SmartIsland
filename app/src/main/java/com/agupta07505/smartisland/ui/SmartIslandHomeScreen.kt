@@ -56,6 +56,8 @@ import androidx.compose.material.icons.rounded.AvTimer
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.Commit
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.FileDownload
@@ -138,6 +140,7 @@ import com.agupta07505.smartisland.ui.sections.GesturesSection
 import com.agupta07505.smartisland.ui.sections.NotificationHistorySection
 import com.agupta07505.smartisland.ui.sections.NotificationsAndPrivacySection
 import com.agupta07505.smartisland.ui.sections.PermissionsSection
+import com.agupta07505.smartisland.ui.sections.UpdatesAndDownloadsSection
 import com.agupta07505.smartisland.ui.sections.PositionsSection
 import com.agupta07505.smartisland.ui.sections.SupportSection
 import com.agupta07505.smartisland.util.SystemServiceRecovery
@@ -158,6 +161,7 @@ private enum class FeatureDetailSection {
     GesturesGuide,
     PermissionsCenter,
     BackupRestore,
+    UpdatesAndDownloads,
     AboutApp,
     SupportCommunity,
     DeveloperOptions
@@ -388,6 +392,10 @@ fun SmartIslandHomeScreen(
                         overlayGranted = isAccessibilityServiceEnabled(context)
                         notificationGranted = isNotificationListenerEnabled(context)
                         batteryIgnored = isBatteryOptimizationIgnored(context)
+                    },
+                    onNavigateTo = { section ->
+                        transitionDirection = 1
+                        activeDetailSection = section
                     }
                 )
             }
@@ -588,22 +596,22 @@ private fun SimulationLabCard(
     onModeSelect: (IslandMode) -> Unit,
     onClearAll: () -> Unit
 ) {
-    data class ModeItem(val mode: IslandMode, val label: @Composable () -> String, val icon: ImageVector, val tint: Color)
+    data class ModeItem(val mode: IslandMode, val icon: ImageVector)
     val modes = remember {
         listOf(
-            ModeItem(IslandMode.Music, { "" }, Icons.Rounded.MusicNote, Color(0xFFFF6B9A)),
-            ModeItem(IslandMode.IncomingCall, { "" }, Icons.Rounded.Call, Color(0xFF22C55E)),
-            ModeItem(IslandMode.Notification, { "" }, Icons.Rounded.Notifications, Color(0xFF38BDF8)),
-            ModeItem(IslandMode.Battery, { "" }, Icons.Rounded.BatteryChargingFull, Color(0xFF10B981)),
-            ModeItem(IslandMode.LiveActivity, { "" }, Icons.Rounded.Navigation, Color(0xFF8B5CF6)),
-            ModeItem(IslandMode.Navigation, { "" }, Icons.Rounded.Explore, Color(0xFF10B981)),
-            ModeItem(IslandMode.DownloadUpload, { "" }, Icons.Rounded.FileDownload, Color(0xFF06B6D4)),
-            ModeItem(IslandMode.Hotspot, { "" }, Icons.Rounded.WifiTethering, Color(0xFFF59E0B)),
-            ModeItem(IslandMode.Bluetooth, { "" }, Icons.Rounded.BluetoothConnected, Color(0xFF38BDF8)),
-            ModeItem(IslandMode.Flashlight, { "" }, Icons.Rounded.FlashlightOn, Color(0xFFF59E0B)),
-            ModeItem(IslandMode.ScreenRecording, { "" }, Icons.Rounded.Videocam, Color(0xFFEF4444)),
-            ModeItem(IslandMode.Timer, { "" }, Icons.Rounded.HourglassBottom, Color(0xFFF59E0B)),
-            ModeItem(IslandMode.Stopwatch, { "" }, Icons.Rounded.AvTimer, Color(0xFF06B6D4))
+            ModeItem(IslandMode.Music, Icons.Rounded.MusicNote),
+            ModeItem(IslandMode.IncomingCall, Icons.Rounded.Call),
+            ModeItem(IslandMode.Notification, Icons.Rounded.Notifications),
+            ModeItem(IslandMode.Battery, Icons.Rounded.BatteryChargingFull),
+            ModeItem(IslandMode.LiveActivity, Icons.Rounded.Navigation),
+            ModeItem(IslandMode.Navigation, Icons.Rounded.Explore),
+            ModeItem(IslandMode.DownloadUpload, Icons.Rounded.FileDownload),
+            ModeItem(IslandMode.Hotspot, Icons.Rounded.WifiTethering),
+            ModeItem(IslandMode.Bluetooth, Icons.Rounded.BluetoothConnected),
+            ModeItem(IslandMode.Flashlight, Icons.Rounded.FlashlightOn),
+            ModeItem(IslandMode.ScreenRecording, Icons.Rounded.Videocam),
+            ModeItem(IslandMode.Timer, Icons.Rounded.HourglassBottom),
+            ModeItem(IslandMode.Stopwatch, Icons.Rounded.AvTimer)
         )
     }
     // Resolve labels via composable context
@@ -693,7 +701,6 @@ private fun SimulationLabCard(
                                 ModeChipButton(
                                     label = modeLabels[index],
                                     icon = item.icon,
-                                    iconTint = item.tint,
                                     isSelected = activeMode == item.mode,
                                     onClick = { onModeSelect(item.mode) },
                                     modifier = Modifier.weight(1f)
@@ -714,10 +721,10 @@ private fun SimulationLabCard(
 private fun ModeChipButton(
     label: String,
     icon: ImageVector,
-    iconTint: Color,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconTint: Color = MaterialTheme.colorScheme.primary
 ) {
     Box(
         modifier = modifier
@@ -774,7 +781,6 @@ private fun SettingsOverviewSection(
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_notifications_privacy_title),
                 icon = Icons.Rounded.Notifications,
-                iconColor = Color(0xFF38BDF8),
                 statusText = if (settings.showOnLockScreen) stringResource(R.string.card_notifications_privacy_status_lock) else null,
                 onClick = { onNavigateTo(FeatureDetailSection.NotificationRules) }
             )
@@ -782,20 +788,18 @@ private fun SettingsOverviewSection(
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_app_shortcuts_title),
                 icon = Icons.Rounded.Apps,
-                iconColor = Color(0xFF22D3EE),
                 statusText = if (settings.enableAppShortcuts) {
                     stringResource(R.string.card_app_shortcuts_status, settings.shortcutPackages.size)
                 } else null,
-                statusColor = if (settings.enableAppShortcuts) Color(0xFF0F9F6E) else Color(0xFF94A3B8),
+                statusColor = if (settings.enableAppShortcuts) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 onClick = { onNavigateTo(FeatureDetailSection.AppShortcuts) }
             )
 
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_notification_history_title),
                 icon = Icons.Rounded.History,
-                iconColor = Color(0xFF38BDF8),
                 statusText = if (settings.enableNotificationHistory) stringResource(R.string.card_notification_history_status_active) else null,
-                statusColor = if (settings.enableNotificationHistory) Color(0xFF0F9F6E) else Color(0xFF94A3B8),
+                statusColor = if (settings.enableNotificationHistory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 onClick = { onNavigateTo(FeatureDetailSection.NotificationHistory) }
             )
         }
@@ -805,7 +809,6 @@ private fun SettingsOverviewSection(
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_color_studio_title),
                 icon = Icons.Rounded.Palette,
-                iconColor = Color(0xFFA855F7),
                 statusText = stringResource(R.string.card_color_studio_status, (settings.opacity * 100).toInt()),
                 onClick = { onNavigateTo(FeatureDetailSection.ColorStudio) }
             )
@@ -813,7 +816,6 @@ private fun SettingsOverviewSection(
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_gestures_guide_title),
                 icon = Icons.Rounded.Gesture,
-                iconColor = Color(0xFF6366F1),
                 onClick = { onNavigateTo(FeatureDetailSection.GesturesGuide) }
             )
         }
@@ -823,16 +825,14 @@ private fun SettingsOverviewSection(
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_permissions_setup_title),
                 icon = Icons.Rounded.Shield,
-                iconColor = Color(0xFF10B981),
                 statusText = if (!canEnable) stringResource(R.string.status_action_required) else null,
-                statusColor = if (canEnable) Color(0xFF0F9F6E) else Color(0xFFE88C25),
+                statusColor = if (canEnable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                 onClick = { onNavigateTo(FeatureDetailSection.PermissionsCenter) }
             )
 
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_backup_restore_title),
                 icon = Icons.Rounded.SettingsBackupRestore,
-                iconColor = Color(0xFF06B6D4),
                 onClick = { onNavigateTo(FeatureDetailSection.BackupRestore) }
             )
         }
@@ -840,9 +840,15 @@ private fun SettingsOverviewSection(
         // Section 4: About
         SettingsCategoryGroup(title = stringResource(R.string.category_about_community)) {
             FeatureStudioNavigationCard(
+                title = stringResource(R.string.card_updates_downloads_title),
+                icon = Icons.Rounded.CloudDownload,
+                statusText = stringResource(R.string.card_updates_downloads_desc),
+                onClick = { onNavigateTo(FeatureDetailSection.UpdatesAndDownloads) }
+            )
+
+            FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_about_app_title),
                 icon = Icons.Rounded.Info,
-                iconColor = Color(0xFFEC4899),
                 statusText = stringResource(R.string.card_about_app_desc, com.agupta07505.smartisland.BuildConfig.VERSION_NAME),
                 onClick = { onNavigateTo(FeatureDetailSection.AboutApp) }
             )
@@ -850,7 +856,6 @@ private fun SettingsOverviewSection(
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_support_requests_title),
                 icon = Icons.Rounded.People,
-                iconColor = Color(0xFFF59E0B),
                 onClick = { onNavigateTo(FeatureDetailSection.SupportCommunity) }
             )
         }
@@ -859,9 +864,8 @@ private fun SettingsOverviewSection(
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_developer_options_title),
                 icon = Icons.Rounded.Tune,
-                iconColor = Color(0xFF10B981),
                 statusText = if (settings.recordLogs) stringResource(R.string.status_recording_active) else null,
-                statusColor = if (settings.recordLogs) Color(0xFFEF4444) else Color(0xFF10B981),
+                statusColor = if (settings.recordLogs) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                 onClick = { onNavigateTo(FeatureDetailSection.DeveloperOptions) }
             )
         }
@@ -890,7 +894,7 @@ private fun SettingsCategoryGroup(
 private fun FeatureStudioNavigationCard(
     title: String,
     icon: ImageVector,
-    iconColor: Color,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
     statusText: String? = null,
     statusColor: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit
@@ -999,7 +1003,8 @@ private fun DetailScreenHost(
     notificationGranted: Boolean,
     batteryIgnored: Boolean,
     onBack: () -> Unit,
-    onRefreshPermissions: () -> Unit
+    onRefreshPermissions: () -> Unit,
+    onNavigateTo: (FeatureDetailSection) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -1054,6 +1059,7 @@ private fun DetailScreenHost(
                 FeatureDetailSection.GesturesGuide -> stringResource(R.string.detail_title_gestures_guide)
                 FeatureDetailSection.PermissionsCenter -> stringResource(R.string.detail_title_permissions_center)
                 FeatureDetailSection.BackupRestore -> stringResource(R.string.detail_title_backup_restore)
+                FeatureDetailSection.UpdatesAndDownloads -> stringResource(R.string.detail_title_updates_downloads)
                 FeatureDetailSection.AboutApp -> stringResource(R.string.detail_title_about_app)
                 FeatureDetailSection.SupportCommunity -> stringResource(R.string.detail_title_support_community)
                 FeatureDetailSection.DeveloperOptions -> stringResource(R.string.detail_title_developer_options)
@@ -1123,8 +1129,15 @@ private fun DetailScreenHost(
             FeatureDetailSection.BackupRestore -> {
                 BackupRestoreSection(settings = settings, repository = repository)
             }
+            FeatureDetailSection.UpdatesAndDownloads -> {
+                UpdatesAndDownloadsSection(settings = settings, repository = repository)
+            }
             FeatureDetailSection.AboutApp -> {
-                AboutSection(settings = settings, repository = repository)
+                AboutSection(
+                    settings = settings,
+                    repository = repository,
+                    onNavigateToUpdates = { onNavigateTo(FeatureDetailSection.UpdatesAndDownloads) }
+                )
             }
             FeatureDetailSection.SupportCommunity -> {
                 SupportSection()

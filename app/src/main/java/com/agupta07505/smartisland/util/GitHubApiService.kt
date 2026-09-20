@@ -27,6 +27,17 @@ data class GitHubRelease(
     val downloadUrl: String?
 )
 
+data class GitHubReleaseItem(
+    val tagName: String,
+    val name: String,
+    val body: String,
+    val htmlUrl: String,
+    val publishedAt: String,
+    val isNewer: Boolean,
+    val downloadCount: Int,
+    val downloadUrl: String?
+)
+
 data class GitHubContributor(
     val login: String,
     val avatarUrl: String,
@@ -97,6 +108,56 @@ object GitHubApiService {
                 isNewer = isNewer,
                 downloadUrl = downloadUrl ?: htmlUrl
             )
+        }
+    }
+
+    /**
+     * Fetches all releases from GitHub to compute total downloads and retrieve complete changelogs.
+     */
+    suspend fun getAllReleases(currentVersion: String = BuildConfig.VERSION_NAME): Result<List<GitHubReleaseItem>> = withContext(Dispatchers.IO) {
+        runCatching {
+            val jsonStr = makeHttpGet("$BASE_URL/releases?per_page=50")
+            val array = JSONArray(jsonStr)
+            val list = mutableListOf<GitHubReleaseItem>()
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                val tagName = obj.optString("tag_name", "")
+                val name = obj.optString("name", tagName)
+                val body = obj.optString("body", "")
+                val htmlUrl = obj.optString("html_url", "https://github.com/$REPO_OWNER/$REPO_NAME/releases")
+                val publishedAt = obj.optString("published_at", "")
+
+                var releaseDownloadCount = 0
+                var apkUrl: String? = null
+                val assets = obj.optJSONArray("assets")
+                if (assets != null) {
+                    for (j in 0 until assets.length()) {
+                        val asset = assets.getJSONObject(j)
+                        val count = asset.optInt("download_count", 0)
+                        releaseDownloadCount += count
+                        val assetName = asset.optString("name", "")
+                        if (apkUrl == null && assetName.endsWith(".apk", ignoreCase = true)) {
+                            apkUrl = asset.optString("browser_download_url").takeIf { it.isNotBlank() }
+                        }
+                    }
+                }
+
+                val isNewer = isNewerVersion(tagName, currentVersion)
+
+                list.add(
+                    GitHubReleaseItem(
+                        tagName = tagName,
+                        name = name,
+                        body = body,
+                        htmlUrl = htmlUrl,
+                        publishedAt = publishedAt,
+                        isNewer = isNewer,
+                        downloadCount = releaseDownloadCount,
+                        downloadUrl = apkUrl ?: htmlUrl
+                    )
+                )
+            }
+            list
         }
     }
 

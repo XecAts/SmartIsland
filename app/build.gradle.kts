@@ -88,7 +88,8 @@ android {
             "IconXmlAndPng",
             "BatteryLife",
             "ConfigurationScreenWidthHeight",
-            "ModifierParameter"
+            "ModifierParameter",
+            "MissingTranslation"
         )
     }
 

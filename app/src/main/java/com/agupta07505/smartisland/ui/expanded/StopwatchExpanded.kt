@@ -202,14 +202,26 @@ fun StopwatchExpanded(
             }
 
             // 2. Pause / Resume Button
+            val resumeKeywords = listOf("resume", "start", "play", "unpause", "weiter", "reanudar")
+            val pauseKeywords = listOf("pause", "pausa", "pausar", "sospendi", "रोकें", "暂停")
+            val destructiveKeywords = listOf("reset", "stop", "cancel", "clear", "delete", "dismiss")
+
             val pauseAction = if (isPaused) {
-                notification?.actionIntents?.firstOrNull {
-                    it.title.contains("resume", ignoreCase = true) || it.title.contains("start", ignoreCase = true) || it.title.contains("play", ignoreCase = true) || it.title.contains("unpause", ignoreCase = true)
-                } ?: notification?.actionIntents?.firstOrNull()
+                notification?.actionIntents?.firstOrNull { act ->
+                    val t = act.title.lowercase()
+                    resumeKeywords.any { t.contains(it) }
+                } ?: notification?.actionIntents?.firstOrNull { act ->
+                    val t = act.title.lowercase()
+                    !destructiveKeywords.any { t.contains(it) } && !t.contains("lap")
+                }
             } else {
-                notification?.actionIntents?.firstOrNull {
-                    it.title.contains("pause", ignoreCase = true)
-                } ?: notification?.actionIntents?.firstOrNull()
+                notification?.actionIntents?.firstOrNull { act ->
+                    val t = act.title.lowercase()
+                    pauseKeywords.any { t.contains(it) }
+                } ?: notification?.actionIntents?.firstOrNull { act ->
+                    val t = act.title.lowercase()
+                    !destructiveKeywords.any { t.contains(it) } && !t.contains("lap")
+                }
             }
             Box(
                 modifier = Modifier

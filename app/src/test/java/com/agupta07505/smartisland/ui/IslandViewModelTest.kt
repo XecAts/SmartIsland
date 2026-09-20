@@ -129,5 +129,62 @@ class IslandViewModelTest {
         org.junit.Assert.assertFalse(viewModel.expanded.value)
         org.junit.Assert.assertFalse(viewModel.isInputActive.value)
     }
+
+    @Test
+    fun testAutoExpandEnabledExpandsIslandOnNewNotification() = runTest {
+        val settingsRepo = mockk<SmartIslandSettingsRepository>(relaxed = true)
+        io.mockk.every { settingsRepo.settings } returns kotlinx.coroutines.flow.MutableStateFlow(
+            com.agupta07505.smartisland.data.SmartIslandSettings(autoExpandOnNotification = true)
+        )
+        val notifRepo = SmartIslandNotificationRepository()
+        val viewModel = IslandViewModel(settingsRepo, notifRepo)
+        testDispatcher.scheduler.runCurrent()
+
+        val notif = IslandNotification(
+            key = "msg_1",
+            packageName = "com.whatsapp",
+            appName = "WhatsApp",
+            title = "Alice",
+            text = "Hello!",
+            mode = IslandMode.Notification,
+            timeMillis = System.currentTimeMillis()
+        )
+
+        notifRepo.postNotification(notif, autoExpand = true)
+        testDispatcher.scheduler.runCurrent()
+
+        assertTrue(viewModel.expanded.value)
+        assertEquals(0, viewModel.selectedIndex.value)
+    }
+
+    @Test
+    fun testAutoExpandDisabledKeepsIslandCollapsedOnNewNotification() = runTest {
+        val settingsRepo = mockk<SmartIslandSettingsRepository>(relaxed = true)
+        io.mockk.every { settingsRepo.settings } returns kotlinx.coroutines.flow.MutableStateFlow(
+            com.agupta07505.smartisland.data.SmartIslandSettings(autoExpandOnNotification = false)
+        )
+        val notifRepo = SmartIslandNotificationRepository()
+        val viewModel = IslandViewModel(settingsRepo, notifRepo)
+        testDispatcher.scheduler.runCurrent()
+
+        val notif = IslandNotification(
+            key = "msg_2",
+            packageName = "com.whatsapp",
+            appName = "WhatsApp",
+            title = "Bob",
+            text = "Hey there",
+            mode = IslandMode.Notification,
+            timeMillis = System.currentTimeMillis()
+        )
+
+        notifRepo.postNotification(notif, autoExpand = true)
+        testDispatcher.scheduler.runCurrent()
+
+        // Should NOT be expanded because autoExpandOnNotification is false
+        org.junit.Assert.assertFalse(viewModel.expanded.value)
+        // Notification is still captured and selected for compact pill
+        assertEquals(1, viewModel.visibleNotifications.value.size)
+        assertEquals(0, viewModel.selectedIndex.value)
+    }
 }
 

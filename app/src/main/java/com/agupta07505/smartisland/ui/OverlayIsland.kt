@@ -27,6 +27,7 @@ fun OverlayIsland(
     onOpenNotification: (IslandNotification) -> Unit,
     onLaunchApp: (String) -> Unit,
     onOpenFloatingWindow: () -> Unit,
+    onOpenNotificationShade: () -> Unit = {},
     modifier: Modifier = Modifier,
     isFullWidth: Boolean = true
 ) {
@@ -57,25 +58,35 @@ fun OverlayIsland(
         }
     }
 
-    val selectedApps = remember(settings.shortcutPackages) {
-        AppShortcutProvider.selectedApps(context, settings.shortcutPackages)
+    val selectedApps = remember(settings.shortcutPackages, settings.enableAppShortcuts) {
+        if (settings.enableAppShortcuts) {
+            AppShortcutProvider.selectedApps(context, settings.shortcutPackages)
+        } else {
+            emptyList()
+        }
     }
     val launcherApps by produceState<List<LaunchableApp>?>(
         initialValue = when {
+            !settings.enableAppShortcuts -> emptyList()
             selectedApps.isNotEmpty() -> selectedApps
             settings.shortcutPackages.isEmpty() && !settings.showRecentApps -> emptyList()
             !AppShortcutProvider.hasUsageAccess(context) -> emptyList()
             else -> null
         },
+        settings.enableAppShortcuts,
         settings.shortcutPackages,
         settings.showRecentApps
     ) {
-        value = withContext(Dispatchers.IO) {
-            AppShortcutProvider.shortcuts(
-                context = context,
-                selectedPackages = settings.shortcutPackages,
-                includeRecent = settings.showRecentApps
-            )
+        value = if (!settings.enableAppShortcuts) {
+            emptyList()
+        } else {
+            withContext(Dispatchers.IO) {
+                AppShortcutProvider.shortcuts(
+                    context = context,
+                    selectedPackages = settings.shortcutPackages,
+                    includeRecent = settings.showRecentApps
+                )
+            }
         }
     }
 
@@ -92,6 +103,7 @@ fun OverlayIsland(
         onDismissNotification = { viewModel.dismissCurrentNotification() },
         onDismissAllNotifications = { viewModel.dismissAllNotifications() },
         onOpenFloatingWindow = onOpenFloatingWindow,
+        onOpenNotificationShade = onOpenNotificationShade,
         statusBarHeight = statusBarHeight,
         isInputActive = isInputActive,
         onReplyStateChanged = { viewModel.setInputActive(it) },

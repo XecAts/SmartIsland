@@ -18,14 +18,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -39,6 +31,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -63,8 +56,8 @@ import androidx.compose.material.icons.rounded.AvTimer
 import androidx.compose.material.icons.rounded.BatteryChargingFull
 import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Call
-import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material.icons.rounded.ColorLens
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.Commit
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.FileDownload
@@ -80,6 +73,7 @@ import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.SettingsBackupRestore
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Videocam
@@ -90,7 +84,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -113,15 +106,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -139,11 +133,14 @@ import com.agupta07505.smartisland.di.SmartIslandRepositories
 import com.agupta07505.smartisland.model.IslandMode
 import com.agupta07505.smartisland.ui.sections.AboutSection
 import com.agupta07505.smartisland.ui.sections.AppShortcutsSection
+import com.agupta07505.smartisland.ui.sections.BackupRestoreSection
 import com.agupta07505.smartisland.ui.sections.CustomizationsSection
+import com.agupta07505.smartisland.ui.sections.DeveloperOptionsSection
 import com.agupta07505.smartisland.ui.sections.GesturesSection
 import com.agupta07505.smartisland.ui.sections.NotificationHistorySection
 import com.agupta07505.smartisland.ui.sections.NotificationsAndPrivacySection
 import com.agupta07505.smartisland.ui.sections.PermissionsSection
+import com.agupta07505.smartisland.ui.sections.UpdatesAndDownloadsSection
 import com.agupta07505.smartisland.ui.sections.PositionsSection
 import com.agupta07505.smartisland.ui.sections.SupportSection
 import com.agupta07505.smartisland.util.SystemServiceRecovery
@@ -163,8 +160,11 @@ private enum class FeatureDetailSection {
     ColorStudio,
     GesturesGuide,
     PermissionsCenter,
+    BackupRestore,
+    UpdatesAndDownloads,
     AboutApp,
-    SupportCommunity
+    SupportCommunity,
+    DeveloperOptions
 }
 
 @SuppressLint("BatteryLife")
@@ -277,18 +277,24 @@ fun SmartIslandHomeScreen(
             label = "ScreenTransition"
         ) { detailSection ->
             if (detailSection == null) {
+                val screenWidthDp = LocalConfiguration.current.screenWidthDp
+                val horizontalPad = when {
+                    screenWidthDp < 360 -> 14.dp
+                    screenWidthDp > 600 -> 28.dp
+                    else -> 20.dp
+                }
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.background)
                         .verticalScroll(rememberScrollState())
                         .padding(
-                            start = 20.dp,
-                            end = 20.dp,
+                            start = horizontalPad,
+                            end = horizontalPad,
                             top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp,
                             bottom = 32.dp
                         ),
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     // Studio Top Header
                     StudioTopHeader(
@@ -331,22 +337,16 @@ fun SmartIslandHomeScreen(
                                 }
                             )
 
-                            // 3. System Diagnostics Strip
-                            DiagnosticsSummaryCard(
-                                overlayGranted = overlayGranted,
-                                notificationGranted = notificationGranted,
-                                batteryIgnored = batteryIgnored,
-                                onOpenDiagnostics = {
-                                    transitionDirection = 1
-                                    activeDetailSection = FeatureDetailSection.PermissionsCenter
-                                }
-                            )
                         }
 
                         StudioTab.Position -> {
                             PositionsSection(
                                 settings = settings,
-                                repository = resolvedRepository
+                                repository = resolvedRepository,
+                                onNavigateToBackup = {
+                                    transitionDirection = 1
+                                    activeDetailSection = FeatureDetailSection.BackupRestore
+                                }
                             )
                         }
 
@@ -392,6 +392,10 @@ fun SmartIslandHomeScreen(
                         overlayGranted = isAccessibilityServiceEnabled(context)
                         notificationGranted = isNotificationListenerEnabled(context)
                         batteryIgnored = isBatteryOptimizationIgnored(context)
+                    },
+                    onNavigateTo = { section ->
+                        transitionDirection = 1
+                        activeDetailSection = section
                     }
                 )
             }
@@ -516,98 +520,70 @@ private fun MasterPowerCard(
     onSetupPermissionsClick: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(
-                                if (enabled) MaterialTheme.colorScheme.primaryContainer
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.FlashOn,
-                            contentDescription = null,
-                            tint = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                    Column {
-                        Text(
-                            text = stringResource(R.string.master_switch_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(Modifier.height(2.dp))
-                        Text(
-                            text = if (canEnable) {
-                                if (enabled) stringResource(R.string.master_switch_active_desc)
-                                else stringResource(R.string.master_switch_ready_desc)
-                            } else stringResource(R.string.master_switch_missing_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                Spacer(Modifier.width(12.dp))
-                Switch(
-                    checked = enabled,
-                    enabled = canEnable || enabled,
-                    onCheckedChange = onCheckedChange
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.master_switch_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = if (canEnable) {
+                        if (enabled) stringResource(R.string.master_switch_active_desc)
+                        else stringResource(R.string.master_switch_ready_desc)
+                    } else stringResource(R.string.master_switch_missing_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            Switch(
+                checked = enabled,
+                enabled = canEnable || enabled,
+                onCheckedChange = onCheckedChange
+            )
+        }
 
-            if (!canEnable) {
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                    thickness = 1.dp
-                )
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(onClick = onSetupPermissionsClick)
-                        .background(Color(0xFFE88C25).copy(alpha = 0.08f))
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                    contentAlignment = Alignment.Center
+        if (!canEnable) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onSetupPermissionsClick)
+                    .background(Color(0xFFE88C25).copy(alpha = 0.08f))
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            Icons.Rounded.Warning,
-                            contentDescription = null,
-                            tint = Color(0xFFE88C25),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.btn_grant_required_permissions),
-                            color = Color(0xFFE88C25),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Icon(
+                        Icons.Rounded.Warning,
+                        contentDescription = null,
+                        tint = Color(0xFFE88C25),
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.btn_grant_required_permissions),
+                        color = Color(0xFFE88C25),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -620,18 +596,55 @@ private fun SimulationLabCard(
     onModeSelect: (IslandMode) -> Unit,
     onClearAll: () -> Unit
 ) {
+    data class ModeItem(val mode: IslandMode, val icon: ImageVector)
+    val modes = remember {
+        listOf(
+            ModeItem(IslandMode.Music, Icons.Rounded.MusicNote),
+            ModeItem(IslandMode.IncomingCall, Icons.Rounded.Call),
+            ModeItem(IslandMode.Notification, Icons.Rounded.Notifications),
+            ModeItem(IslandMode.Battery, Icons.Rounded.BatteryChargingFull),
+            ModeItem(IslandMode.LiveActivity, Icons.Rounded.Navigation),
+            ModeItem(IslandMode.Navigation, Icons.Rounded.Explore),
+            ModeItem(IslandMode.DownloadUpload, Icons.Rounded.FileDownload),
+            ModeItem(IslandMode.Hotspot, Icons.Rounded.WifiTethering),
+            ModeItem(IslandMode.Bluetooth, Icons.Rounded.BluetoothConnected),
+            ModeItem(IslandMode.Flashlight, Icons.Rounded.FlashlightOn),
+            ModeItem(IslandMode.ScreenRecording, Icons.Rounded.Videocam),
+            ModeItem(IslandMode.Timer, Icons.Rounded.HourglassBottom),
+            ModeItem(IslandMode.Stopwatch, Icons.Rounded.AvTimer)
+        )
+    }
+    // Resolve labels via composable context
+    val modeLabels = listOf(
+        stringResource(R.string.mode_music_player),
+        stringResource(R.string.mode_incoming_call),
+        stringResource(R.string.mode_notification),
+        stringResource(R.string.mode_battery_charge),
+        stringResource(R.string.mode_live_activity),
+        stringResource(R.string.mode_turn_navigation),
+        stringResource(R.string.mode_file_transfer),
+        stringResource(R.string.mode_hotspot_share),
+        stringResource(R.string.mode_bluetooth),
+        stringResource(R.string.mode_flashlight),
+        stringResource(R.string.mode_screen_recording),
+        stringResource(R.string.mode_timer),
+        stringResource(R.string.mode_stopwatch)
+    )
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -651,180 +664,54 @@ private fun SimulationLabCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
-            // Modes Grid in categorized rows
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Row 1: Media & Calls
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                IconButton(
+                    onClick = onClearAll,
+                    modifier = Modifier.size(32.dp)
                 ) {
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_music_player),
-                        icon = Icons.Rounded.MusicNote,
-                        iconTint = Color(0xFFFF6B9A),
-                        isSelected = activeMode == IslandMode.Music,
-                        onClick = { onModeSelect(IslandMode.Music) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_incoming_call),
-                        icon = Icons.Rounded.Call,
-                        iconTint = Color(0xFF22C55E),
-                        isSelected = activeMode == IslandMode.IncomingCall,
-                        onClick = { onModeSelect(IslandMode.IncomingCall) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Row 2: Notifications & Power
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_notification),
-                        icon = Icons.Rounded.Notifications,
-                        iconTint = Color(0xFF38BDF8),
-                        isSelected = activeMode == IslandMode.Notification,
-                        onClick = { onModeSelect(IslandMode.Notification) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_battery_charge),
-                        icon = Icons.Rounded.BatteryChargingFull,
-                        iconTint = Color(0xFF10B981),
-                        isSelected = activeMode == IslandMode.Battery,
-                        onClick = { onModeSelect(IslandMode.Battery) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Row 3: Live Activities & Maps
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_live_activity),
-                        icon = Icons.Rounded.Navigation,
-                        iconTint = Color(0xFF8B5CF6),
-                        isSelected = activeMode == IslandMode.LiveActivity,
-                        onClick = { onModeSelect(IslandMode.LiveActivity) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_turn_navigation),
-                        icon = Icons.Rounded.Explore,
-                        iconTint = Color(0xFF10B981),
-                        isSelected = activeMode == IslandMode.Navigation,
-                        onClick = { onModeSelect(IslandMode.Navigation) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Row 4: System Tools
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_file_transfer),
-                        icon = Icons.Rounded.FileDownload,
-                        iconTint = Color(0xFF06B6D4),
-                        isSelected = activeMode == IslandMode.DownloadUpload,
-                        onClick = { onModeSelect(IslandMode.DownloadUpload) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_hotspot_share),
-                        icon = Icons.Rounded.WifiTethering,
-                        iconTint = Color(0xFFF59E0B),
-                        isSelected = activeMode == IslandMode.Hotspot,
-                        onClick = { onModeSelect(IslandMode.Hotspot) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Row 5: Hardware
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_bluetooth),
-                        icon = Icons.Rounded.BluetoothConnected,
-                        iconTint = Color(0xFF38BDF8),
-                        isSelected = activeMode == IslandMode.Bluetooth,
-                        onClick = { onModeSelect(IslandMode.Bluetooth) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_flashlight),
-                        icon = Icons.Rounded.FlashlightOn,
-                        iconTint = Color(0xFFF59E0B),
-                        isSelected = activeMode == IslandMode.Flashlight,
-                        onClick = { onModeSelect(IslandMode.Flashlight) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Row 6: Screen Recording & Timer
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_screen_recording),
-                        icon = Icons.Rounded.Videocam,
-                        iconTint = Color(0xFFEF4444),
-                        isSelected = activeMode == IslandMode.ScreenRecording,
-                        onClick = { onModeSelect(IslandMode.ScreenRecording) },
-                        modifier = Modifier.weight(1f)
-                    )
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_timer),
-                        icon = Icons.Rounded.HourglassBottom,
-                        iconTint = Color(0xFFF59E0B),
-                        isSelected = activeMode == IslandMode.Timer,
-                        onClick = { onModeSelect(IslandMode.Timer) },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // Row 7: Stopwatch
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ModeChipButton(
-                        label = stringResource(R.string.mode_stopwatch),
-                        icon = Icons.Rounded.AvTimer,
-                        iconTint = Color(0xFF06B6D4),
-                        isSelected = activeMode == IslandMode.Stopwatch,
-                        onClick = { onModeSelect(IslandMode.Stopwatch) },
-                        modifier = Modifier.fillMaxWidth()
+                    Icon(
+                        Icons.Rounded.Delete,
+                        contentDescription = stringResource(R.string.btn_clear_all_test_notifications),
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val columns = when {
+                    maxWidth >= 330.dp -> 3
+                    maxWidth >= 210.dp -> 2
+                    else -> 1
+                }
+                val chunkedIndices = remember(modes.size, columns) {
+                    modes.indices.chunked(columns)
+                }
 
-            OutlinedButton(
-                onClick = onClearAll,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
-            ) {
-                Icon(Icons.Rounded.Delete, contentDescription = null, modifier = Modifier.size(16.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.btn_clear_all_test_notifications), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    chunkedIndices.forEach { rowIndices ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            rowIndices.forEach { index ->
+                                val item = modes[index]
+                                ModeChipButton(
+                                    label = modeLabels[index],
+                                    icon = item.icon,
+                                    isSelected = activeMode == item.mode,
+                                    onClick = { onModeSelect(item.mode) },
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            repeat(columns - rowIndices.size) {
+                                Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -834,167 +721,45 @@ private fun SimulationLabCard(
 private fun ModeChipButton(
     label: String,
     icon: ImageVector,
-    iconTint: Color,
     isSelected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconTint: Color = MaterialTheme.colorScheme.primary
 ) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(
-                if (isSelected) iconTint.copy(alpha = 0.15f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            )
-            .border(
-                1.dp,
-                if (isSelected) iconTint.copy(alpha = 0.8f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f),
-                RoundedCornerShape(14.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .clip(CircleShape)
-                    .background(iconTint.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconTint,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-}
-
-@Composable
-private fun DiagnosticsSummaryCard(
-    overlayGranted: Boolean,
-    notificationGranted: Boolean,
-    batteryIgnored: Boolean,
-    onOpenDiagnostics: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onOpenDiagnostics),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Rounded.Shield,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                    Column {
-                        Text(
-                            text = stringResource(R.string.system_diagnostics_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(R.string.system_diagnostics_desc),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                Icon(
-                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                )
-            }
-
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                StatusBadgePill(
-                    label = stringResource(R.string.diag_accessibility),
-                    isGranted = overlayGranted,
-                    modifier = Modifier.weight(1f)
-                )
-                StatusBadgePill(
-                    label = stringResource(R.string.diag_notifications),
-                    isGranted = notificationGranted,
-                    modifier = Modifier.weight(1f)
-                )
-                StatusBadgePill(
-                    label = stringResource(R.string.diag_battery_saver),
-                    isGranted = batteryIgnored,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatusBadgePill(
-    label: String,
-    isGranted: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val color = if (isGranted) Color(0xFF0F9F6E) else Color(0xFFE88C25)
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(color.copy(alpha = 0.1f))
-            .border(1.dp, color.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
-            .padding(vertical = 6.dp, horizontal = 6.dp),
+            .background(
+                if (isSelected) iconTint.copy(alpha = 0.15f)
+                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+            )
+            .border(
+                width = if (isSelected) 1.5.dp else 0.5.dp,
+                color = if (isSelected) iconTint.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f),
+                shape = RoundedCornerShape(10.dp)
+            )
+            .bounceClick(onClick)
+            .padding(horizontal = 6.dp, vertical = 9.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.Center
         ) {
-            Box(modifier = Modifier.size(6.dp).background(color, CircleShape))
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(15.dp)
+            )
+            Spacer(Modifier.width(5.dp))
             Text(
                 text = label,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                color = color
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) iconTint else MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -1010,103 +775,97 @@ private fun SettingsOverviewSection(
 ) {
     val canEnable = overlayGranted && notificationGranted && batteryIgnored
 
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = stringResource(R.string.settings_overview_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = stringResource(R.string.settings_overview_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        // Section 1: Island Behaviors & App Launcher
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        // Section 1: Features
         SettingsCategoryGroup(title = stringResource(R.string.category_behaviors_launcher)) {
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_notifications_privacy_title),
-                subtitle = stringResource(R.string.card_notifications_privacy_desc),
                 icon = Icons.Rounded.Notifications,
-                iconColor = Color(0xFF38BDF8),
-                statusText = if (settings.showOnLockScreen) stringResource(R.string.card_notifications_privacy_status_lock) else stringResource(R.string.card_notifications_privacy_status_standard),
+                statusText = if (settings.showOnLockScreen) stringResource(R.string.card_notifications_privacy_status_lock) else null,
                 onClick = { onNavigateTo(FeatureDetailSection.NotificationRules) }
             )
 
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_app_shortcuts_title),
-                subtitle = stringResource(R.string.card_app_shortcuts_desc),
                 icon = Icons.Rounded.Apps,
-                iconColor = Color(0xFF22D3EE),
-                statusText = stringResource(R.string.card_app_shortcuts_status, settings.shortcutPackages.size),
+                statusText = if (settings.enableAppShortcuts) {
+                    stringResource(R.string.card_app_shortcuts_status, settings.shortcutPackages.size)
+                } else null,
+                statusColor = if (settings.enableAppShortcuts) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 onClick = { onNavigateTo(FeatureDetailSection.AppShortcuts) }
             )
 
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_notification_history_title),
-                subtitle = stringResource(R.string.card_notification_history_desc),
                 icon = Icons.Rounded.History,
-                iconColor = Color(0xFF38BDF8),
-                statusText = if (settings.enableNotificationHistory) stringResource(R.string.card_notification_history_status_active) else stringResource(R.string.card_notification_history_status_disabled),
-                statusColor = if (settings.enableNotificationHistory) Color(0xFF0F9F6E) else Color(0xFF94A3B8),
+                statusText = if (settings.enableNotificationHistory) stringResource(R.string.card_notification_history_status_active) else null,
+                statusColor = if (settings.enableNotificationHistory) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 onClick = { onNavigateTo(FeatureDetailSection.NotificationHistory) }
             )
         }
 
-        // Section 2: Appearance & Gesture Controls
+        // Section 2: Appearance
         SettingsCategoryGroup(title = stringResource(R.string.category_appearance_controls)) {
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_color_studio_title),
-                subtitle = stringResource(R.string.card_color_studio_desc),
                 icon = Icons.Rounded.Palette,
-                iconColor = Color(0xFFA855F7),
                 statusText = stringResource(R.string.card_color_studio_status, (settings.opacity * 100).toInt()),
                 onClick = { onNavigateTo(FeatureDetailSection.ColorStudio) }
             )
 
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_gestures_guide_title),
-                subtitle = stringResource(R.string.card_gestures_guide_desc),
                 icon = Icons.Rounded.Gesture,
-                iconColor = Color(0xFF6366F1),
-                statusText = stringResource(R.string.card_gestures_guide_status),
                 onClick = { onNavigateTo(FeatureDetailSection.GesturesGuide) }
             )
         }
 
-        // Section 3: System & Permissions
+        // Section 3: System
         SettingsCategoryGroup(title = stringResource(R.string.category_system_core)) {
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_permissions_setup_title),
-                subtitle = stringResource(R.string.card_permissions_setup_desc),
                 icon = Icons.Rounded.Shield,
-                iconColor = Color(0xFF10B981),
-                statusText = if (canEnable) stringResource(R.string.card_permissions_setup_status_all) else stringResource(R.string.status_action_required),
-                statusColor = if (canEnable) Color(0xFF0F9F6E) else Color(0xFFE88C25),
+                statusText = if (!canEnable) stringResource(R.string.status_action_required) else null,
+                statusColor = if (canEnable) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary,
                 onClick = { onNavigateTo(FeatureDetailSection.PermissionsCenter) }
+            )
+
+            FeatureStudioNavigationCard(
+                title = stringResource(R.string.card_backup_restore_title),
+                icon = Icons.Rounded.SettingsBackupRestore,
+                onClick = { onNavigateTo(FeatureDetailSection.BackupRestore) }
             )
         }
 
-        // Section 4: About & Community
+        // Section 4: About
         SettingsCategoryGroup(title = stringResource(R.string.category_about_community)) {
             FeatureStudioNavigationCard(
+                title = stringResource(R.string.card_updates_downloads_title),
+                icon = Icons.Rounded.CloudDownload,
+                onClick = { onNavigateTo(FeatureDetailSection.UpdatesAndDownloads) }
+            )
+
+            FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_about_app_title),
-                subtitle = stringResource(R.string.card_about_app_desc, com.agupta07505.smartisland.BuildConfig.VERSION_NAME),
                 icon = Icons.Rounded.Info,
-                iconColor = Color(0xFFEC4899),
-                statusText = stringResource(R.string.card_about_app_status),
+                statusText = "v${com.agupta07505.smartisland.BuildConfig.VERSION_NAME}",
                 onClick = { onNavigateTo(FeatureDetailSection.AboutApp) }
             )
 
             FeatureStudioNavigationCard(
                 title = stringResource(R.string.card_support_requests_title),
-                subtitle = stringResource(R.string.card_support_requests_desc),
                 icon = Icons.Rounded.People,
-                iconColor = Color(0xFFF59E0B),
                 onClick = { onNavigateTo(FeatureDetailSection.SupportCommunity) }
+            )
+        }
+
+        SettingsCategoryGroup(title = stringResource(R.string.category_developer_options)) {
+            FeatureStudioNavigationCard(
+                title = stringResource(R.string.card_developer_options_title),
+                icon = Icons.Rounded.Tune,
+                statusText = if (settings.recordLogs) stringResource(R.string.status_recording_active) else null,
+                statusColor = if (settings.recordLogs) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                onClick = { onNavigateTo(FeatureDetailSection.DeveloperOptions) }
             )
         }
     }
@@ -1117,12 +876,13 @@ private fun SettingsCategoryGroup(
     title: String,
     content: @Composable () -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            letterSpacing = 0.8.sp,
             modifier = Modifier.padding(start = 4.dp, top = 4.dp)
         )
         content()
@@ -1132,82 +892,63 @@ private fun SettingsCategoryGroup(
 @Composable
 private fun FeatureStudioNavigationCard(
     title: String,
-    subtitle: String,
     icon: ImageVector,
-    iconColor: Color,
+    iconColor: Color = MaterialTheme.colorScheme.primary,
     statusText: String? = null,
     statusColor: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit
 ) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .bounceClick(onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(18.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .size(36.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(iconColor.copy(alpha = 0.12f)),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(iconColor.copy(alpha = 0.14f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = iconColor,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(14.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 16.sp
-                )
-                if (statusText != null) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(statusColor.copy(alpha = 0.12f))
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = statusText,
-                            color = statusColor,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.width(10.dp))
             Icon(
-                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                modifier = Modifier.size(20.dp)
+                tint = iconColor,
+                modifier = Modifier.size(18.dp)
             )
         }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        if (statusText != null) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = statusText,
+                color = statusColor,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+        }
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
 
@@ -1266,13 +1007,20 @@ private fun DetailScreenHost(
     notificationGranted: Boolean,
     batteryIgnored: Boolean,
     onBack: () -> Unit,
-    onRefreshPermissions: () -> Unit
+    onRefreshPermissions: () -> Unit,
+    onNavigateTo: (FeatureDetailSection) -> Unit = {}
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val isScrollableParent = section != FeatureDetailSection.NotificationHistory
     val scrollModifier = if (isScrollableParent) Modifier.verticalScroll(rememberScrollState()) else Modifier
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val horizontalPad = when {
+        screenWidthDp < 360 -> 14.dp
+        screenWidthDp > 600 -> 28.dp
+        else -> 20.dp
+    }
 
     Column(
         modifier = Modifier
@@ -1280,8 +1028,8 @@ private fun DetailScreenHost(
             .background(MaterialTheme.colorScheme.background)
             .then(scrollModifier)
             .padding(
-                start = 20.dp,
-                end = 20.dp,
+                start = horizontalPad,
+                end = horizontalPad,
                 top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 12.dp,
                 bottom = if (isScrollableParent) 28.dp else 12.dp
             ),
@@ -1314,8 +1062,11 @@ private fun DetailScreenHost(
                 FeatureDetailSection.ColorStudio -> stringResource(R.string.detail_title_color_studio)
                 FeatureDetailSection.GesturesGuide -> stringResource(R.string.detail_title_gestures_guide)
                 FeatureDetailSection.PermissionsCenter -> stringResource(R.string.detail_title_permissions_center)
+                FeatureDetailSection.BackupRestore -> stringResource(R.string.detail_title_backup_restore)
+                FeatureDetailSection.UpdatesAndDownloads -> stringResource(R.string.detail_title_updates_downloads)
                 FeatureDetailSection.AboutApp -> stringResource(R.string.detail_title_about_app)
                 FeatureDetailSection.SupportCommunity -> stringResource(R.string.detail_title_support_community)
+                FeatureDetailSection.DeveloperOptions -> stringResource(R.string.detail_title_developer_options)
             }
             Text(
                 text = title,
@@ -1345,7 +1096,7 @@ private fun DetailScreenHost(
                 CustomizationsSection(settings = settings, repository = repository)
             }
             FeatureDetailSection.GesturesGuide -> {
-                GesturesSection()
+                GesturesSection(settings = settings, repository = repository)
             }
             FeatureDetailSection.PermissionsCenter -> {
                 PermissionsSection(
@@ -1379,11 +1130,24 @@ private fun DetailScreenHost(
                     onRefreshPermissions = onRefreshPermissions
                 )
             }
+            FeatureDetailSection.BackupRestore -> {
+                BackupRestoreSection(settings = settings, repository = repository)
+            }
+            FeatureDetailSection.UpdatesAndDownloads -> {
+                UpdatesAndDownloadsSection(settings = settings, repository = repository)
+            }
             FeatureDetailSection.AboutApp -> {
-                AboutSection(settings = settings, repository = repository)
+                AboutSection(
+                    settings = settings,
+                    repository = repository,
+                    onNavigateToUpdates = { onNavigateTo(FeatureDetailSection.UpdatesAndDownloads) }
+                )
             }
             FeatureDetailSection.SupportCommunity -> {
                 SupportSection()
+            }
+            FeatureDetailSection.DeveloperOptions -> {
+                DeveloperOptionsSection(settings = settings, repository = repository)
             }
         }
     }

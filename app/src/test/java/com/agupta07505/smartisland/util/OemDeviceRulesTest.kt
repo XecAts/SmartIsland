@@ -26,6 +26,7 @@ class OemDeviceRulesTest {
         assertEquals(OemDeviceType.HUAWEI_HONOR, OemDeviceRules.resolveEffectiveDevice("HUAWEI_HONOR"))
         assertEquals(OemDeviceType.MOTOROLA, OemDeviceRules.resolveEffectiveDevice("MOTOROLA"))
         assertEquals(OemDeviceType.TRANSSION, OemDeviceRules.resolveEffectiveDevice("TRANSSION"))
+        assertEquals(OemDeviceType.NUBIA, OemDeviceRules.resolveEffectiveDevice("NUBIA"))
     }
 
     @Test
@@ -54,6 +55,14 @@ class OemDeviceRulesTest {
         assertTrue(OemDeviceRules.isScreenRecording("com.oplus.screenrecorder", "Screen recording", OemDeviceType.REALME_OPPO_ONEPLUS))
         assertTrue(OemDeviceRules.isScreenRecording("com.coloros.screenrecorder", "Screen recorder", OemDeviceType.REALME_OPPO_ONEPLUS))
         assertTrue(OemDeviceRules.isScreenRecording("com.realme.screenrecorder", "Screen recording", OemDeviceType.REALME_OPPO_ONEPLUS))
+    }
+
+    @Test
+    fun testNubiaDeviceRules() {
+        assertTrue(OemDeviceRules.isScreenRecording("cn.nubia.screenrecorder", "Screen Recorder", OemDeviceType.NUBIA))
+        assertTrue(OemDeviceRules.isScreenRecording("com.zte.recorder", "Sound Recorder", OemDeviceType.NUBIA))
+        assertTrue(OemDeviceRules.isInCallPackage("cn.nubia.incallui", OemDeviceType.NUBIA))
+        assertTrue(OemDeviceRules.isInCallPackage("cn.nubia.dialer", OemDeviceType.NUBIA))
     }
 
     @Test

@@ -1,6 +1,6 @@
 # Smart Island Product Roadmap
 
-Last updated: August 29, 2026
+Last updated: September 20, 2026
 
 ## Product direction
 
@@ -14,16 +14,26 @@ The roadmap follows three core principles:
 
 ---
 
-## Current baseline (v6.0.0)
+## Current baseline (v7.0.0)
 
 Smart Island currently provides:
 
 - A Compose-based floating overlay on Android 8+ (API 26 through API 36)
+- **Unified Deep Burnt-Orange (#D84315) Design System**: High-contrast, clean aesthetic with cohesive dark slate surfaces, burnt-orange accenting, crisp typography, and unified tinted Material icons throughout all settings cards and switches
+- **Dedicated App Updates & Downloads Hub**: Specialized settings screen featuring live Total Downloads counter (15,648+), Current Version line (v7.0.0), 1-tap GitHub update checker, in-app changelogs viewer, Top Contributors gallery, and Recent Commits feed
+- **In-Pill Swipe Gestures & Media Controls**: Compact collapsed pill independent gesture engine supporting horizontal swipes for next/prev song skipping (`skipToNext`/`skipToPrevious`) or notification cycling, vertical swipes, and individual gesture disable options
+- **Selective App Alerts & Sound Manager Modal**: On-demand selective app management modal preventing UI stutter by loading packages selectively, with search, per-app alert toggles, custom ringtone sound toggling, and island exclusion
+- **Configurable Companion Circle Position**: Place the multi-tasking companion circle on either the **Left** or **Right** of the pill with anti-overlap layout geometry clamping for corner and punch-hole displays
+- **iPhone Notch Mode**: Authentic iPhone-style top-docked notch (`y = 0`) with rounded bottom corners, downward expansion, and complete suppression of the split right companion circle
+- **Developer Mode & In-App Log Recording**: 7-tap version unlock, in-memory diagnostic buffer (3,000 entries), process logcat capture, live status monitor, and Scoped Storage `.txt` export
+- **Full Settings Backup & Restore System**: Scoped Storage JSON export/import via Android SAF, atomic single-transaction DataStore restore, factory reset, and bounds clamping
+- **Bluetooth Battery & Earbuds Alternating Animation**: Dual-path battery percentage extraction via intent extra and reflection, with a smooth 3-second spring transition between live battery gauge and earbuds icon in both collapsed and expanded states
+- **Intelligent Notification Cooldown & Anti-Spam Engine**: Sliding window burst detection with customizable quiet duration (1–30 min), trigger threshold (2–10 msgs), and per-app whitelist exclusions
+- **App Shortcuts Launcher Master Control**: Complete user enable/disable toggle for quick-launch apps grid on empty island with zero background overhead when disabled
 - **Ultra-Fluid Spring Physics Engine**: Unified 520f spring morphing, instant 190ms cross-fades, and 220ms overlay window resize
 - **Tap Anywhere to Open Target App**: Neutral taps on expanded cards open source apps with ongoing music protection
 - **Auto-Hide Pill Inactivity Timer**: Configurable timeout (1s–60s) with 1-tap presets and tap-to-reveal gesture
 - **Landscape Mode Visibility Control**: Opt-in toggle to keep island active and repositioned in landscape orientation
-- Complete **Material 3 Expressive** design system with Android 12+ wallpaper dynamic color adaptation
 - **Island Background Opacity & Transparency Controls**: Continuous opacity adjustment (20% to 100%) with 4 quick presets (Solid, Dark, Glass, Clear)
 - **High-Performance Virtualized Notification History**: Ultra-fast `LazyColumn` log with `AppIconMemoryCache`, search bar, date grouping, and **Delete by App** bulk management
 - **13 Dynamic Island Modes**:
@@ -37,19 +47,13 @@ Smart Island currently provides:
   - `Navigation` (turn-by-turn routing arrows, distance, and ETA)
   - `DownloadUpload` (transfer speeds MB/s, progress meters, sync suppression)
   - `Hotspot` (active tethering client count & quick turn-off)
-  - `Bluetooth` (device battery & connectivity)
+  - `Bluetooth` (dual-path battery extraction & smooth spring-animated alternation between battery info and earbuds icon)
   - `Flashlight` (torch state indicator & toggle)
   - `ScreenRecording` (live elapsed timer)
 - **Inline Reply & Soft-Keyboard WindowManager Focus**: Seamless IME typing right inside the island with auto-collapse pause
-- **OEM Device Rules Engine**: Vendor-specific autostart & battery optimization protection for Xiaomi/HyperOS, Samsung OneUI, OnePlus/Oppo/Realme, Huawei, Vivo, and Asus
-- **In-App GitHub Release Checker**: Optional version update insights and changelogs with strict `allowNetworkChecks` privacy guard and offline mode fallback
+- **OEM Device Rules Engine**: Vendor-specific autostart & battery optimization protection for Xiaomi/HyperOS, Samsung OneUI, OnePlus/Oppo/Realme, Huawei, Vivo, Asus, and Nubia/RedMagic
 - **Split Island Multi-State Pill** for concurrent background states
-- **5-Gesture Control Engine with Responsive Interactive Guide**: Single Tap, Quick Swipe Up, Hold + Swipe Up (300ms haptic), Swipe Down (Floating window), and Swipe Left/Right (Pager)
-- **Message Sync Filtering**: Background chat polling (Snapchat, WhatsApp) excluded from download mode
-- **Custom RGB Slider Color Picker**: Fine-grained color customization for all 13 modes
-- **Grouped Settings Hub Architecture** with minimal Category Hub Cards
-- **Shizuku 1-Tap Auto Setup** for automated system permission granting
-- **Lock screen privacy guard** with sensitive notification content protection
+- **13 High-Resolution Screenshots & Visual Documentation Refresh**: Complete asset showcase across all settings and overlay modes
 - **100% Local Processing** and DataStore persistence
 - **Strict Lint & Stable @v4 GitHub Actions CI/CD** pipeline
 
@@ -64,11 +68,30 @@ Smart Island currently provides:
 | **v5.1.0** | Aug 2026 | Inline Reply, Timers, History & OEM Engine | Direct inline text replies, Timer & Stopwatch island modes, SQLite history hub, OEM background rules engine *(Released)* |
 | **v5.2.0** | Aug 2026 | Opacity Customization, History Virtualization & Stability | Island opacity controls (20-100%), Delete-by-App history, virtualized LazyColumn, interactive gesture guide, and multi-device crash fixes *(Released)* |
 | **v6.0.0** | Aug 2026 | Ultra-Fluid Spring Physics, Tap-to-Open & Auto-Hide | Synchronized 520f spring physics, tap-to-open apps, inactivity auto-hide timer, landscape mode visibility, and flicker elimination *(Released)* |
-| **v6.1** | Q4 2026 - Q1 2027 | Face Unlock, Custom Sounds & Dynamic Widgets | Face Unlock animation overlay, dynamic Calendar/Reminder glance widgets, and customizable micro-sound packs |
-| **v6.2** | Q1 2027 | System Profiles & Floating Window Polish | Contextual environment profiles (Gaming, Work, Theater, Sleep), advanced Shizuku automation, and freeform docking presets |
-| **v7.0** | Q2 2027 | Ecosystem & Local Cross-Device Sync | Plugin extension architecture and local cross-device status sharing (Bluetooth LE / LAN) with zero cloud dependencies |
+| **v7.0.0** | Sep 2026 | In-Pill Gestures, App Updates Hub, Selective Alerts & Design System | In-Pill gestures & media skip, App Updates & Downloads Hub (15,648+ downloads), selective app alerts modal, unified #D84315 theme, companion placement, iPhone notch mode, developer diagnostics, backup & restore, 13 new screenshots *(Released)* |
+| **v7.1** | Q4 2026 - Q1 2027 | Face Unlock, Custom Sounds & Dynamic Widgets | Face Unlock animation overlay, dynamic Calendar/Reminder glance widgets, and customizable micro-sound packs |
+| **v7.2** | Q1 2027 | System Profiles & Floating Window Polish | Contextual environment profiles (Gaming, Work, Theater, Sleep), advanced Shizuku automation, and freeform docking presets |
+| **v8.0** | Q2 2027 | Ecosystem & Local Cross-Device Sync | Plugin extension architecture and local cross-device status sharing (Bluetooth LE / LAN) with zero cloud dependencies |
 
 *Dates are planning targets. A phase moves forward only after its release gates and automated CI suites are fully validated.*
+
+---
+
+## Released — v7.0.0: In-Pill Gestures, App Updates Hub, Selective Alerts & Design Refresh
+
+Released September 20, 2026.
+
+- **In-Pill Swipe Gestures & Media Control Engine**: Compact collapsed pill independent gesture engine with customizable actions for Swipe Left/Right (track skip or notification cycling), Swipe Up/Down, master toggle, and individual disable controls.
+- **Dedicated App Updates & Downloads Hub**: Specialized settings screen featuring live Total Downloads counter (15,648+), Current Version line (v7.0.0), 1-tap GitHub update checker, in-app changelogs viewer, Top Contributors gallery, and Recent Commits feed.
+- **Selective App Alerts & Sound Manager Modal**: Fast on-demand selective app management modal with search, per-app alert toggles, custom ringtone sound toggles, and island exclusion without heavy upfront package loading.
+- **Unified Deep Burnt-Orange (#D84315) Design System**: Cohesive dark slate and burnt-orange theme across all settings sections with unified Material icon tinting.
+- **Configurable Companion Circle Placement**: Position the multi-tasking companion circle on either the Left or Right of the main pill with anti-overlap layout geometry clamping.
+- **iPhone Notch Mode**: Authentic iPhone-style top-docked notch (`y = 0`) with rounded bottom corners, downward expansion, and complete suppression of the split companion bubble.
+- **Developer Mode & In-App Log Recording**: 7-tap version unlock, in-memory diagnostic ring buffer (3,000 entries), process logcat capture, live status monitor, and Scoped Storage `.txt` report export.
+- **Full Settings Backup & Restore System**: Scoped Storage JSON export/import via Android SAF, atomic single-transaction DataStore restore, factory reset, and bounds clamping.
+- **Bluetooth Battery & Earbuds Alternating Animation**: Dual-path battery percentage extraction via intent extra and reflection, with a smooth 3-second spring transition between live battery gauge and earbuds icon.
+- **Intelligent Notification Cooldown & Anti-Spam Engine**: Sliding window burst detection with customizable quiet duration (1–30 min), trigger threshold (2–10 msgs), and per-app whitelist exclusions.
+- **13 High-Resolution Screenshots**: Refreshed visual documentation capturing every new UI section and feature.
 
 ---
 

@@ -45,14 +45,12 @@ class IslandViewModel(
 
     val visibleNotifications: StateFlow<List<IslandNotification>> = combine(
         notifications,
-        foregroundPackage
-    ) { list, fgPkg ->
-        if (fgPkg.isNullOrEmpty()) {
-            list
-        } else {
-            list.filterNot { notif ->
-                notif.mode == IslandMode.Music && notif.packageName == fgPkg
-            }
+        foregroundPackage,
+        settings
+    ) { list, fgPkg, s ->
+        list.filterNot { notif ->
+            (!s.enableBatteryMode && notif.mode == IslandMode.Battery) ||
+            (!fgPkg.isNullOrEmpty() && notif.mode == IslandMode.Music && notif.packageName == fgPkg)
         }
     }.stateIn(
         scope = viewModelScope,
@@ -88,11 +86,19 @@ class IslandViewModel(
         viewModelScope.launch {
             runSuspendCatchingLogged(TAG, "Auto-expand collector failed") {
                 notificationRepo.autoExpandEvent.collect { key ->
-                    val list = visibleNotifications.value
-                    val index = list.indexOfFirst { it.key == key }
+                    val notif = notifications.value.firstOrNull { it.key == key } ?: return@collect
+                    val isFgMusic = notif.mode == IslandMode.Music &&
+                        !foregroundPackage.value.isNullOrEmpty() &&
+                        notif.packageName == foregroundPackage.value
+                    if (isFgMusic) return@collect
+
+                    val index = notifications.value.indexOfFirst { it.key == key }
                     if (index >= 0) {
                         selectedIndex.value = index
-                        expand()
+                        val isDemo = key.startsWith("demo_")
+                        if (settings.value.autoExpandOnNotification || isDemo) {
+                            expand()
+                        }
                     }
                 }
             }

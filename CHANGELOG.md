@@ -4,6 +4,122 @@ All notable changes to Smart Island should be documented in this file.
 
 The format is inspired by Keep a Changelog, and this project uses the GNU General Public License v3.0.
 
+## [7.0.0] - 2026-09-20
+
+### Major Release Highlights (v7.0.0)
+
+Smart Island **v7.0.0** is a landmark major release delivering comprehensive improvements across gesture controls, layout customization, device safety, app updates, and design aesthetics:
+- **In-Pill Swipe Gestures & Media Controls**: Compact collapsed pill now supports independent left/right/up/down gestures, enabling next/prev song skipping or notification cycling directly on the pill without expanding.
+- **Dedicated App Updates & Downloads Hub**: New dedicated settings section with live Total Downloads statistics (15,648+), in-app GitHub update checker, version insights, top community contributors, and recent commits feed.
+- **Selective App Alerts & Sound Manager**: Redesigned lightweight app alert manager modal that prevents UI stutter by selectively loading apps on-demand, allowing granular notification, sound, and exclusion controls.
+- **Unified Deep Burnt-Orange (`#D84315`) Design System**: Completely renovated settings aesthetics with cohesive dark slate surfaces, burnt-orange accenting, crisp typography, and unified icon tinting (eliminating rainbow clutter).
+- **Configurable Companion Circle Placement**: Position the multi-tasking companion circle on either the Left or Right of the main pill with anti-overlap layout geometry clamping.
+- **iPhone Notch Mode**: Authentic top-docked notch mode (`y = 0`) with curved bottom corners and suppression of the companion split bubble.
+- **Developer Options & System Diagnostics**: 7-tap version unlock, in-memory logcat ring buffer (3,000 entries), and one-tap `.txt` report export via Storage Access Framework.
+- **Full Settings Backup & Restore System**: Atomic JSON backup and restore via Android SAF with bounds validation and factory reset.
+- **13 High-Resolution Screenshots**: Completely refreshed visual documentation capturing every new UI section and feature.
+
+### Added
+
+- **In-Pill Swipe Gestures & Media Control Engine (`IslandOverlayView.kt`, `GesturesSection.kt`, `SmartIslandSettings.kt`, `SmartIslandSettingsRepository.kt`, `SwipeAction.kt`, `ExpandedActions.kt`)**:
+  - **Independent Pill Gesture Master Switch**: Toggle `enablePillSwipeActions` enables or disables swipe gestures on the compact collapsed pill independently from expanded card gestures, preventing accidental swipes while keeping tap-to-expand intact.
+  - **Horizontal Swipe Notification Cycling**: Swiping left or right across the collapsed pill cycles through active notifications in the stack.
+  - **Direct In-Pill Media Track Skip**: Configurable option to map Swipe Left / Swipe Right on the collapsed pill directly to `skipToPrevious` and `skipToNext` for music players (Spotify, YouTube Music, Apple Music, podcasts, system players) without expanding the card.
+  - **4-Directional In-Pill Customization**:
+    - **Swipe Left on Pill**: Previous Notification, Next Notification, Previous Track (`skipToPrevious`), Next Track (`skipToNext`), Play/Pause, Dismiss Current, Open App, Floating Window, Notification Shade, or **Disabled**.
+    - **Swipe Right on Pill**: Next Notification, Previous Notification, Next Track (`skipToNext`), Previous Track (`skipToPrevious`), Play/Pause, Dismiss Current, Open App, Floating Window, Notification Shade, or **Disabled**.
+    - **Swipe Up on Pill**: Dismiss Current Notification, Dismiss All Notifications, Open Notification Shade, or **Disabled**.
+    - **Swipe Down on Pill**: Expand Island, Open Notification Shade, Open App, Floating Window, Dismiss Current, or **Disabled**.
+  - **Individual Gesture Disabling**: Any swipe direction on either the pill or expanded card can be set to **"Disabled"** (`SwipeAction.None`).
+  - **Touch Event Resolution & Velocity Tracking**: Refined `pointerInput` and `detectDragGestures` in `IslandOverlayView.kt` ensuring small-amplitude swipes on compact notch dimensions register reliably without conflicting with click-to-expand.
+
+- **Dedicated App Updates & Downloads Hub (`AppUpdatesSection.kt`, `SmartIslandHomeScreen.kt`, `GitHubApiService.kt`)**:
+  - **Separation into Dedicated Hub**: Separated update checking, download metrics, and GitHub community insights from the About screen into its own clean section.
+  - **Total Downloads Counter Banner**: Prominently displays live total downloads metric (15,648+ downloads) at the very top of the hub.
+  - **Clean Horizontal Layout Hierarchy**:
+    - Line 1: **Current Version** status badge (v7.0.0).
+    - Line 2: **Check for updates** action button triggering real-time GitHub Release API query.
+    - Line 3: **Changelogs** modal button opening complete in-app version release notes.
+  - **Top Contributors Gallery**: Fetches and renders top GitHub repository contributors with avatar thumbnails, contribution counts, and direct profile links.
+  - **Recent Commits Feed**: Dynamic feed showing latest repository commit messages, authors, and timestamps.
+  - **Responsive Horizontal Banner**: Updated Settings Overview card layout to display horizontally in parity with Backup & Restore, About, and Developer Options.
+
+- **Selective App Alerts & Sound Manager Modal (`NotificationsAndPrivacySection.kt`, `AppNotificationSoundManager.kt`)**:
+  - **On-Demand Selective Modal**: Replaced the previous monolithic package list that loaded hundreds of installed apps upfront with a fast, responsive modal dialog triggered via **"Select Apps to Manage"**.
+  - **Instant Search & Filter**: Real-time package/label search bar with zero UI frame drops.
+  - **Granular Per-App Controls**:
+    - **Notification Toggle**: Enable or mute visual island alerts for the selected application.
+    - **Alert Sound Toggle**: Selectively enable or disable custom chime audio for specific applications.
+    - **Exclude from Smart Island**: Completely exclude high-traffic or private apps from surfacing on the island.
+  - **Configured Apps Summary**: Displays list and count of explicitly customized applications with 1-tap removal.
+
+- **Unified Deep Burnt-Orange (`#D84315`) Design System (`Color.kt`, `Theme.kt`, `SmartIslandHomeScreen.kt`, all UI sections)**:
+  - **Curated Palette**: Replaced cluttered rainbow colors with a high-contrast, visually pleasing burnt-orange palette (`#D84315`, `#BF360C`, `#FF7043`, `#FFAB91`) paired with deep dark surfaces (`#121212`, `#1E1E1E`).
+  - **Harmonious Icon Tinting**: Unified tinted Material icons across all settings category cards, action badges, dialogs, and sliders, providing a cohesive, state-of-the-art visual experience.
+  - **Refined Card Typography**: High-contrast white headers (`#FFFFFF`) with subtle slate secondary text (`#B0BEC5`) for effortless readability.
+
+- **Configurable Companion Circle Position (`PositionsSection.kt`, `IslandOverlayView.kt`, `SmartIslandOverlayService.kt`, `SmartIslandSettings.kt`, `SmartIslandSettingsRepository.kt`)**:
+  - **Left or Right Placement Option**: Added `circlePosition` setting (`"right"` vs `"left"`, default `"right"`) allowing users to position the multi-tasking companion circle on either the left or right side of the main pill.
+  - **Optimized for Corner Displays**: Avoids edge crowding and collisions on devices with right-aligned punch-hole cameras (Galaxy S10, Huawei, Honor, etc.) by anchoring the companion circle on the left.
+  - **Dedicated UI Card in Positions & Sizing**: Segmented selector with visual direction icons (`AlignHorizontalLeft` and `AlignHorizontalRight`).
+  - **Symmetric Anti-Collapse Geometry Clamping**: Unified layout math ensuring the companion circle and pill maintain at least `compactGap` (8dp) separation across all screen widths and orientations.
+
+- **iPhone Notch Mode & Companion Circle Elimination (`PositionsSection.kt`, `IslandOverlayView.kt`, `SmartIslandOverlayService.kt`, `SmartIslandSettings.kt`)**:
+  - **Authentic iPhone Notch Docking**: Anchors the island flush against the top display edge (`y = 0`), matching iPhone X through iPhone 14 hardware notches.
+  - **Rounded Bottom Corners**: Seamless zero-radius top corners (`topStart = 0.dp, topEnd = 0.dp`) and curved bottom corners (`bottomStart = cornerRadius.dp, bottomEnd = cornerRadius.dp`).
+  - **Companion Circle Elimination**: Suppresses split companion circle when two or more activities are active, keeping a unified notch footprint.
+  - **Dedicated Card & Preset**: 1-tap **"Apply Recommended iPhone Notch Size"** (175x35dp, y = 0) in Positions & Sizing.
+
+- **Developer Mode & In-App Log Recording & Diagnostic Export (`DeveloperOptionsSection.kt`, `AppLogRecorder.kt`, `AboutSection.kt`, `SmartIslandSettings.kt`)**:
+  - **7-Tap Version Unlock**: Android easter-egg style unlock via 7 taps on App Version in About section.
+  - **In-Memory Ring Buffer (`AppLogRecorder.kt`)**: Thread-safe buffer capturing up to 3,000 diagnostic events, service lifecycles, and exceptions.
+  - **Real-Time Process Logcat Capture**: Extracts app process logcat trace (`logcat -d -v threadtime --pid=$pid`) without elevated permissions.
+  - **Scoped Storage SAF Export**: One-tap export saving diagnostic report (`smartisland_logs_<timestamp>.txt`) via Storage Access Framework.
+  - **1-Tap Share, Copy & Clear**: System share sheet (`ACTION_SEND`), clipboard copying, and live buffer clearing.
+
+- **Full Settings Backup & Restore System (`BackupRestoreSection.kt`, `SmartIslandSettings.kt`, `SmartIslandSettingsRepository.kt`)**:
+  - **Scoped Storage JSON Export (`CreateDocument`)**: Portable JSON export of geometry, dimensions, offsets, corner radii, opacity, shadow elevation, Color Studio palette, App Shortcuts, and Privacy rules.
+  - **Scoped Storage JSON Import (`OpenDocument`)**: Validated configuration import with metadata inspection, dimension bounds clamping, and confirmation dialogs.
+  - **Atomic Single-Transaction Restore**: Applies 40+ preferences atomically in DataStore without UI flicker.
+  - **Factory Reset**: 1-tap reset to default settings with confirmation dialog.
+
+- **Bluetooth Device Battery & Earbuds Alternating Animation (`IslandCollapsedContent.kt`, `BluetoothExpanded.kt`, `SystemEventReceiver.kt`, `SmartIslandSettings.kt`)**:
+  - **Dual-Path Battery Level Extraction**: Broadcast extras (`BATTERY_LEVEL`) with graceful reflection fallback on `device.getBatteryLevel()`.
+  - **Fluid Spring Transition**: 3-second cadence alternating between live battery gauge and earbuds icon using spring physics (`stiffness = 520f`, `dampingRatio = 0.72f`).
+
+- **Intelligent Notification Cooldown & Anti-Spam Engine (`NotificationCooldownManager.kt`, `SmartIslandNotificationListenerService.kt`, `NotificationsAndPrivacySection.kt`, `SmartIslandSettings.kt`)**:
+  - **Sliding Window Burst Detection**: 30-second window rate limiter (e.g. 3 alerts in 30s) cooling down noisy apps.
+  - **Delayed Delivery**: Holds rapid successive spam while buffering the latest alert, surfacing it cleanly after the quiet interval.
+  - **Per-App Whitelist Exclusion**: Whitelist critical messaging/emergency apps from being throttled.
+
+- **13 High-Resolution Screenshots & Visual Documentation Refresh**:
+  - Added 13 new high-resolution screenshots in `assets/screenshots/` showcasing the Home Try It Out lab, Layout Controls, OEM Rules, Live Activities & App Alerts Manager, App Shortcuts Launcher, Virtualized History Log, Appearance & Colors Studio, Gesture Guide & In-Pill Playground, Permissions Setup Center, Backup & Restore, App Updates Hub, Expanded Navigation, and Developer Diagnostics.
+
+### Fixed & Improved
+
+- **In-Pill Swipe Gesture Event Interception (`IslandOverlayView.kt`)**:
+  - Fixed gesture conflict where compact pill click listeners were preempting drag gestures, ensuring horizontal and vertical swipes trigger immediately and accurately.
+- **App Updates & Downloads Layout Alignment (`SmartIslandHomeScreen.kt`)**:
+  - Fixed vertical stacking bug in Settings Overview; App Updates & Downloads now renders as a clean horizontal card aligned with Backup & Restore and About.
+- **Service Connect / Rebind Stale Notification Flooding (`SmartIslandNotificationListenerService.kt`, `NotificationFilter.kt`)**:
+  - On `onListenerConnected()`, only active ongoing notifications (Music, Calls, Timers, Stopwatches, Navigation, Live Activities, Downloads, Hotspot, Recording) are restored; stale standard notifications from the shade are prevented from dumping into the island.
+  - Enforced a 1200ms debounce on alert sound playback and 1500ms debounce on auto-expansion during bursts.
+  - Implemented per-package standard notification coalescing so older messages from the same chat app are replaced rather than creating dozens of pages.
+  - Unconditionally suppressed background sync / polling notifications ("Checking for messages...").
+- **Alarm Classification & Timer Pause Intent Resolution (`TimerStopwatchParser.kt`, `NotificationFilter.kt`, `TimerExpanded.kt`, `StopwatchExpanded.kt`)**:
+  - Added `isAlarm()` check classifying clock alarms as `IslandMode.Notification`, preventing them from hijacking timer/stopwatch UI.
+  - Fixed pause intent resolution to prioritize pause/freeze over stop/cancel, preserving paused timer states.
+- **Bluetooth Watch & Wearable Connection Spam Fix (`SystemEventReceiver.kt`, `NotificationFilter.kt`)**:
+  - Filtered out smartwatches, fitness trackers, and BLE peripherals from triggering audio Bluetooth popups.
+  - Added 30-second debounce per Bluetooth MAC address, preventing reconnect loops (e.g. Galaxy Watch on OneUI) from auto-expanding the island repeatedly.
+- **Do Not Disturb (DND) Compliance (`SmartIslandNotificationListenerService.kt`)**:
+  - Automatically respects system DND suppression flags (`getSuppressionFilterFlags()`) and purges suppressed alerts during Priority, Alarms-only, or Total Silence modes.
+- **Nubia / RedMagic Hardware Optimization (`OemDeviceRules.kt`)**:
+  - Added dedicated under-display camera and punch-hole layout rules for Nubia and RedMagic devices.
+- **100% Localization Parity (`values-zh`, `values-zh-rCN`, `values-pt`, `values-pt-rBR`)**:
+  - Added translations for all v7.0 strings across English, Chinese (Simplified & Regional), and Portuguese (Standard & Brazil).
+- **Version Bump**: Updated application version to **`7.0.0`** (`versionCode 8`).
+
 ## [6.0.0] - 2026-08-29
 
 ### Added

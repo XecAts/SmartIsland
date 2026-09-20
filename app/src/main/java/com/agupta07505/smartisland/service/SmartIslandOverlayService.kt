@@ -50,6 +50,9 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -69,7 +72,7 @@ class SmartIslandOverlayService : AccessibilityService() {
     private var screenStateReceiverRegistered = false
     private var torchCallbackRegistered = false
     private var foregroundStarted = false
-    private var isTouchableRegionSupported = false
+    private val isTouchableRegionSupported = MutableStateFlow(false)
     @Volatile private var destroyed = false
     private var isWindowExpanded: Boolean = false
     private var collapseJob: kotlinx.coroutines.Job? = null
@@ -218,7 +221,7 @@ class SmartIslandOverlayService : AccessibilityService() {
         }
         viewModel = initializedViewModel
         
-        systemEventReceiver = SystemEventReceiver(notificationRepository)
+        systemEventReceiver = SystemEventReceiver(notificationRepository, settingsProvider = { viewModel.settings.value })
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_POWER_CONNECTED)
             addAction(Intent.ACTION_POWER_DISCONNECTED)
@@ -228,6 +231,7 @@ class SmartIslandOverlayService : AccessibilityService() {
             addAction(android.os.PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
             addAction(android.bluetooth.BluetoothDevice.ACTION_ACL_CONNECTED)
             addAction(android.bluetooth.BluetoothDevice.ACTION_ACL_DISCONNECTED)
+            addAction("android.bluetooth.device.action.BATTERY_LEVEL_CHANGED")
         }
         
         // CRASH FIX: Android 13+/14+ requires explicit export flag for system broadcasts
@@ -450,13 +454,18 @@ class SmartIslandOverlayService : AccessibilityService() {
                 isFocusableInTouchMode = true
                 setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
                 setContent {
+                    val fullWidth by isTouchableRegionSupported.collectAsState()
                     OverlayIsland(
                         viewModel = this@SmartIslandOverlayService.viewModel,
                         statusBarHeight = statusBarHeight,
                         onOpenNotification = { notification -> openNotification(notification) },
                         onLaunchApp = { packageName -> launchApp(packageName) },
                         onOpenFloatingWindow = { openCurrentNotificationInFloatingWindow() },
-                        isFullWidth = isTouchableRegionSupported
+                        onOpenNotificationShade = {
+                            performGlobalAction(GLOBAL_ACTION_NOTIFICATIONS)
+                            viewModel.collapse()
+                        },
+                        isFullWidth = fullWidth
                     )
                 }
 
@@ -502,8 +511,11 @@ class SmartIslandOverlayService : AccessibilityService() {
                     val insets = args[0]
                     val isExpanded = viewModel.expanded.value
                     val isGone = view.visibility == android.view.View.GONE
-                    android.util.Log.d(TAG, "onComputeInternalInsets callback: isExpanded=$isExpanded isGone=$isGone")
-                    if (isGone) {
+                    val settingsVal = viewModel.settings.value
+                    val notificationsCount = viewModel.notifications.value.size
+                    val isIdleHidden = settingsVal.hideWhenIdle && notificationsCount == 0 && !settingsVal.enableAppShortcuts
+                    android.util.Log.d(TAG, "onComputeInternalInsets callback: isExpanded=$isExpanded isGone=$isGone isIdleHidden=$isIdleHidden")
+                    if (isGone || isIdleHidden) {
                         setTouchableInsetsMethod.invoke(insets, TOUCHABLE_INSETS_REGION)
                         val region = touchableRegionField.get(insets) as android.graphics.Region
                         region.setEmpty()
@@ -519,26 +531,30 @@ class SmartIslandOverlayService : AccessibilityService() {
                         
                         val density = resources.displayMetrics.density
                         val screenWidth = resources.displayMetrics.widthPixels
-                        val settingsVal = viewModel.settings.value
-                        val notificationsCount = viewModel.notifications.value.size
-                        val isSplitMode = notificationsCount >= 2
+                        val isSplitMode = notificationsCount >= 2 && !settingsVal.enableNotchMode
+                        val isCircleLeft = settingsVal.circlePosition == SmartIslandSettings.CIRCLE_POSITION_LEFT
 
                         val mainWidthPx = settingsVal.width * density
-                        val groupWidthPx = (
-                            settingsVal.width + if (isSplitMode) 8f + settingsVal.height else 0f
-                        ) * density
+                        val circleSizePx = settingsVal.height * density
+                        val compactGapPx = 8f * density
                         val edgePaddingPx = 8f * density
-                        val touchPaddingPx = 6f * density
+                        val touchPaddingXPx = 16f * density
                         val pillHeightPx = (settingsVal.height + 16f) * density
+                        val groupWidthPx = mainWidthPx + if (isSplitMode) compactGapPx + circleSizePx else 0f
 
                         val desiredMainLeftPx = screenWidth / 2f +
                             settingsVal.xOffset * density - mainWidthPx / 2f
-                        val maxMainLeftPx = (screenWidth - groupWidthPx - edgePaddingPx)
-                            .coerceAtLeast(edgePaddingPx)
-                        val mainLeftPx = desiredMainLeftPx.coerceIn(edgePaddingPx, maxMainLeftPx)
-                        val left = (mainLeftPx - touchPaddingPx).toInt()
+                        val (minMainLeftPx, maxMainLeftPx) = when {
+                            !isSplitMode -> edgePaddingPx to (screenWidth - edgePaddingPx - mainWidthPx).coerceAtLeast(edgePaddingPx)
+                            isCircleLeft -> (edgePaddingPx + circleSizePx + compactGapPx) to (screenWidth - edgePaddingPx - mainWidthPx).coerceAtLeast(edgePaddingPx + circleSizePx + compactGapPx)
+                            else -> edgePaddingPx to (screenWidth - edgePaddingPx - groupWidthPx).coerceAtLeast(edgePaddingPx)
+                        }
+                        val mainLeftPx = desiredMainLeftPx.coerceIn(minMainLeftPx, maxMainLeftPx)
+                        val groupStartPx = if (isCircleLeft && isSplitMode) mainLeftPx - compactGapPx - circleSizePx else mainLeftPx
+                        val groupEndPx = if (!isCircleLeft && isSplitMode) mainLeftPx + mainWidthPx + compactGapPx + circleSizePx else mainLeftPx + mainWidthPx
+                        val left = (groupStartPx - touchPaddingXPx).toInt().coerceAtLeast(0)
                         val top = 0
-                        val right = (mainLeftPx + groupWidthPx + touchPaddingPx).toInt()
+                        val right = (groupEndPx + touchPaddingXPx).toInt().coerceAtMost(screenWidth)
                         val bottom = pillHeightPx.toInt()
                         
                         android.util.Log.d(TAG, "onComputeInternalInsets: region set to ($left, $top, $right, $bottom), isSplitMode=$isSplitMode")
@@ -558,7 +574,7 @@ class SmartIslandOverlayService : AccessibilityService() {
                         listenerClass
                     )
                     addListenerMethod.invoke(observer, proxyListener)
-                    isTouchableRegionSupported = true
+                    isTouchableRegionSupported.value = true
                     android.util.Log.d(TAG, "OnComputeInternalInsetsListener successfully registered on live ViewTreeObserver")
                     if (::viewModel.isInitialized && !isWindowExpanded) {
                         updateWindowLayoutParams(false, viewModel.settings.value)
@@ -583,7 +599,7 @@ class SmartIslandOverlayService : AccessibilityService() {
                 })
             }
         } ?: run {
-            isTouchableRegionSupported = false
+            isTouchableRegionSupported.value = false
             android.util.Log.w(TAG, "Touchable region reflection unsupported or blocked, falling back to physical bounds")
         }
     }
@@ -600,14 +616,16 @@ class SmartIslandOverlayService : AccessibilityService() {
         viewModel.isLocked.value = isLocked
         
         val isLandscape = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
-        val isHidden = (!settings.showOnLockScreen && isLocked) || (isLandscape && !settings.showInLandscape)
+        val isIdleHidden = settings.hideWhenIdle && viewModel.notifications.value.isEmpty() && !settings.enableAppShortcuts
+        val isHidden = (!settings.showOnLockScreen && isLocked) || (isLandscape && !settings.showInLandscape) || isIdleHidden
 
         val targetVisibility = if (isHidden) android.view.View.GONE else android.view.View.VISIBLE
         if (view.visibility != targetVisibility) {
             view.visibility = targetVisibility
         }
 
-        val isSplitMode = viewModel.notifications.value.size >= 2
+        val isSplitMode = (viewModel.notifications.value.size >= 2) && !settings.enableNotchMode
+        val isCircleLeft = settings.circlePosition == SmartIslandSettings.CIRCLE_POSITION_LEFT
         val mainWidthPx = settings.width * density
         val circleSizePx = settings.height * density
         val compactGapPx = 8f * density
@@ -615,9 +633,15 @@ class SmartIslandOverlayService : AccessibilityService() {
         val groupWidthPx = mainWidthPx + if (isSplitMode) compactGapPx + circleSizePx else 0f
         
         val desiredMainLeftPx = screenWidthPx / 2f + settings.xOffset * density - mainWidthPx / 2f
-        val maxMainLeftPx = (screenWidthPx - groupWidthPx - edgePaddingPx).coerceAtLeast(edgePaddingPx)
-        val mainLeftPx = desiredMainLeftPx.coerceIn(edgePaddingPx, maxMainLeftPx)
-        val groupCenterPx = mainLeftPx + groupWidthPx / 2f
+        val (minMainLeftPx, maxMainLeftPx) = when {
+            !isSplitMode -> edgePaddingPx to (screenWidthPx - edgePaddingPx - mainWidthPx).coerceAtLeast(edgePaddingPx)
+            isCircleLeft -> (edgePaddingPx + circleSizePx + compactGapPx) to (screenWidthPx - edgePaddingPx - mainWidthPx).coerceAtLeast(edgePaddingPx + circleSizePx + compactGapPx)
+            else -> edgePaddingPx to (screenWidthPx - edgePaddingPx - groupWidthPx).coerceAtLeast(edgePaddingPx)
+        }
+        val mainLeftPx = desiredMainLeftPx.coerceIn(minMainLeftPx, maxMainLeftPx)
+        val groupStartPx = if (isCircleLeft && isSplitMode) mainLeftPx - compactGapPx - circleSizePx else mainLeftPx
+        val groupEndPx = if (!isCircleLeft && isSplitMode) mainLeftPx + mainWidthPx + compactGapPx + circleSizePx else mainLeftPx + mainWidthPx
+        val groupCenterPx = (groupStartPx + groupEndPx) / 2f
         val windowXPx = (groupCenterPx - screenWidthPx / 2f).toInt()
 
         val h = if (expanded) {
@@ -625,7 +649,7 @@ class SmartIslandOverlayService : AccessibilityService() {
         } else {
             ((settings.height + 16f) * density).toInt()
         }
-        val w = if (expanded || isTouchableRegionSupported) {
+        val w = if (expanded || isTouchableRegionSupported.value) {
             WindowManager.LayoutParams.MATCH_PARENT
         } else {
             (groupWidthPx + 32f * density).toInt()
@@ -638,8 +662,8 @@ class SmartIslandOverlayService : AccessibilityService() {
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
             WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
 
-        val currentX = if (expanded || isTouchableRegionSupported) 0 else windowXPx
-        val currentY = settings.yOffset.dpToPx()
+        val currentX = if (expanded || isTouchableRegionSupported.value) 0 else windowXPx
+        val currentY = if (settings.enableNotchMode) 0 else settings.yOffset.dpToPx()
         val currentSoftInputMode = if (isInput) {
             WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE or
                 WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
@@ -670,6 +694,9 @@ class SmartIslandOverlayService : AccessibilityService() {
             x = currentX
             y = currentY
             softInputMode = currentSoftInputMode
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
         }
         lastParams = params
         runCatchingLogged(TAG, "Failed to update view layout") { 
@@ -697,7 +724,8 @@ class SmartIslandOverlayService : AccessibilityService() {
     private fun collapsedParams(settings: SmartIslandSettings): WindowManager.LayoutParams {
         val density = resources.displayMetrics.density
         val screenWidthPx = resources.displayMetrics.widthPixels.toFloat()
-        val isSplitMode = if (::viewModel.isInitialized) viewModel.notifications.value.size >= 2 else false
+        val isSplitMode = if (settings.enableNotchMode) false else (if (::viewModel.isInitialized) viewModel.notifications.value.size >= 2 else false)
+        val isCircleLeft = settings.circlePosition == SmartIslandSettings.CIRCLE_POSITION_LEFT
         val mainWidthPx = settings.width * density
         val circleSizePx = settings.height * density
         val compactGapPx = 8f * density
@@ -705,12 +733,18 @@ class SmartIslandOverlayService : AccessibilityService() {
         val groupWidthPx = mainWidthPx + if (isSplitMode) compactGapPx + circleSizePx else 0f
         
         val desiredMainLeftPx = screenWidthPx / 2f + settings.xOffset * density - mainWidthPx / 2f
-        val maxMainLeftPx = (screenWidthPx - groupWidthPx - edgePaddingPx).coerceAtLeast(edgePaddingPx)
-        val mainLeftPx = desiredMainLeftPx.coerceIn(edgePaddingPx, maxMainLeftPx)
-        val groupCenterPx = mainLeftPx + groupWidthPx / 2f
+        val (minMainLeftPx, maxMainLeftPx) = when {
+            !isSplitMode -> edgePaddingPx to (screenWidthPx - edgePaddingPx - mainWidthPx).coerceAtLeast(edgePaddingPx)
+            isCircleLeft -> (edgePaddingPx + circleSizePx + compactGapPx) to (screenWidthPx - edgePaddingPx - mainWidthPx).coerceAtLeast(edgePaddingPx + circleSizePx + compactGapPx)
+            else -> edgePaddingPx to (screenWidthPx - edgePaddingPx - groupWidthPx).coerceAtLeast(edgePaddingPx)
+        }
+        val mainLeftPx = desiredMainLeftPx.coerceIn(minMainLeftPx, maxMainLeftPx)
+        val groupStartPx = if (isCircleLeft && isSplitMode) mainLeftPx - compactGapPx - circleSizePx else mainLeftPx
+        val groupEndPx = if (!isCircleLeft && isSplitMode) mainLeftPx + mainWidthPx + compactGapPx + circleSizePx else mainLeftPx + mainWidthPx
+        val groupCenterPx = (groupStartPx + groupEndPx) / 2f
         val windowXPx = (groupCenterPx - screenWidthPx / 2f).toInt()
         
-        val w = if (isTouchableRegionSupported) {
+        val w = if (isTouchableRegionSupported.value) {
             WindowManager.LayoutParams.MATCH_PARENT
         } else {
             (groupWidthPx + 32f * density).toInt()
@@ -729,8 +763,11 @@ class SmartIslandOverlayService : AccessibilityService() {
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
-            x = if (isTouchableRegionSupported) 0 else windowXPx
-            y = settings.yOffset.dpToPx()
+            x = if (isTouchableRegionSupported.value) 0 else windowXPx
+            y = if (settings.enableNotchMode) 0 else settings.yOffset.dpToPx()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            }
         }.also {
             lastParams = it
         }

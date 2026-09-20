@@ -65,13 +65,28 @@ fun TimerExpanded(
     val context = LocalContext.current
     val timerColor = Color(settings.timerColor)
 
+    val resumeKeywords = remember {
+        listOf("resume", "start", "play", "continue", "unpause", "reanudar", "reprendre", "weiter", "riprendi", "continuar", "शुरू", "继续", "再開", "возобновить")
+    }
+    val pauseKeywords = remember {
+        listOf("pause", "pausa", "pausar", "sospendi", "interrompi", "onderbreek", "stoppa", "रोकें", "暂停", "一時停止", "пауза")
+    }
+    val pausedKeywords = remember {
+        listOf("paused", "pause", "en pause", "pausado", "pausada", "angehalten", "sospeso", "sospesa", "रोक दिया गया", "已暂停", "一時停止中", "приостановлено")
+    }
+    val destructiveKeywords = remember {
+        listOf("stop", "reset", "cancel", "delete", "dismiss", "clear", "annuler", "abbrechen", "eliminar", "borrar")
+    }
+
     val isNotificationPaused = remember(notification?.key, notification?.actionIntents, notification?.text, notification?.title) {
         val actions = notification?.actionIntents.orEmpty()
-        actions.any {
-            val t = it.title.lowercase()
-            t.contains("resume") || t.contains("start") || t.contains("play") || t.contains("continue") || t.contains("unpause")
-        } || notification?.text?.contains("pause", ignoreCase = true) == true ||
-            notification?.title?.contains("pause", ignoreCase = true) == true
+        actions.any { act ->
+            val t = act.title.lowercase()
+            resumeKeywords.any { t.contains(it) }
+        } || pausedKeywords.any {
+            notification?.text?.contains(it, ignoreCase = true) == true ||
+            notification?.title?.contains(it, ignoreCase = true) == true
+        }
     }
 
     var isPaused by remember(notification?.key, isNotificationPaused) {
@@ -82,13 +97,28 @@ fun TimerExpanded(
         mutableStateOf(notification?.timeMillis ?: (System.currentTimeMillis() + 300000L))
     }
 
-    var remainingSec by remember(notification?.key, targetTime, isPaused) {
-        val rem = if (targetTime > System.currentTimeMillis()) {
-            ((targetTime - System.currentTimeMillis() + 500L) / 1000L).coerceAtLeast(0L)
+    var remainingSec by remember(notification?.key) {
+        val parsed = notification?.let { TimerStopwatchParser.parseTimerRemainingSeconds(it) }
+        val rem = if (parsed != null && parsed > 0) {
+            parsed
         } else {
-            0L
+            val t = notification?.timeMillis ?: (System.currentTimeMillis() + 300000L)
+            if (t > System.currentTimeMillis()) {
+                ((t - System.currentTimeMillis() + 500L) / 1000L).coerceAtLeast(0L)
+            } else {
+                0L
+            }
         }
         mutableStateOf(rem)
+    }
+
+    LaunchedEffect(notification?.text, notification?.title) {
+        if (isPaused && notification != null) {
+            val parsed = TimerStopwatchParser.parseTimerRemainingSeconds(notification)
+            if (parsed != null && parsed > 0) {
+                remainingSec = parsed
+            }
+        }
     }
 
     LaunchedEffect(notification?.key, targetTime, isPaused) {
@@ -197,15 +227,21 @@ fun TimerExpanded(
         ) {
             // 1. Pause / Resume Button
             val pauseAction = if (isPaused) {
-                notification?.actionIntents?.firstOrNull {
-                    val t = it.title.lowercase()
-                    t.contains("resume") || t.contains("start") || t.contains("play") || t.contains("continue") || t.contains("unpause")
-                } ?: notification?.actionIntents?.firstOrNull()
+                notification?.actionIntents?.firstOrNull { act ->
+                    val t = act.title.lowercase()
+                    resumeKeywords.any { t.contains(it) }
+                } ?: notification?.actionIntents?.firstOrNull { act ->
+                    val t = act.title.lowercase()
+                    !destructiveKeywords.any { t.contains(it) } && !t.contains("+1") && !t.contains("add")
+                }
             } else {
-                notification?.actionIntents?.firstOrNull {
-                    val t = it.title.lowercase()
-                    t.contains("pause")
-                } ?: notification?.actionIntents?.firstOrNull()
+                notification?.actionIntents?.firstOrNull { act ->
+                    val t = act.title.lowercase()
+                    pauseKeywords.any { t.contains(it) }
+                } ?: notification?.actionIntents?.firstOrNull { act ->
+                    val t = act.title.lowercase()
+                    !destructiveKeywords.any { t.contains(it) } && !t.contains("+1") && !t.contains("add")
+                }
             }
 
             Box(
@@ -220,22 +256,22 @@ fun TimerExpanded(
 
                         if (pauseAction?.pendingIntent != null && notification != null) {
                             triggerAction(context, notification.packageName, pauseAction.pendingIntent, pauseAction.title, notification.contentIntent)
-                        } else if (notification != null) {
+                        }
+                        if (notification != null) {
                             val repo = SmartIslandRepositories.notificationRepository(context)
-                            val updatedActions = if (newPaused) {
-                                listOf(
-                                    com.agupta07505.smartisland.model.IslandNotificationAction("Resume", null),
-                                    com.agupta07505.smartisland.model.IslandNotificationAction("Reset", null)
-                                )
-                            } else {
-                                listOf(
-                                    com.agupta07505.smartisland.model.IslandNotificationAction("Pause", null),
-                                    com.agupta07505.smartisland.model.IslandNotificationAction("Reset", null)
-                                )
+                            val updatedActions = notification.actionIntents.map { act ->
+                                val t = act.title.lowercase()
+                                if (newPaused && pauseKeywords.any { t.contains(it) }) {
+                                    act.copy(title = "Resume")
+                                } else if (!newPaused && resumeKeywords.any { t.contains(it) }) {
+                                    act.copy(title = "Pause")
+                                } else {
+                                    act
+                                }
                             }
                             repo.postNotification(
                                 notification.copy(
-                                    title = if (newPaused) "Timer (Paused)" else "Timer",
+                                    title = if (newPaused) "${notification.title.replace(" (Paused)", "")} (Paused)" else notification.title.replace(" (Paused)", ""),
                                     text = TimerStopwatchParser.formatTime(remainingSec),
                                     timeMillis = System.currentTimeMillis() + remainingSec * 1000L,
                                     actionIntents = updatedActions
@@ -254,9 +290,9 @@ fun TimerExpanded(
             }
 
             // 2. Reset / Stop / Cancel Button
-            val stopAction = notification?.actionIntents?.firstOrNull {
-                val t = it.title.lowercase()
-                t.contains("stop") || t.contains("reset") || t.contains("cancel") || t.contains("delete") || t.contains("dismiss")
+            val stopAction = notification?.actionIntents?.firstOrNull { act ->
+                val t = act.title.lowercase()
+                destructiveKeywords.any { t.contains(it) }
             }
             Box(
                 modifier = Modifier

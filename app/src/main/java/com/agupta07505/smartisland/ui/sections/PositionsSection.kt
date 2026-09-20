@@ -8,7 +8,9 @@
 package com.agupta07505.smartisland.ui.sections
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -38,44 +40,45 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import com.agupta07505.smartisland.R
 import com.agupta07505.smartisland.data.SmartIslandSettings
 import com.agupta07505.smartisland.data.SmartIslandSettingsRepository
 import com.agupta07505.smartisland.ui.SliderSettingItem
+import com.agupta07505.smartisland.ui.bounceClick
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @Composable
 fun PositionsSection(
     settings: SmartIslandSettings,
-    repository: SmartIslandSettingsRepository
+    repository: SmartIslandSettingsRepository,
+    onNavigateToBackup: () -> Unit = {}
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val windowInfo = LocalWindowInfo.current
-    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
 
     var localWidth by remember(settings.width) { mutableFloatStateOf(settings.width) }
     var localHeight by remember(settings.height) { mutableFloatStateOf(settings.height) }
@@ -83,9 +86,22 @@ fun PositionsSection(
     var localYOffset by remember(settings.yOffset) { mutableFloatStateOf(settings.yOffset) }
     var localCornerRadius by remember(settings.cornerRadius) { mutableFloatStateOf(settings.cornerRadius) }
     var localOpacity by remember(settings.opacity) { mutableFloatStateOf(settings.opacity) }
+    var localShadowElevation by remember(settings.shadowElevation) { mutableFloatStateOf(settings.shadowElevation) }
+    var showPillColorDialog by remember { mutableStateOf(false) }
 
-    // Dynamically calculate responsive notch coordinates for the current device screen
-    val screenWidthDp = with(density) { windowInfo.containerSize.width.toDp().value }
+    if (showPillColorDialog) {
+        RgbColorPickerDialog(
+            title = stringResource(R.string.color_pill_background),
+            initialColor = settings.pillColor,
+            onDismiss = { showPillColorDialog = false },
+            onSave = { color ->
+                showPillColorDialog = false
+                scope.launch { repository.setPillColor(color) }
+            }
+        )
+    }
+
+    val screenWidthDp = configuration.screenWidthDp.toFloat()
     val calculatedLeftX = (-(screenWidthDp / 2f - 40f)).coerceIn(
         SmartIslandSettings.MIN_X_OFFSET,
         -30f
@@ -96,188 +112,332 @@ fun PositionsSection(
     )
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        // Card 1: Quick Responsive Layout Presets
+        // 1. Sleek Mode Switcher (Pill vs Notch)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            val isNotch = settings.enableNotchMode
+            // Pill Tab
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (!isNotch) MaterialTheme.colorScheme.surface else Color.Transparent)
+                    .bounceClick {
+                        if (isNotch) {
+                            scope.launch {
+                                repository.setEnableNotchMode(false)
+                                repository.setPosition(
+                                    width = 112f,
+                                    height = 34f,
+                                    xOffset = 0f,
+                                    yOffset = 10f
+                                )
+                                repository.setCornerRadius(20f)
+                            }
+                            Toast.makeText(context, context.getString(R.string.toast_notch_mode_disabled), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Smartphone,
+                        contentDescription = null,
+                        tint = if (!isNotch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.preset_compact_pill),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (!isNotch) FontWeight.Bold else FontWeight.Medium,
+                        color = if (!isNotch) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Notch Tab
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (isNotch) MaterialTheme.colorScheme.surface else Color.Transparent)
+                    .bounceClick {
+                        if (!isNotch) {
+                            scope.launch {
+                                repository.setEnableNotchMode(true)
+                                repository.setPosition(
+                                    width = 175f,
+                                    height = 35f,
+                                    xOffset = 0f,
+                                    yOffset = 0f
+                                )
+                                repository.setCornerRadius(20f)
+                            }
+                            Toast.makeText(context, context.getString(R.string.toast_notch_mode_enabled), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.FitScreen,
+                        contentDescription = null,
+                        tint = if (isNotch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.notch_mode_card_title),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (isNotch) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isNotch) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        // 2. Quick Layout Presets Grid
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.presets_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(R.string.presets_desc, screenWidthDp.toInt()),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.presets_title).uppercase(),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = 0.8.sp
+                    )
+                    Text(
+                        text = "${screenWidthDp.toInt()} dp",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
 
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
-
-                // Presets 2x2 Responsive Grid
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    // Row 1: Center Hole & Wide Island
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        val isCenterSelected = abs(settings.xOffset) < 5f && abs(settings.width - 112f) < 8f
-                        PresetCardItem(
-                            title = stringResource(R.string.preset_center_hole),
-                            subtitle = stringResource(R.string.preset_center_hole_desc),
-                            icon = Icons.Rounded.CenterFocusStrong,
-                            isSelected = isCenterSelected,
-                            onClick = {
-                                scope.launch {
-                                    repository.setPosition(
-                                        width = 112f,
-                                        height = 34f,
-                                        xOffset = 0f,
-                                        yOffset = 10f
-                                    )
-                                    repository.setCornerRadius(20f)
-                                }
-                                Toast.makeText(context, context.getString(R.string.toast_applied_center_preset), Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        val isWideSelected = abs(settings.xOffset) < 5f && abs(settings.width - 150f) < 8f
-                        PresetCardItem(
-                            title = stringResource(R.string.preset_wide_island),
-                            subtitle = stringResource(R.string.preset_wide_island_desc),
-                            icon = Icons.Rounded.FitScreen,
-                            isSelected = isWideSelected,
-                            onClick = {
-                                scope.launch {
-                                    repository.setPosition(
-                                        width = 150f,
-                                        height = 38f,
-                                        xOffset = 0f,
-                                        yOffset = 12f
-                                    )
-                                    repository.setCornerRadius(22f)
-                                }
-                                Toast.makeText(context, context.getString(R.string.toast_applied_wide_preset), Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    // Row 2: Left Corner & Right Corner
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        val isLeftSelected = settings.xOffset < -30f
-                        PresetCardItem(
-                            title = stringResource(R.string.preset_left_corner),
-                            subtitle = stringResource(R.string.preset_left_corner_desc),
-                            icon = Icons.AutoMirrored.Rounded.AlignHorizontalLeft,
-                            isSelected = isLeftSelected,
-                            onClick = {
-                                scope.launch {
-                                    repository.setPosition(
-                                        width = 105f,
-                                        height = 34f,
-                                        xOffset = calculatedLeftX,
-                                        yOffset = 10f
-                                    )
-                                    repository.setCornerRadius(20f)
-                                }
-                                Toast.makeText(context, context.getString(R.string.toast_applied_left_preset, calculatedLeftX.toInt()), Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-
-                        val isRightSelected = settings.xOffset > 30f
-                        PresetCardItem(
-                            title = stringResource(R.string.preset_right_corner),
-                            subtitle = stringResource(R.string.preset_right_corner_desc),
-                            icon = Icons.AutoMirrored.Rounded.AlignHorizontalRight,
-                            isSelected = isRightSelected,
-                            onClick = {
-                                scope.launch {
-                                    repository.setPosition(
-                                        width = 105f,
-                                        height = 34f,
-                                        xOffset = calculatedRightX,
-                                        yOffset = 10f
-                                    )
-                                    repository.setCornerRadius(20f)
-                                }
-                                Toast.makeText(context, context.getString(R.string.toast_applied_right_preset, calculatedRightX.toInt()), Toast.LENGTH_SHORT).show()
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    // Row 3: Compact Pill
-                    val isCompactSelected = abs(settings.xOffset) < 5f && abs(settings.width - 92f) < 6f
-                    PresetCardItem(
-                        title = stringResource(R.string.preset_compact_pill),
-                        subtitle = stringResource(R.string.preset_compact_pill_desc),
-                        icon = Icons.Rounded.Smartphone,
-                        isSelected = isCompactSelected,
+                // Row 1: Center Hole & Wide Island
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val isCenterSelected = abs(settings.xOffset) < 5f && abs(settings.width - 112f) < 8f
+                    PresetChipItem(
+                        title = stringResource(R.string.preset_center_hole),
+                        icon = Icons.Rounded.CenterFocusStrong,
+                        isSelected = isCenterSelected,
                         onClick = {
                             scope.launch {
                                 repository.setPosition(
-                                    width = 92f,
-                                    height = 30f,
+                                    width = 112f,
+                                    height = 34f,
                                     xOffset = 0f,
-                                    yOffset = 8f
+                                    yOffset = 10f
                                 )
-                                repository.setCornerRadius(18f)
+                                repository.setCornerRadius(20f)
                             }
-                            Toast.makeText(context, context.getString(R.string.toast_applied_compact_preset), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.toast_applied_center_preset), Toast.LENGTH_SHORT).show()
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    val isWideSelected = abs(settings.xOffset) < 5f && abs(settings.width - 150f) < 8f
+                    PresetChipItem(
+                        title = stringResource(R.string.preset_wide_island),
+                        icon = Icons.Rounded.FitScreen,
+                        isSelected = isWideSelected,
+                        onClick = {
+                            scope.launch {
+                                repository.setPosition(
+                                    width = 150f,
+                                    height = 38f,
+                                    xOffset = 0f,
+                                    yOffset = 12f
+                                )
+                                repository.setCornerRadius(22f)
+                            }
+                            Toast.makeText(context, context.getString(R.string.toast_applied_wide_preset), Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // Row 2: Left Corner & Right Corner
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val isLeftSelected = settings.xOffset < -30f
+                    PresetChipItem(
+                        title = stringResource(R.string.preset_left_corner),
+                        icon = Icons.AutoMirrored.Rounded.AlignHorizontalLeft,
+                        isSelected = isLeftSelected,
+                        onClick = {
+                            scope.launch {
+                                repository.setPosition(
+                                    width = 105f,
+                                    height = 34f,
+                                    xOffset = calculatedLeftX,
+                                    yOffset = 10f
+                                )
+                                repository.setCornerRadius(20f)
+                            }
+                            Toast.makeText(context, context.getString(R.string.toast_applied_left_preset, calculatedLeftX.toInt()), Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    val isRightSelected = settings.xOffset > 30f
+                    PresetChipItem(
+                        title = stringResource(R.string.preset_right_corner),
+                        icon = Icons.AutoMirrored.Rounded.AlignHorizontalRight,
+                        isSelected = isRightSelected,
+                        onClick = {
+                            scope.launch {
+                                repository.setPosition(
+                                    width = 105f,
+                                    height = 34f,
+                                    xOffset = calculatedRightX,
+                                    yOffset = 10f
+                                )
+                                repository.setCornerRadius(20f)
+                            }
+                            Toast.makeText(context, context.getString(R.string.toast_applied_right_preset, calculatedRightX.toInt()), Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
         }
 
-        // Card 2: Precision Dimensions & Offsets
+        // 3. Companion Circle Position (Pill Mode only)
+        if (!settings.enableNotchMode) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.circle_position_card_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.circle_position_card_desc),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    val isLeft = settings.circlePosition == SmartIslandSettings.CIRCLE_POSITION_LEFT
+                    Row(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .padding(2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (isLeft) MaterialTheme.colorScheme.primary else Color.Transparent)
+                                .bounceClick {
+                                    scope.launch { repository.setCirclePosition(SmartIslandSettings.CIRCLE_POSITION_LEFT) }
+                                }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.circle_position_left),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isLeft) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(if (!isLeft) MaterialTheme.colorScheme.primary else Color.Transparent)
+                                .bounceClick {
+                                    scope.launch { repository.setCirclePosition(SmartIslandSettings.CIRCLE_POSITION_RIGHT) }
+                                }
+                                .padding(horizontal = 10.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.circle_position_right),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (!isLeft) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Precision Tuning Sliders Card
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
-            Column(Modifier.padding(20.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
                 Text(
-                    text = stringResource(R.string.precision_tuning_title),
-                    style = MaterialTheme.typography.titleMedium,
+                    text = stringResource(R.string.precision_tuning_title).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = stringResource(R.string.precision_tuning_desc),
-                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 2.dp, bottom = 12.dp)
+                    letterSpacing = 0.8.sp,
+                    modifier = Modifier.padding(bottom = 6.dp)
                 )
 
                 SliderSettingItem(
@@ -287,7 +447,7 @@ fun PositionsSection(
                     onValueChange = { localWidth = it },
                     onValueChangeFinished = { scope.launch { repository.setWidth(localWidth) } }
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
 
                 SliderSettingItem(
                     label = stringResource(R.string.slider_island_height),
@@ -296,7 +456,7 @@ fun PositionsSection(
                     onValueChange = { localHeight = it },
                     onValueChangeFinished = { scope.launch { repository.setHeight(localHeight) } }
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
 
                 SliderSettingItem(
                     label = stringResource(R.string.slider_horizontal_offset),
@@ -305,16 +465,52 @@ fun PositionsSection(
                     onValueChange = { localXOffset = it },
                     onValueChangeFinished = { scope.launch { repository.setXOffset(localXOffset) } }
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
 
-                SliderSettingItem(
-                    label = stringResource(R.string.slider_vertical_offset),
-                    value = localYOffset,
-                    range = SmartIslandSettings.MIN_Y_OFFSET..SmartIslandSettings.MAX_Y_OFFSET,
-                    onValueChange = { localYOffset = it },
-                    onValueChangeFinished = { scope.launch { repository.setYOffset(localYOffset) } }
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                if (settings.enableNotchMode) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.slider_vertical_offset),
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = stringResource(R.string.y_offset_locked_notch_mode),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(6.dp),
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                        ) {
+                            Text(
+                                text = "0 dp",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
+                        }
+                    }
+                } else {
+                    SliderSettingItem(
+                        label = stringResource(R.string.slider_vertical_offset),
+                        value = localYOffset,
+                        range = SmartIslandSettings.MIN_Y_OFFSET..SmartIslandSettings.MAX_Y_OFFSET,
+                        onValueChange = { localYOffset = it },
+                        onValueChangeFinished = { scope.launch { repository.setYOffset(localYOffset) } }
+                    )
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
 
                 SliderSettingItem(
                     label = stringResource(R.string.slider_corner_radius),
@@ -323,8 +519,32 @@ fun PositionsSection(
                     onValueChange = { localCornerRadius = it },
                     onValueChangeFinished = { scope.launch { repository.setCornerRadius(localCornerRadius) } }
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+            }
+        }
 
+        // 5. Appearance & Behavior Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.category_appearance_controls).uppercase(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.8.sp,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+
+                // Opacity Slider + Quick Chips
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -341,10 +561,9 @@ fun PositionsSection(
                         onValueChangeFinished = { scope.launch { repository.setOpacity(localOpacity) } }
                     )
 
-                    // Quick Opacity Preset Chips
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         listOf(
                             1.0f to "100%",
@@ -353,55 +572,95 @@ fun PositionsSection(
                             0.50f to "50%"
                         ).forEach { (targetVal, label) ->
                             val isSelected = abs(localOpacity - targetVal) < 0.04f
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                                border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+                            Box(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .clickable {
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                                    .border(0.5.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                    .bounceClick {
                                         localOpacity = targetVal
                                         scope.launch { repository.setOpacity(targetVal) }
                                     }
+                                    .padding(vertical = 6.dp),
+                                contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = label,
                                     style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier
-                                        .padding(vertical = 6.dp)
-                                        .fillMaxWidth(),
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
                     }
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f), modifier = Modifier.padding(vertical = 4.dp))
 
+                // Pill Background Color
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp),
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.color_pill_background),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.color_pill_background_desc),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.width(12.dp))
+
+                    val pillColorObj = Color(settings.pillColor)
+                    val hexLabel = String.format("#%06X", (settings.pillColor and 0xFFFFFFL))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = pillColorObj,
+                        border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outlineVariant),
+                        modifier = Modifier
+                            .bounceClick { showPillColorDialog = true }
+                    ) {
+                        Text(
+                            text = hexLabel,
+                            color = if (pillColorObj.red * 0.299 + pillColorObj.green * 0.587 + pillColorObj.blue * 0.114 > 0.5) Color.Black else Color.White,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
+                    }
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                // Shadow Toggle & Elevation
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = stringResource(R.string.toggle_drop_shadow_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-                        Spacer(Modifier.height(2.dp))
                         Text(
                             text = stringResource(R.string.toggle_drop_shadow_desc),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    Spacer(Modifier.width(12.dp))
                     Switch(
                         checked = settings.enableShadow,
                         onCheckedChange = { checked ->
@@ -410,18 +669,119 @@ fun PositionsSection(
                     )
                 }
 
-                Spacer(Modifier.height(14.dp))
-                OutlinedButton(
-                    onClick = {
-                        scope.launch { repository.resetPosition() }
-                        Toast.makeText(context, context.getString(R.string.toast_reset_position), Toast.LENGTH_SHORT).show()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                AnimatedVisibility(visible = settings.enableShadow) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SliderSettingItem(
+                            label = stringResource(R.string.slider_shadow_elevation),
+                            value = localShadowElevation,
+                            range = SmartIslandSettings.MIN_SHADOW_ELEVATION..SmartIslandSettings.MAX_SHADOW_ELEVATION,
+                            suffix = " dp",
+                            step = 1f,
+                            onValueChange = { localShadowElevation = it },
+                            onValueChangeFinished = {
+                                scope.launch { repository.setShadowElevation(localShadowElevation) }
+                            }
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            listOf(
+                                6f to stringResource(R.string.shadow_subtle),
+                                10f to stringResource(R.string.shadow_medium),
+                                14f to stringResource(R.string.shadow_standard),
+                                22f to stringResource(R.string.shadow_deep)
+                            ).forEach { (targetVal, label) ->
+                                val isSelected = abs(localShadowElevation - targetVal) < 0.5f
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                                        .border(0.5.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                        .bounceClick {
+                                            localShadowElevation = targetVal
+                                            scope.launch { repository.setShadowElevation(targetVal) }
+                                        }
+                                        .padding(vertical = 6.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = "${targetVal.toInt()}dp",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                // Landscape Toggle
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Rounded.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(stringResource(R.string.btn_reset_position), fontWeight = FontWeight.SemiBold)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.toggle_show_in_landscape_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.toggle_show_in_landscape_desc),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = settings.showInLandscape,
+                        onCheckedChange = { checked ->
+                            scope.launch { repository.setShowInLandscape(checked) }
+                        }
+                    )
+                }
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
+                // Auto-Expand Toggle
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = stringResource(R.string.toggle_auto_expand_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(R.string.toggle_auto_expand_desc),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = settings.autoExpandOnNotification,
+                        onCheckedChange = { checked ->
+                            scope.launch { repository.setAutoExpandOnNotification(checked) }
+                        }
+                    )
                 }
             }
         }
@@ -429,20 +789,19 @@ fun PositionsSection(
 }
 
 @Composable
-private fun PresetCardItem(
+private fun PresetChipItem(
     title: String,
-    subtitle: String,
     icon: ImageVector,
     isSelected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val borderColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f),
         label = "presetBorder"
     )
     val bgColor by animateColorAsState(
-        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
         label = "presetBg"
     )
     val iconTint by animateColorAsState(
@@ -452,55 +811,46 @@ private fun PresetCardItem(
 
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(12.dp))
             .background(bgColor)
-            .border(if (isSelected) 1.5.dp else 1.dp, borderColor, RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(14.dp)
+            .border(if (isSelected) 1.5.dp else 0.5.dp, borderColor, RoundedCornerShape(12.dp))
+            .bounceClick(onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(iconTint.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(34.dp)
-                        .clip(CircleShape)
-                        .background(iconTint.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = iconTint,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-
-                if (isSelected) {
-                    Icon(
-                        imageVector = Icons.Rounded.CheckCircle,
-                        contentDescription = "Active",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTint,
+                    modifier = Modifier.size(16.dp)
+                )
             }
 
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 14.sp
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Rounded.CheckCircle,
+                    contentDescription = "Active",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }

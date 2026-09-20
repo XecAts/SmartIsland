@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Current release: v6.0.0</strong>
+  <strong>Current release: v7.0.0</strong>
 </p>
 
 <p align="center">
@@ -23,7 +23,7 @@
   <a href="#downloads--safety">Downloads</a> |
   <a href="#screenshots">Screenshots</a> |
   <a href="#features">Features</a> |
-  <a href="#gesture-guide">5-Gesture Guide</a> |
+  <a href="#gesture-guide">Gesture Guide</a> |
   <a href="#getting-started">Getting Started</a> |
   <a href="#privacy-and-permissions">Privacy</a> |
   <a href="ROADMAP.md">Roadmap</a> |
@@ -43,7 +43,7 @@ The project is designed to be 100% transparent, hackable, and privacy-conscious:
 
 ## Downloads & Safety
 
-* **Download APK**: Obtain the pre-compiled APK directly from the [GitHub Releases (v6.0.0)](https://github.com/agupta07505/SmartIsland/releases/latest) page.
+* **Download APK**: Obtain the pre-compiled APK directly from the [GitHub Releases (v7.0.0)](https://github.com/agupta07505/SmartIsland/releases/latest) page.
 * **Total Downloads**: ![Total Downloads](https://img.shields.io/github/downloads/agupta07505/SmartIsland/total?color=2ea44f&logo=github)
 * **Telegram Channel**: Join our active community at [telegram.me/SmartIslandApp](https://telegram.me/SmartIslandApp) to suggest features, get support, and discuss updates.
 * **Security Verification**: To ensure complete safety, inspect packages via [VirusTotal](https://www.virustotal.com/gui/file/c07da408e7fa3e3fdeb25ec6415af07f1d56eff099840221138e9364c6065102/details) or review automatic GitHub Actions CI builds.
@@ -53,31 +53,28 @@ The project is designed to be 100% transparent, hackable, and privacy-conscious:
 ## Screenshots
 
 <p align="center">
-  <img src="/assets/screenshots/01_studio_simulation_lab.jpg" width="24%" alt="Studio Simulation Lab" />
-  <img src="/assets/screenshots/02_notch_layout_presets.jpg" width="24%" alt="Notch & Layout Presets" />
-  <img src="/assets/screenshots/03_precision_sizing_controls.jpg" width="24%" alt="Precision Sizing & Drop Shadow" />
-  <img src="/assets/screenshots/04_features_hub.jpg" width="24%" alt="Features & Settings Hub" />
+  <img src="assets/screenshots/01_home_try_it_out.jpg" width="24%" alt="Home Screen & Try It Out" />
+  <img src="assets/screenshots/02_layout_appearance_controls.jpg" width="24%" alt="Layout & Appearance Controls" />
+  <img src="assets/screenshots/03_notifications_privacy_rules.jpg" width="24%" alt="Notifications & OEM Privacy Rules" />
+  <img src="assets/screenshots/04_live_activities_app_alerts.jpg" width="24%" alt="Live Activities & App Alerts Manager" />
 </p>
 
 <p align="center">
-  <img src="/assets/screenshots/05_notifications_privacy_rules.jpg" width="24%" alt="Notifications & Privacy Rules" />
-  <img src="/assets/screenshots/06_live_activities_navigation.jpg" width="24%" alt="Live Activities & Navigation" />
-  <img src="/assets/screenshots/07_app_shortcuts_launcher.jpg" width="24%" alt="App Shortcuts Launcher" />
-  <img src="/assets/screenshots/08_feature_accent_colors.jpg" width="24%" alt="Feature Accent Colors Studio" />
+  <img src="assets/screenshots/05_app_shortcuts_launcher.jpg" width="24%" alt="App Shortcuts Launcher" />
+  <img src="assets/screenshots/06_notification_history_log.jpg" width="24%" alt="Virtualized Notification History Log" />
+  <img src="assets/screenshots/07_appearance_colors_studio.jpg" width="24%" alt="Appearance & Colors Studio" />
+  <img src="assets/screenshots/08_gesture_guide_playground.jpg" width="24%" alt="Gesture Guide & In-Pill Playground" />
 </p>
 
 <p align="center">
-  <img src="/assets/screenshots/09_custom_rgb_picker_flashlight.jpg" width="24%" alt="Custom RGB Color Picker & Flashlight" />
-  <img src="/assets/screenshots/10_system_hub.jpg" width="24%" alt="System, Gestures & About Hub" />
-  <img src="/assets/screenshots/11_expanded_music_card.jpg" width="24%" alt="Expanded Music Player Card" />
-  <img src="/assets/screenshots/12_about_smartisland.jpg" width="24%" alt="About Smart Island" />
+  <img src="assets/screenshots/09_permissions_setup_center.jpg" width="24%" alt="Permissions Setup Center" />
+  <img src="assets/screenshots/10_backup_and_restore.jpg" width="24%" alt="Settings Backup & Restore" />
+  <img src="assets/screenshots/11_app_updates_and_downloads.jpg" width="24%" alt="App Updates & Downloads Hub" />
+  <img src="assets/screenshots/12_expanded_navigation_and_about.jpg" width="24%" alt="Expanded Navigation & Community" />
 </p>
 
 <p align="center">
-  <img src="/assets/screenshots/13_support_feedback.jpg" width="24%" alt="Support & Community Feedback" />
-  <img src="/assets/screenshots/14_gesture_guide_5gestures.jpg" width="24%" alt="5 Gestures Step-by-Step Guide" />
-  <img src="/assets/screenshots/15_permissions_setup_center.jpg" width="24%" alt="Permissions & Shizuku Setup" />
-  <img src="/assets/screenshots/16_homescreen_music_floating.jpg" width="24%" alt="Home Screen Floating Music Island" />
+  <img src="assets/screenshots/13_developer_options_diagnostics.jpg" width="24%" alt="Developer Options & System Diagnostics" />
 </p>
 
 ---
@@ -86,20 +83,26 @@ The project is designed to be 100% transparent, hackable, and privacy-conscious:
 
 | Feature Area | Capabilities & Details |
 | --- | --- |
+| **Deep Burnt-Orange (#D84315) Design System** | Harmonious curated color palette with rich burnt-orange accents, deep slate/black card surfaces, crisp typography, and unified tinted Material icons throughout all settings cards and switches. |
+| **App Updates & Downloads Hub** | Dedicated section showcasing Total Downloads counter (15,648+), Current Version line (v7.0.0), 1-tap GitHub update checker, in-app changelogs viewer, Top Contributors gallery, and Recent Commits feed. |
+| **In-Pill Swipe Gestures & Media Controls** | Swiping horizontally across the compact pill skips tracks (`skipToNext`/`skipToPrevious`) or cycles notifications without expanding the island. Features master toggle, swipe direction pickers, and individual disable controls. |
+| **Selective App Alerts & Sound Manager** | Fast selective app configuration modal with search bar, per-app alert toggles, custom ringtone sound toggling, and island exclusion without heavy upfront package loading. |
+| **Configurable Companion Circle Position** | Place the multi-tasking companion circle on either the **Left** or **Right** of the pill with anti-overlap geometry clamping for corner and punch-hole displays. |
 | **Material 3 Expressive UI** | Modern MD3 color tokens, dynamic wallpaper color adaptation (Android 12+), rounded shapes, and fluid physics. |
 | **Ultra-Fluid Spring Physics** | iOS-grade synchronized spring curves (`stiffness = 520f`, `dampingRatio = 0.72f`), snappy 190ms cross-fades, organic companion bubble pops, and tactile button bounce. |
 | **Tap Anywhere to Open App** | Tapping anywhere on expanded notification and music cards outside interactive buttons launches the source app and collapses the island. |
 | **Auto-Hide Pill Inactivity Timer** | Automatically hides the pill and companion bubble after a customizable inactivity timeout (1s to 60s with 1-tap presets), with tap-to-awaken gesture. |
 | **Landscape Mode Control** | User toggle to keep Smart Island visible in landscape orientation with automated screen width repositioning, or auto-hide for distraction-free gaming and video. |
+| **Bluetooth Battery & Earbuds Animation** | Dual-path battery level extraction via broadcast extra and reflection, with a smooth 3-second spring-animated transition between live battery gauge and earbuds icon. |
+| **Notification Cooldown & Anti-Spam** | Intelligent burst detection (e.g. 3 alerts in 30s) that temporarily cools down noisy apps, holding rapid spam and surfacing the latest message after a customizable quiet period (1–30 min), with per-app whitelist exclusion. |
 | **Island Opacity & Transparency** | Continuous background opacity slider (20% to 100%) with 4 quick 1-tap presets (Solid, Dark, Glass, Clear) and ambient drop shadow rendering. |
 | **Inline Reply & IME Focus** | Direct text reply input right inside the expanded Island notification card with dynamic WindowManager focus switching, soft keyboard integration, and `RemoteInput` dispatch. |
 | **Timer & Stopwatch Modes** | Intelligent clock notification parsing for Google Clock, Samsung Clock, MIUI/HyperOS, ColorOS, and Huawei Clock. Collapsed countdown/elapsed badges, expanded circular/linear timer progress, live millisecond stopwatch ticker, and interactive pause/resume/lap/reset controls. |
 | **Virtualized Notification History** | Ultra-smooth `LazyColumn` virtualized SQLite history log with background `AppIconMemoryCache`, search bar, app filter chips, full message inspection dialog, and bulk **Delete by App** support. |
 | **OEM Device Rules Engine** | Tailored background protection and autostart management for Xiaomi/HyperOS, Samsung OneUI, OnePlus/Oppo/Realme (ColorOS/OxygenOS), Huawei/Honor, Vivo/iQOO, and Asus to prevent aggressive background kills. |
-| **In-App GitHub Release Checker** | In-app GitHub update checks and changelog insights with an explicit user toggle (`allowNetworkChecks`) and strict offline mode fallback. |
 | **Full-Color App Icons** | Extracted launcher icons with LRU caching for crisp, authentic app icons in both collapsed pill and expanded cards. |
 | **Battery Modes (Low & Saver)** | Dynamic Battery island displaying Green for Charging, Pulsing Red for Low Battery (&le; 20%), and Warm Amber for Battery Saver ON with live battery percentage badge. |
-| **5-Gesture Control Engine** | Complete intuitive gesture system: Single Tap, Quick Swipe Up, Hold + Swipe Up (300ms haptic), Swipe Down (Floating window), and Horizontal Swipe Left/Right with responsive interactive guides. |
+| **Comprehensive Gesture Engine** | Dual-tier gesture system: In-Pill Swipes (Left/Right/Up/Down for media/notifications) and Expanded Card Gestures (Tap, Dismiss, 300ms Hold + Swipe Clear All, Floating Window, Notification Shade). |
 | **Split Island Multi-State** | Secondary auxiliary bubble for concurrent background activities (e.g. Music + Hotspot, Call + Bluetooth, Timer + Music). |
 | **Wavy Music Player** | Real-time audio waveform scrubber, ambient album artwork background glow, track metadata, and dynamic color customization. |
 | **Message Sync Suppression** | Automatically filters background message polling notifications (e.g. Snapchat, WhatsApp sync) to prevent download mode hijacking. |
@@ -108,11 +111,14 @@ The project is designed to be 100% transparent, hackable, and privacy-conscious:
 | **Download & Upload Progress** | Real-time transfer speed meters (MB/s), progress bars, and animated icons. |
 | **Wi-Fi Hotspot Monitor** | Live tethering client counter, SSID badge, data usage, and quick turn-off action. |
 | **Flashlight & Screen Recording** | Active torch toggle card and live screen recording timer overlay. |
-| **App Shortcuts Launcher** | Quick-launch grid with up to 8 pinned apps or auto-filled recent applications. |
+| **App Shortcuts Launcher** | Quick-launch grid with up to 8 pinned apps or auto-filled recent applications, with complete user enable/disable control. |
 | **Custom RGB Color Studio** | Fine-grained Red, Green, Blue slider color picker with live Hex preview for all 13 dynamic modes. |
 | **Notch & Layout Presets** | Instant 1-tap calibration for Center Hole, Wide Island, Left Corner, Right Corner, and Compact Pill. |
 | **Precision Sizing Controls** | Millimeter-accurate sliders for Width, Height, X Offset, Y Offset, Corner Radius, and Drop Shadows. |
 | **Shizuku 1-Tap Auto Setup** | Automated permission grants for Restricted Settings, Usage Access, Overlay, and Battery Optimization. |
+| **Backup & Restore System** | Export and restore complete island notch coordinates, dimensions, custom color themes, app shortcuts, and rules to/from JSON via Android Storage Access Framework with bounds validation. |
+| **iPhone Notch Mode** | Top-edge docked notch styling, rounded bottom corners, and complete elimination of the secondary right companion circle for an authentic iPhone notch experience. |
+| **Developer Mode & Log Recording** | 7-tap version unlock, in-memory diagnostic buffer, process logcat extraction, live status badges, and 1-tap `.txt` report export via Storage Access Framework. |
 | **Lock Screen Privacy Guard** | Opt-in lock screen display with customizable sensitive content hiding (App Icon Only vs Full Preview). |
 
 ---
@@ -131,7 +137,7 @@ Smart Island intelligently categorizes and presents live activities into 13 dedi
 8. **Navigation**: Turn-by-turn routing indicators, maneuver direction arrows, remaining distance, and ETA.
 9. **DownloadUpload**: Real-time download and upload progress bars with MB/s transfer speed meters.
 10. **Hotspot**: Tethering status, connected device client counter, and 1-tap toggle.
-11. **Bluetooth**: Connected device battery percentage and device status.
+11. **Bluetooth**: Connected device battery percentage, dual-path battery level extraction, and smooth alternating spring animation between battery gauge and earbuds icon.
 12. **Flashlight**: Active torch status indicator with 1-tap shutoff.
 13. **ScreenRecording**: Live recording elapsed duration timer.
 
@@ -139,15 +145,25 @@ Smart Island intelligently categorizes and presents live activities into 13 dedi
 
 ## Gesture Guide
 
-Smart Island features a comprehensive gesture engine to manage notifications, multitasking, and media effortlessly:
+Smart Island provides dual-tier gesture control covering both the compact collapsed pill and the expanded card:
 
-| # | Gesture | Action | Instructions & Feedback |
-|---|---|---|---|
-| **1** | **Single Tap / Click** | **Expand & Collapse** | Tap once on the collapsed pill to open rich details; tap anywhere on the screen background to collapse back. *(Cutout region remains active when idle-hidden)* |
-| **2** | **Quick Swipe Up** | **Dismiss Current** | Touch the expanded card and flick upward by &ge; 48dp to dismiss the active notification from the stack. |
-| **3** | **Hold + Swipe Up** | **Clear ALL Notifications** | Press & hold the expanded card for **300ms** until a **haptic vibration pulse** occurs, then swipe up to dismiss all pending notifications simultaneously. |
-| **4** | **Swipe Down** | **Floating Window** | Drag downward by &ge; 48dp on the expanded card to launch the application into a freeform floating window overlay. *(Requires Shizuku or OEM freeform)* |
-| **5** | **Swipe Left / Right** | **Switch Notification Stack** | Swipe horizontally across expanded cards to navigate smoothly between multiple active notifications, timers, and media sessions. |
+### Collapsed Pill Gestures
+| Gesture on Pill | Default Action | Available Custom Actions |
+|---|---|---|
+| **Swipe Left** | **Previous Notification** | Next Notification, Previous Track (`skipToPrevious`), Next Track (`skipToNext`), Play/Pause, Dismiss Current, Open App, Floating Window, Notification Shade, **Disabled** |
+| **Swipe Right** | **Next Notification** | Previous Notification, Next Track (`skipToNext`), Previous Track (`skipToPrevious`), Play/Pause, Dismiss Current, Open App, Floating Window, Notification Shade, **Disabled** |
+| **Swipe Up** | **Dismiss Current** | Dismiss All Notifications, Open Notification Shade, **Disabled** |
+| **Swipe Down** | **Expand Island** | Open Notification Shade, Open App, Floating Window, Dismiss Current, **Disabled** |
+| **Single Tap** | **Expand Island** | Opens full interactive card (or awakens pill when idle-hidden) |
+
+### Expanded Card Gestures
+| Gesture on Card | Action | Description & Feedback |
+|---|---|---|
+| **Single Tap** | **Open Source App** | Tapping neutral card areas opens the underlying application; tapping outside collapses the card |
+| **Quick Swipe Up** | **Dismiss Current** | Flick upward (&ge; 48dp) to dismiss active notification from stack |
+| **Hold + Swipe Up** | **Clear ALL Notifications** | Press & hold for **300ms** until **haptic vibration pulse**, then swipe up to dismiss all pending notifications |
+| **Swipe Down** | **Floating Window / Shade** | Drag downward (&ge; 48dp) to launch app in freeform floating window or open notification shade |
+| **Swipe Left / Right** | **Switch Stack / Tracks** | Navigate smoothly between notifications, timers, and active media sessions |
 
 ---
 

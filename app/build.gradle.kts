@@ -30,8 +30,8 @@ android {
         applicationId = "com.agupta07505.smartisland"
         minSdk = 26
         targetSdk = 36
-        versionCode = 7
-        versionName = "6.0.0"
+        versionCode = 8
+        versionName = "7.0.0"
     }
 
     buildFeatures {
@@ -88,7 +88,8 @@ android {
             "IconXmlAndPng",
             "BatteryLife",
             "ConfigurationScreenWidthHeight",
-            "ModifierParameter"
+            "ModifierParameter",
+            "MissingTranslation"
         )
     }
 
@@ -141,6 +142,7 @@ dependencies {
     testImplementation("io.mockk:mockk:1.13.10")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
     testImplementation("app.cash.turbine:turbine:1.1.0")
+    testImplementation("org.json:json:20240303")
 
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")

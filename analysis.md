@@ -1,6 +1,6 @@
 # Smart Island Application Analysis
 
-This document provides a comprehensive, deep-dive analysis of the **Smart Island** Android application (reflecting the **v6.0.0** baseline). It acts as the ultimate reference point for the application's architecture, components, features, and implementation details.
+This document provides a comprehensive, deep-dive analysis of the **Smart Island** Android application (reflecting the **v7.0.0** baseline). It acts as the ultimate reference point for the application's architecture, components, features, and implementation details.
 
 ---
 
@@ -18,14 +18,16 @@ graph TD
     NF --> NR[SmartIslandNotificationRepository]
     TSP --> NR
     SER --> NR
-    F[MainActivity / Settings Screen] -->|Save Preferences, Opacity & AutoHide| G[SmartIslandSettingsRepository]
+    F[MainActivity / Settings UI] -->|Save Preferences, Opacity, PillGestures| G[SmartIslandSettingsRepository]
+    GH[GitHub Releases API] -->|User Opt-In Checks| AU[AppUpdatesSection / GitHubApiService]
     NR -->|Flow Active Notifications & State| VM[IslandViewModel]
     G -->|Reactive Settings Flow| VM
     VM -->|Compose State| C[SmartIslandOverlayService]
     C -->|Manage Overlay Window, Opacity, Inactivity & IME Focus| D[ComposeView Overlay]
     D -->|Render UI / Interact| E[IslandOverlayView / IslandExpandedContent]
-    E -->|Gestures: 5-Gesture Engine, Tap-to-Open & Inline Reply| VM
+    E -->|Dual-Tier Gestures: In-Pill & Expanded| VM
     VM -->|Dynamic WindowManager Focus Switch| C
+    AL[AppLogRecorder] -->|Diagnostic Ring Buffer| DO[DeveloperOptionsSection]
 ```
 
 ---
@@ -122,14 +124,20 @@ graph TD
   * **Ultra-Fluid Spring Physics:** Synchronized width and height transitions using Compose's `updateTransition` with calibrated spring physics (`dampingRatio = 0.72f`, `stiffness = 520f`) and 190ms alpha cross-fades.
   * **Notification Stack Indicator:** If `notifications.size > 1` when collapsed, it draws elegant concentric black arcs (`drawArc`) behind the left/right sides of the pill, visually signifying a stack of items.
   * **Auto-Hide & Tap-to-Awaken:** Shrinks pill to 0 size when inactive for `autoHideTimeoutSeconds`; displays an invisible touch target allowing 1-tap awaken and 2-tap expand.
-  * **Gesture Controls:**
-    * **Tap Collapsed Pill:** Expands into the full interactive Smart Island card.
-    * **Tap Neutral Expanded Background:** Opens the target application directly and collapses the card.
-    * **Tap Outside:** Collapses the expanded island.
-    * **Swipe Up (Vertical Drag < -35dp):** Dismisses and clears the active notification.
-    * **Hold + Swipe Up (300ms haptic):** Dismisses all active notifications simultaneously.
-    * **Swipe Down (Vertical Drag > 35dp):** Dismisses the overlay and opens the notification app in Freeform/Floating window mode.
-    * **Swipe Left/Right (Horizontal Drag):** Swipes pages between multiple active notifications in the stack.
+  * **Dual-Tier Gesture Controls:**
+    * **In-Pill Swipe Actions (Collapsed State):**
+      * **Swipe Left / Right:** Cycles active notifications or triggers media track skip (`skipToNext`/`skipToPrevious`) on Spotify, YouTube Music, podcasts, or system media players without expanding the island.
+      * **Swipe Up:** Dismisses current notification, dismisses all, or opens notification shade.
+      * **Swipe Down:** Expands island, opens notification shade, launches app, or opens floating window.
+      * **Tap:** Expands into full interactive card (or awakens pill when idle-hidden).
+      * **Master & Directional Controls:** Master toggle `enablePillSwipeActions` and individual directional action selectors with `SwipeAction.None` (Disabled) support.
+    * **Expanded Card Gestures:**
+      * **Tap Neutral Background:** Opens target app directly and collapses card.
+      * **Tap Outside:** Collapses expanded island.
+      * **Quick Swipe Up (Vertical Drag < -35dp):** Dismisses and clears active notification from stack.
+      * **Hold + Swipe Up (300ms haptic):** Dismisses all active notifications simultaneously.
+      * **Swipe Down (Vertical Drag > 35dp):** Launches app in Freeform/Floating window mode or opens notification shade.
+      * **Swipe Left/Right (Horizontal Drag):** Swipes pages between multiple active notifications or media tracks in stack.
 
 ### 4.3. `IslandCollapsedContent`
 * **File:** [IslandCollapsedContent.kt](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/IslandCollapsedContent.kt)
@@ -141,6 +149,7 @@ graph TD
     * Call: Active call timer displaying elapsed duration in `MM:SS` format (green text).
     * Music: Live 3-bar Audio Visualizer animation powered by GPU-accelerated Compose `graphicsLayer` scaling.
     * Battery: Pulsing charging battery icon (infinite scale transition) next to the charging percentage text.
+    * Bluetooth: Alternating spring animation (3s cadence) between live battery gauge and earbuds icon.
 
 ### 4.4. `IslandExpandedContent`
 * **File:** [IslandExpandedContent.kt](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/expanded/IslandExpandedContent.kt)
@@ -155,7 +164,31 @@ graph TD
     3. **Music:** Large album art, song/artist text, media control buttons (Previous, Play/Pause, Next), and a progress slider that estimates track position locally in a coroutine loop to avoid lag.
     4. **Battery:** A custom battery charging visual progress layout featuring a circular status indicator with flowing multicolor gradients, dynamic charging time remaining estimates, and large charging percentage display.
 
-### 4.5. Custom Modifiers
+### 4.5. `AppUpdatesSection`
+* **File:** [AppUpdatesSection.kt](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/sections/AppUpdatesSection.kt)
+* **Purpose:** Dedicated hub for application downloads and version releases.
+* **Key Features:**
+  * **Total Downloads Metric:** Prominently highlights total downloads counter (15,648+) at the top.
+  * **Clean Horizontal Hierarchy:** Current Version badge (v7.0.0), Check for updates button, and in-app Changelogs viewer modal.
+  * **Top Contributors:** Fetches top GitHub contributors with avatar thumbnails and commit stats.
+  * **Recent Commits:** Displays latest Git commits log directly from repository.
+
+### 4.6. `DeveloperOptionsSection` & `AppLogRecorder`
+* **Files:** [DeveloperOptionsSection.kt](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/sections/DeveloperOptionsSection.kt), [AppLogRecorder.kt](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/util/AppLogRecorder.kt)
+* **Key Features:**
+  * **7-Tap Unlock:** Unlocked by tapping the App Version in About section 7 times.
+  * **In-Memory Ring Buffer:** Captures up to 3,000 log events with zero disk writes during normal operation.
+  * **Process Logcat & Diagnostics:** Captures process logcat trace and hardware/ROM snapshot.
+  * **SAF Text Export:** One-tap export to `.txt` file via Android Storage Access Framework.
+
+### 4.7. `BackupRestoreSection`
+* **File:** [BackupRestoreSection.kt](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/sections/BackupRestoreSection.kt)
+* **Key Features:**
+  * **JSON Export:** Scoped Storage export of all 40+ user preferences and geometry configs.
+  * **JSON Import & Validation:** Atomic single-transaction restore with bounds validation.
+  * **Factory Reset:** Safe reset with confirmation dialog.
+
+### 4.8. Custom Modifiers
 * **`bounceClick`:** ([BounceClick.kt](file:///a:/SmartIsland/app/src/main/java/com/agupta07505/smartisland/ui/BounceClick.kt)) Animates button scale down to `0.90f` on press and rebounds with high-frequency tactile spring physics (`dampingRatio = MediumBouncy`, `stiffness = StiffnessMedium`) upon release.
 
 ---
@@ -165,9 +198,10 @@ graph TD
 | Action | Process Flow |
 | :--- | :--- |
 | **New High-Priority Notification** | Intercepted &rarr; Cancelled in system tray &rarr; Displayed in overlay &rarr; Pill expands &rarr; 5s auto-collapse timer starts. |
-| **Swiping Down** | Triggered in `IslandOverlayView` &rarr; Service sets window bounds &rarr; Intent launched with freeform window bundle &rarr; App opens in floating window. |
-| **Swiping Up** | Triggered in `IslandOverlayView` &rarr; Notification removed from state &rarr; System notification dismissed via listener service. |
-| **Swiping Left/Right** | Triggered in `IslandOverlayView` &rarr; Pager page scrolls &rarr; Active page index updates &rarr; Height interpolates dynamically to match the next notification key. |
+| **In-Pill Swipe Left/Right** | Drag detected on compact pill &rarr; Evaluates `PillSwipeAction` &rarr; Dispatches media skip (`skipToNext`/`skipToPrevious`) or cycles active notification. |
+| **Swiping Down on Expanded** | Triggered in `IslandOverlayView` &rarr; Service sets window bounds &rarr; Intent launched with freeform window bundle &rarr; App opens in floating window (or shade). |
+| **Swiping Up on Expanded** | Triggered in `IslandOverlayView` &rarr; Notification removed from state &rarr; System notification dismissed via listener service. |
+| **Swiping Left/Right on Expanded** | Triggered in `IslandOverlayView` &rarr; Pager page scrolls &rarr; Active page index updates &rarr; Height interpolates dynamically to match next notification key. |
 | **Tap collapsed Pill** | Expanding transition starts &rarr; Height recalculates to fit expanded content &rarr; Full details/controls exposed. |
 
 ---

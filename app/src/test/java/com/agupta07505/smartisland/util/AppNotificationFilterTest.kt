@@ -291,4 +291,84 @@ class AppNotificationFilterTest {
 
         assertTrue(isSuppressed)
     }
+
+    @Test
+    fun testBluetoothPackageIneligible() {
+        val mockPm = mockk<PackageManager>()
+        assertFalse(NotificationFilter.isAppEligibleForIsland("com.android.bluetooth", mockPm))
+    }
+
+    @Test
+    fun testWearableConnectionStatusNotificationSuppressed() {
+        val mockPm = mockk<PackageManager>()
+        val appInfo = ApplicationInfo().apply { flags = 0 }
+        every { mockPm.getApplicationInfo(any(), 0) } returns appInfo
+
+        val mockSbn = mockk<StatusBarNotification>()
+        val mockNotif = mockk<Notification>()
+        mockNotif.flags = 0
+        mockNotif.category = null
+        val extras = mockk<Bundle>(relaxed = true)
+        every { extras.getCharSequence(any()) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "Galaxy Watch"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Watch connected via Bluetooth"
+        mockNotif.extras = extras
+
+        every { mockSbn.packageName } returns "com.samsung.accessory"
+        every { mockSbn.notification } returns mockNotif
+
+        val isSuppressed = NotificationFilter.shouldSuppressFromIsland(
+            sbn = mockSbn,
+            packageManager = mockPm
+        )
+
+        assertTrue(isSuppressed)
+    }
+
+    @Test
+    fun testIsWearableConnectionNotificationHelper() {
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.samsung.accessory", "connected"))
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.samsung.android.app.watchmanager", "sync complete"))
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.google.android.wearable.app", "disconnected"))
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.some.app", "galaxy watch connected via bluetooth"))
+        assertTrue(NotificationFilter.isWearableConnectionNotification("com.some.app", "pixel watch connected"))
+        assertFalse(NotificationFilter.isWearableConnectionNotification("com.whatsapp", "Hey, watch this video!"))
+        assertFalse(NotificationFilter.isWearableConnectionNotification("org.telegram.messenger", "I connected my new PC"))
+    }
+
+    @Test
+    fun testMessageSyncNotificationSuppressedEvenIfNotOngoing() {
+        val mockPm = mockk<PackageManager>()
+        val appInfo = ApplicationInfo().apply { flags = 0 }
+        every { mockPm.getApplicationInfo(any(), 0) } returns appInfo
+
+        val mockSbn = mockk<StatusBarNotification>()
+        val mockNotif = mockk<Notification>()
+        mockNotif.flags = 0 // NOT ongoing
+        mockNotif.category = null
+        val extras = mockk<Bundle>(relaxed = true)
+        every { extras.getCharSequence(Notification.EXTRA_TITLE) } returns "WhatsApp"
+        every { extras.getCharSequence(Notification.EXTRA_TEXT) } returns "Checking for new messages..."
+        every { extras.getCharSequence(Notification.EXTRA_BIG_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_SUB_TEXT) } returns null
+        every { extras.getCharSequence(Notification.EXTRA_INFO_TEXT) } returns null
+        every { extras.getString(Notification.EXTRA_TEMPLATE) } returns null
+        every { extras.containsKey(Notification.EXTRA_MEDIA_SESSION) } returns false
+        every { extras.getInt(Notification.EXTRA_PROGRESS_MAX, 0) } returns 0
+        every { extras.getInt(Notification.EXTRA_PROGRESS, 0) } returns 0
+        every { extras.getBoolean(Notification.EXTRA_PROGRESS_INDETERMINATE, false) } returns false
+        mockNotif.extras = extras
+        mockNotif.tickerText = null
+        mockNotif.actions = emptyArray()
+
+        every { mockSbn.packageName } returns "com.whatsapp"
+        every { mockSbn.notification } returns mockNotif
+
+        val isSuppressed = NotificationFilter.shouldSuppressFromIsland(
+            sbn = mockSbn,
+            packageManager = mockPm
+        )
+
+        assertTrue(isSuppressed)
+    }
 }

@@ -49,9 +49,9 @@ fun IncomingCallExpanded(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .heightIn(min = 64.dp, max = 110.dp)
-            .padding(start = 18.dp, top = 20.dp, end = 18.dp, bottom = bottomPadding),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .heightIn(min = 60.dp, max = 96.dp)
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding),
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         val isRinging = notification?.isCallRinging == true
@@ -64,7 +64,7 @@ fun IncomingCallExpanded(
                     ?: notification?.text?.takeIf { it.isNotBlank() }
                     ?: if (isRinging) "Incoming call" else "Active call",
                 color = Color.White,
-                fontSize = 17.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
@@ -107,12 +107,12 @@ private fun CircleActionButton(
 ) {
     Box(
         modifier = Modifier
-            .size(48.dp)
+            .size(38.dp)
             .clip(CircleShape)
             .background(color)
             .bounceClick(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
     }
 }

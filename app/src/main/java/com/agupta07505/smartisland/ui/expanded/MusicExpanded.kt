@@ -8,6 +8,7 @@
 package com.agupta07505.smartisland.ui.expanded
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -310,7 +311,7 @@ fun MusicExpanded(
         } else null
     }
 
-    val artwork = notification?.largeIcon ?: metadataArtwork ?: notification?.icon
+        val artwork = notification?.largeIcon ?: metadataArtwork ?: notification?.icon
 
     Box(
         modifier = Modifier
@@ -324,16 +325,17 @@ fun MusicExpanded(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .matchParentSize()
-                    .graphicsLayer { alpha = 0.45f }
+                    .graphicsLayer { alpha = 0.32f }
             )
+
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                Color.Black.copy(alpha = 0.35f),
-                                Color.Black.copy(alpha = 0.85f)
+                                Color.Black.copy(alpha = 0.28f),
+                                Color.Black.copy(alpha = 0.88f)
                             )
                         )
                     )
@@ -344,194 +346,329 @@ fun MusicExpanded(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .padding(start = 18.dp, top = 20.dp, end = 18.dp, bottom = bottomPadding)
+                .padding(
+                    start = 14.dp,
+                    top = 10.dp,
+                    end = 14.dp,
+                    bottom = bottomPadding
+                ),
+            verticalArrangement = Arrangement.spacedBy(7.dp)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+
+            // Top: Artwork + Song information
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(9.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 if (artwork != null) {
-                Image(
-                    bitmap = artwork.asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Rounded.MusicNote,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(Color(settings.musicVisualizerColor))
-                        .padding(8.dp)
-                )
-            }
-            Column(Modifier.weight(1f)) {
-                Text(
-                    notification?.title?.takeIf { it.isNotBlank() } ?: "Song",
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    notification?.text?.takeIf { it.isNotBlank() } ?: notification?.appName ?: "Artist",
-                    color = Color(0xFFD5DAE0),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSize = 12.sp
-                )
-            }
-        }
-        Spacer(Modifier.height(7.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(formatDuration(livePositionMs), color = Color.White, fontSize = 10.sp)
-            WavyMusicSeekBar(
-                progress = progress,
-                isPlaying = localIsPlaying,
-                onSeek = { newProgress ->
-                    if (durationMs != null && durationMs > 0) {
-                        val newPosition = (newProgress * durationMs).toLong()
-                        livePositionMs = newPosition
-                        lastSeekTimeMs = System.currentTimeMillis()
-                        SmartIslandRepositories.notificationRepository(context).resetTimer()
-                        if (controller != null) {
-                            runCatchingLogged("MusicExpanded", "Failed to seekTo position") {
-                                controller.transportControls.seekTo(newPosition)
-                            }
-                        } else {
-                            notification?.packageName?.let { pkg ->
-                                SmartIslandRepositories.notificationRepository(context).sendCommand(
-                                    com.agupta07505.smartisland.data.SmartIslandCommand.SeekTo(pkg, newPosition)
-                                )
-                            }
-                        }
+                    Image(
+                        bitmap = artwork.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(7.dp))
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(7.dp))
+                            .background(Color(settings.musicVisualizerColor)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.MusicNote,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(19.dp)
+                        )
                     }
-                },
-                modifier = Modifier.weight(1f)
-            )
-            Text(formatDuration(durationMs), color = Color.White, fontSize = 10.sp)
-        }
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // 1. Song Like Button (left of skip previous)
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .bounceClick {
-                        SmartIslandRepositories.notificationRepository(context).resetTimer()
-                        toggleLike()
-                    },
-                contentAlignment = Alignment.Center
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = notification?.title
+                            ?.takeIf { it.isNotBlank() }
+                            ?: "Song",
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Text(
+                        text = notification?.text
+                            ?.takeIf { it.isNotBlank() }
+                            ?: notification?.appName
+                            ?: "Artist",
+                        color = Color(0xFFBFC3C9),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            // Progress
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Icon(
-                    imageVector = if (localIsLiked) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                    contentDescription = "Like",
-                    tint = if (localIsLiked) Color(0xFFFF4B72) else Color.White,
-                    modifier = Modifier.size(24.dp)
+                Text(
+                    text = formatDuration(livePositionMs),
+                    color = Color(0xFFB7BBC2),
+                    fontSize = 9.sp
                 )
-            }
-            Spacer(Modifier.width(12.dp))
-            
-            // 2. Skip Previous Button
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .bounceClick {
-                        SmartIslandRepositories.notificationRepository(context).resetTimer()
-                        if (controller != null) {
-                            runCatchingLogged("MusicExpanded", "Failed to skipToPrevious") {
-                                controller.transportControls.skipToPrevious()
-                            }
-                        } else {
-                            notification.sendFirstAction(context, "previous", "prev", "rewind")
-                        }
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Rounded.SkipPrevious, contentDescription = null, tint = Color.White)
-            }
-            Spacer(Modifier.width(16.dp))
-            
-            // 3. Play/Pause Button
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .bounceClick {
-                        SmartIslandRepositories.notificationRepository(context).resetTimer()
-                        val targetState = !localIsPlaying
-                        localIsPlaying = targetState
-                        if (controller != null) {
-                            runCatchingLogged("MusicExpanded", "Failed to play/pause") {
-                                if (targetState) {
-                                    controller.transportControls.play()
-                                } else {
-                                    controller.transportControls.pause()
+
+                WavyMusicSeekBar(
+                    progress = progress,
+                    isPlaying = localIsPlaying,
+                    onSeek = { newProgress ->
+                        if (durationMs != null && durationMs > 0) {
+                            val newPosition =
+                                (newProgress * durationMs).toLong()
+
+                            livePositionMs = newPosition
+                            lastSeekTimeMs = System.currentTimeMillis()
+
+                            SmartIslandRepositories
+                                .notificationRepository(context)
+                                .resetTimer()
+
+                            if (controller != null) {
+                                runCatchingLogged(
+                                    "MusicExpanded",
+                                    "Failed to seekTo position"
+                                ) {
+                                    controller.transportControls.seekTo(
+                                        newPosition
+                                    )
+                                }
+                            } else {
+                                notification?.packageName?.let { pkg ->
+                                    SmartIslandRepositories
+                                        .notificationRepository(context)
+                                        .sendCommand(
+                                            com.agupta07505.smartisland.data.SmartIslandCommand.SeekTo(
+                                                pkg,
+                                                newPosition
+                                            )
+                                        )
                                 }
                             }
-                        } else {
-                            notification.sendFirstAction(context, "play", "pause", "resume")
                         }
                     },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = if (localIsPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(38.dp)
+                    modifier = Modifier.weight(1f)
+                )
+
+                Text(
+                    text = formatDuration(durationMs),
+                    color = Color(0xFFB7BBC2),
+                    fontSize = 9.sp
                 )
             }
-            Spacer(Modifier.width(16.dp))
-            
-            // 4. Skip Next Button
-            Box(
+
+            // Controls
+            Row(
                 modifier = Modifier
-                    .size(48.dp)
-                    .bounceClick {
-                        SmartIslandRepositories.notificationRepository(context).resetTimer()
-                        if (controller != null) {
-                            runCatchingLogged("MusicExpanded", "Failed to skipToNext") {
-                                controller.transportControls.skipToNext()
-                            }
+                    .fillMaxWidth()
+                    .padding(top = 1.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                // Like
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .bounceClick {
+                            SmartIslandRepositories
+                                .notificationRepository(context)
+                                .resetTimer()
+
+                            toggleLike()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (localIsLiked) {
+                            Icons.Rounded.Favorite
                         } else {
-                            notification.sendFirstAction(context, "next", "skip", "forward")
-                        }
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Rounded.SkipNext, contentDescription = null, tint = Color.White)
-            }
-            Spacer(Modifier.width(12.dp))
-            
-            // 5. Song Loop Button (right of skip next)
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .bounceClick {
-                        SmartIslandRepositories.notificationRepository(context).resetTimer()
-                        toggleLoop()
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                val tintColor = when (repeatMode) {
-                    1, 2 -> Color(0xFF1DB954) // spotify green loop active
-                    else -> Color.White
+                            Icons.Rounded.FavoriteBorder
+                        },
+                        contentDescription = "Like",
+                        tint = if (localIsLiked) {
+                            Color(0xFFFF4D6D)
+                        } else {
+                            Color.White
+                        },
+                        modifier = Modifier.size(19.dp)
+                    )
                 }
-                Icon(
-                    imageVector = if (repeatMode == 1) Icons.Rounded.RepeatOne else Icons.Rounded.Repeat,
-                    contentDescription = "Loop",
-                    tint = tintColor,
-                    modifier = Modifier.size(24.dp)
-                )
+
+                Spacer(Modifier.width(4.dp))
+
+                // Previous
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .bounceClick {
+                            SmartIslandRepositories
+                                .notificationRepository(context)
+                                .resetTimer()
+
+                            if (controller != null) {
+                                runCatchingLogged(
+                                    "MusicExpanded",
+                                    "Failed to skipToPrevious"
+                                ) {
+                                    controller.transportControls
+                                        .skipToPrevious()
+                                }
+                            } else {
+                                notification.sendFirstAction(
+                                    context,
+                                    "previous",
+                                    "prev",
+                                    "rewind"
+                                )
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SkipPrevious,
+                        contentDescription = "Previous",
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(6.dp))
+
+                // Play / Pause
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(Color.White)
+                        .bounceClick {
+                            SmartIslandRepositories
+                                .notificationRepository(context)
+                                .resetTimer()
+
+                            val targetState = !localIsPlaying
+                            localIsPlaying = targetState
+
+                            if (controller != null) {
+                                runCatchingLogged(
+                                    "MusicExpanded",
+                                    "Failed to play/pause"
+                                ) {
+                                    if (targetState) {
+                                        controller.transportControls.play()
+                                    } else {
+                                        controller.transportControls.pause()
+                                    }
+                                }
+                            } else {
+                                notification.sendFirstAction(
+                                    context,
+                                    "play",
+                                    "pause",
+                                    "resume"
+                                )
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = if (localIsPlaying) {
+                            Icons.Rounded.Pause
+                        } else {
+                            Icons.Rounded.PlayArrow
+                        },
+                        contentDescription = "Play / Pause",
+                        tint = Color.Black,
+                        modifier = Modifier.size(27.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(6.dp))
+
+                // Next
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .bounceClick {
+                            SmartIslandRepositories
+                                .notificationRepository(context)
+                                .resetTimer()
+
+                            if (controller != null) {
+                                runCatchingLogged(
+                                    "MusicExpanded",
+                                    "Failed to skipToNext"
+                                ) {
+                                    controller.transportControls.skipToNext()
+                                }
+                            } else {
+                                notification.sendFirstAction(
+                                    context,
+                                    "next",
+                                    "skip",
+                                    "forward"
+                                )
+                            }
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.SkipNext,
+                        contentDescription = "Next",
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(4.dp))
+
+                // Repeat
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .bounceClick {
+                            SmartIslandRepositories
+                                .notificationRepository(context)
+                                .resetTimer()
+
+                            toggleLoop()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    val tintColor = when (repeatMode) {
+                        1, 2 -> Color(0xFF34C759)
+                        else -> Color.White
+                    }
+
+                    Icon(
+                        imageVector = if (repeatMode == 1) {
+                            Icons.Rounded.RepeatOne
+                        } else {
+                            Icons.Rounded.Repeat
+                        },
+                        contentDescription = "Repeat",
+                        tint = tintColor,
+                        modifier = Modifier.size(19.dp)
+                    )
+                }
             }
         }
     }
-}
 }

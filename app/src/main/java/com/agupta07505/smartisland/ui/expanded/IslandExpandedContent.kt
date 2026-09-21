@@ -164,19 +164,19 @@ fun IslandExpandedContent(
 
         fun clampHeightForMode(notif: IslandNotification?, height: Dp): Dp {
             return when (notif?.mode) {
-                IslandMode.Battery, IslandMode.IncomingCall -> height.coerceIn(72.dp, 125.dp)
-                IslandMode.Notification -> height.coerceIn(95.dp, 145.dp)
-                IslandMode.Music -> height.coerceIn(115.dp, 180.dp)
-                IslandMode.LiveActivity -> height.coerceIn(140.dp, 205.dp)
-                IslandMode.Navigation -> height.coerceIn(135.dp, 195.dp)
-                IslandMode.DownloadUpload -> height.coerceIn(120.dp, 195.dp)
-                IslandMode.Hotspot -> height.coerceIn(120.dp, 195.dp)
-                IslandMode.Bluetooth -> height.coerceIn(72.dp, 130.dp)
-                IslandMode.Flashlight -> height.coerceIn(72.dp, 130.dp)
-                IslandMode.ScreenRecording -> height.coerceIn(72.dp, 130.dp)
-                IslandMode.Timer -> height.coerceIn(72.dp, 130.dp)
-                IslandMode.Stopwatch -> height.coerceIn(72.dp, 130.dp)
-                else -> height.coerceIn(80.dp, 160.dp)
+                IslandMode.Battery, IslandMode.IncomingCall -> height.coerceIn(68.dp, 105.dp)
+                IslandMode.Notification -> height.coerceIn(82.dp, 130.dp)
+                IslandMode.Music -> height.coerceIn(105.dp, 150.dp)
+                IslandMode.LiveActivity -> height.coerceIn(125.dp, 170.dp)
+                IslandMode.Navigation -> height.coerceIn(120.dp, 165.dp)
+                IslandMode.DownloadUpload -> height.coerceIn(110.dp, 165.dp)
+                IslandMode.Hotspot -> height.coerceIn(110.dp, 165.dp)
+                IslandMode.Bluetooth -> height.coerceIn(68.dp, 110.dp)
+                IslandMode.Flashlight -> height.coerceIn(68.dp, 110.dp)
+                IslandMode.ScreenRecording -> height.coerceIn(68.dp, 110.dp)
+                IslandMode.Timer -> height.coerceIn(68.dp, 110.dp)
+                IslandMode.Stopwatch -> height.coerceIn(68.dp, 110.dp)
+                else -> height.coerceIn(75.dp, 140.dp)
             }
         }
 
@@ -197,7 +197,7 @@ fun IslandExpandedContent(
             val nextHeight = (nextHeightRaw?.let { clampHeightForMode(nextNotification, it) }
                 ?: com.agupta07505.smartisland.ui.defaultEstimatedHeightForMode(nextNotification?.mode))
             val fraction = kotlin.math.abs(offsetFraction)
-            (currentPageHeight + (nextHeight - currentPageHeight) * fraction).coerceIn(72.dp, 205.dp)
+            (currentPageHeight + (nextHeight - currentPageHeight) * fraction).coerceIn(68.dp, 175.dp)
         }
 
         LaunchedEffect(targetHeight) {

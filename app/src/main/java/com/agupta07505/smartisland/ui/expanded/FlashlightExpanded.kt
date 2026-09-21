@@ -54,7 +54,7 @@ fun FlashlightExpanded(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = bottomPadding),
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -62,11 +62,11 @@ fun FlashlightExpanded(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(9.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(36.dp)
                     .clip(CircleShape)
                     .background(torchColor.copy(alpha = 0.25f)),
                 contentAlignment = Alignment.Center
@@ -75,7 +75,7 @@ fun FlashlightExpanded(
                     imageVector = Icons.Rounded.FlashlightOn,
                     contentDescription = "Flashlight Active",
                     tint = torchColor,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
@@ -83,7 +83,7 @@ fun FlashlightExpanded(
                 Text(
                     text = "Flashlight ON",
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(2.dp))
@@ -98,7 +98,7 @@ fun FlashlightExpanded(
                     Text(
                         text = "Torch Active",
                         color = torchColor,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }

@@ -103,7 +103,8 @@ fun IslandCollapsedContent(
     val translationXRight = -translationProgress * maxTranslationPx
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Left Slot (Icon / Glyphs)
+
+        // Left Slot
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
@@ -114,9 +115,104 @@ fun IslandCollapsedContent(
             contentAlignment = Alignment.Center
         ) {
             when (mode) {
-                IslandMode.Notification -> NotificationGlyph(notification = notification, settings = settings)
+
+                // Apple-style compact notification:
+                // [PP] Sender · Message preview...
+                IslandMode.Notification -> {
+                    val largeIcon = notification?.largeIcon
+                    val icon = notification?.icon
+                    val mainIcon = largeIcon ?: icon
+
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (mainIcon != null) {
+                            Image(
+                                bitmap = mainIcon.asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        Color(settings.notificationDotColor)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = notification
+                                        ?.appName
+                                        ?.firstOrNull()
+                                        ?.uppercase()
+                                        ?: "S",
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Text(
+                            text = notification
+                                ?.title
+                                ?.takeIf { it.isNotBlank() }
+                                ?: notification?.appName
+                                ?: "Notification",
+                            color = Color.White,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                            modifier = Modifier.width(48.dp)
+                        )
+
+                        if (!notification?.text.isNullOrBlank()) {
+                            Text(
+                                text = "·",
+                                color = Color(0xFF8E8E93),
+                                fontSize = 11.sp
+                            )
+
+                            val messagePreview = notification?.text
+                                ?.replace(Regex("\\s+"), " ")
+                                ?.trim()
+                                ?.substringBefore("\n")
+                                ?.let { text ->
+                                    val sentence = Regex(
+                                        """^.*?[.!?](?=\s|$)"""
+                                    ).find(text)?.value ?: text
+
+                                    if (sentence.length > 30) {
+                                        sentence.take(29) + "…"
+                                    } else {
+                                        sentence
+                                    }
+                                }
+                                ?: ""
+
+                            Text(
+                                text = messagePreview,
+                                color = Color(0xFFD5DAE0),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Normal,
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+
                 IslandMode.IncomingCall -> {
                     val icon = notification?.largeIcon ?: notification?.icon
+
                     if (icon != null) {
                         Image(
                             bitmap = icon.asImageBitmap(),
@@ -134,8 +230,10 @@ fun IslandCollapsedContent(
                         )
                     }
                 }
+
                 IslandMode.Music -> {
                     val artwork = notification?.largeIcon ?: notification?.icon
+
                     if (artwork != null) {
                         Image(
                             bitmap = artwork.asImageBitmap(),
@@ -149,7 +247,9 @@ fun IslandCollapsedContent(
                             modifier = Modifier
                                 .size(22.dp)
                                 .clip(CircleShape)
-                                .background(Color(settings.musicVisualizerColor)),
+                                .background(
+                                    Color(settings.musicVisualizerColor)
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
@@ -161,27 +261,51 @@ fun IslandCollapsedContent(
                         }
                     }
                 }
+
                 IslandMode.Battery -> {
-                    BatteryCollapsedGlyph(notification = notification, settings = settings)
+                    BatteryCollapsedGlyph(
+                        notification = notification,
+                        settings = settings
+                    )
                 }
+
                 IslandMode.LiveActivity -> {
-                    LiveActivityCollapsedGlyph(notification = notification, settings = settings)
+                    LiveActivityCollapsedGlyph(
+                        notification = notification,
+                        settings = settings
+                    )
                 }
+
                 IslandMode.Navigation -> {
-                    NavigationCollapsedGlyph(notification = notification, settings = settings)
+                    NavigationCollapsedGlyph(
+                        notification = notification,
+                        settings = settings
+                    )
                 }
+
                 IslandMode.DownloadUpload -> {
-                    NotificationGlyph(notification = notification, settings = settings)
+                    NotificationGlyph(
+                        notification = notification,
+                        settings = settings
+                    )
                 }
+
                 IslandMode.Hotspot -> {
-                    HotspotCollapsedGlyph(notification = notification, settings = settings)
+                    HotspotCollapsedGlyph(
+                        notification = notification,
+                        settings = settings
+                    )
                 }
+
                 IslandMode.Bluetooth -> {
                     Box(
                         modifier = Modifier
                             .size(22.dp)
                             .clip(CircleShape)
-                            .background(Color(settings.bluetoothColor).copy(alpha = 0.2f)),
+                            .background(
+                                Color(settings.bluetoothColor)
+                                    .copy(alpha = 0.2f)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -192,129 +316,201 @@ fun IslandCollapsedContent(
                         )
                     }
                 }
+
                 IslandMode.Flashlight -> {
                     Box(
                         modifier = Modifier
                             .size(22.dp)
                             .clip(CircleShape)
-                            .background(Color(settings.flashlightColor).copy(alpha = 0.25f)),
+                            .background(
+                                Color(settings.flashlightColor)
+                                    .copy(alpha = 0.25f)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             Icons.Rounded.FlashlightOn,
-                            contentDescription = "Flashlight",
+                            contentDescription = null,
                             tint = Color(settings.flashlightColor),
                             modifier = Modifier.size(14.dp)
                         )
                     }
                 }
+
                 IslandMode.ScreenRecording -> {
-                    ScreenRecordingCollapsedGlyph(settings = settings)
+                    ScreenRecordingCollapsedGlyph(
+                        settings = settings
+                    )
                 }
+
                 IslandMode.Timer -> {
-                    TimerCollapsedGlyph(notification = notification, settings = settings)
+                    TimerCollapsedGlyph(
+                        notification = notification,
+                        settings = settings
+                    )
                 }
+
                 IslandMode.Stopwatch -> {
-                    StopwatchCollapsedGlyph(notification = notification, settings = settings)
+                    StopwatchCollapsedGlyph(
+                        notification = notification,
+                        settings = settings
+                    )
                 }
+
                 IslandMode.Empty -> Unit
             }
         }
 
-        // Right Slot (Visualizer / Indicators)
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = RIGHT_SLOT_PADDING_END_DP.dp)
-                .graphicsLayer {
-                    translationX = translationXRight
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            when (mode) {
-                IslandMode.Notification -> {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(Color(settings.notificationDotColor))
-                    )
-                }
-                IslandMode.IncomingCall -> {
-                    if (notification?.isCallRinging == true) {
+        // Right Slot
+        // Apple-style notifications do NOT show the old notification dot.
+        if (mode != IslandMode.Notification) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = RIGHT_SLOT_PADDING_END_DP.dp)
+                    .graphicsLayer {
+                        translationX = translationXRight
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                when (mode) {
+
+                    IslandMode.IncomingCall -> {
+                        if (notification?.isCallRinging == true) {
+                            Text(
+                                text = "Ringing...",
+                                color = Color(settings.callColor),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        } else {
+                            val time =
+                                notification?.timeMillis
+                                    ?: System.currentTimeMillis()
+
+                            CallTimer(
+                                postTimeMillis = time,
+                                color = Color(settings.callColor)
+                            )
+                        }
+                    }
+
+                    IslandMode.Music -> {
+                        AudioVisualizer(
+                            isPlaying = notification?.mediaIsPlaying == true,
+                            color = Color(settings.musicVisualizerColor)
+                        )
+                    }
+
+                    IslandMode.Battery -> {
+                        val pctText = notification?.text ?: "49%"
+                        val title =
+                            notification?.title?.lowercase() ?: ""
+
+                        val isBatterySaver =
+                            title.contains("saver") ||
+                                notification?.category == "battery_saver"
+
+                        val isLowBattery =
+                            title.contains("low") ||
+                                notification?.category == "battery_low" ||
+                                (
+                                    pctText
+                                        .replace("%", "")
+                                        .toFloatOrNull()
+                                        ?: 50f
+                                ) <= 20f
+
+                        val textColor = when {
+                            isLowBattery -> Color(0xFFEF4444)
+                            isBatterySaver -> Color(0xFFF59E0B)
+                            else -> Color(settings.batteryColor)
+                        }
+
                         Text(
-                            text = "Ringing...",
-                            color = Color(settings.callColor),
+                            text = pctText,
+                            color = textColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold
                         )
-                    } else {
-                        val time = notification?.timeMillis ?: System.currentTimeMillis()
-                        CallTimer(postTimeMillis = time, color = Color(settings.callColor))
                     }
-                }
-                IslandMode.Music -> {
-                    AudioVisualizer(
-                        isPlaying = notification?.mediaIsPlaying == true,
-                        color = Color(settings.musicVisualizerColor)
-                    )
-                }
-                IslandMode.Battery -> {
-                    val pctText = notification?.text ?: "49%"
-                    val title = notification?.title?.lowercase() ?: ""
-                    val isBatterySaver = title.contains("saver") || notification?.category == "battery_saver"
-                    val isLowBattery = title.contains("low") || notification?.category == "battery_low" || (pctText.replace("%", "").toFloatOrNull() ?: 50f) <= 20f
-                    val textColor = when {
-                        isLowBattery -> Color(0xFFEF4444)
-                        isBatterySaver -> Color(0xFFF59E0B)
-                        else -> Color(settings.batteryColor)
+
+                    IslandMode.LiveActivity -> {
+                        LiveActivityCollapsedRight(
+                            notification = notification,
+                            settings = settings
+                        )
                     }
-                    Text(
-                        text = pctText,
-                        color = textColor,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+
+                    IslandMode.Navigation -> {
+                        NavigationCollapsedRight(
+                            notification = notification,
+                            settings = settings
+                        )
+                    }
+
+                    IslandMode.DownloadUpload -> {
+                        DownloadUploadCollapsedRight(
+                            notification = notification,
+                            settings = settings
+                        )
+                    }
+
+                    IslandMode.Hotspot -> {
+                        HotspotCollapsedRight(
+                            notification = notification,
+                            settings = settings
+                        )
+                    }
+
+                    IslandMode.Bluetooth -> {
+                        BluetoothCollapsedRight(
+                            notification = notification,
+                            settings = settings
+                        )
+                    }
+
+                    IslandMode.Flashlight -> {
+                        Text(
+                            text = "ON",
+                            color = Color(0xFFFACC15),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    IslandMode.ScreenRecording -> {
+                        val time =
+                            notification?.timeMillis
+                                ?: System.currentTimeMillis()
+
+                        CallTimer(
+                            postTimeMillis = time,
+                            color = Color(0xFFEF4444)
+                        )
+                    }
+
+                    IslandMode.Timer -> {
+                        TimerCountdown(
+                            notification = notification,
+                            color = Color(settings.timerColor)
+                        )
+                    }
+
+                    IslandMode.Stopwatch -> {
+                        StopwatchTimer(
+                            notification = notification,
+                            color = Color(settings.stopwatchColor)
+                        )
+                    }
+
+                    IslandMode.Notification -> Unit
+                    IslandMode.Empty -> Unit
                 }
-                IslandMode.LiveActivity -> {
-                    LiveActivityCollapsedRight(notification = notification, settings = settings)
-                }
-                IslandMode.Navigation -> {
-                    NavigationCollapsedRight(notification = notification, settings = settings)
-                }
-                IslandMode.DownloadUpload -> {
-                    DownloadUploadCollapsedRight(notification = notification, settings = settings)
-                }
-                IslandMode.Hotspot -> {
-                    HotspotCollapsedRight(notification = notification, settings = settings)
-                }
-                IslandMode.Bluetooth -> {
-                    BluetoothCollapsedRight(notification = notification, settings = settings)
-                }
-                IslandMode.Flashlight -> {
-                    Text(
-                        text = "ON",
-                        color = Color(0xFFFACC15),
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                IslandMode.ScreenRecording -> {
-                    val time = notification?.timeMillis ?: System.currentTimeMillis()
-                    CallTimer(postTimeMillis = time, color = Color(0xFFEF4444))
-                }
-                IslandMode.Timer -> {
-                    TimerCountdown(notification = notification, color = Color(settings.timerColor))
-                }
-                IslandMode.Stopwatch -> {
-                    StopwatchTimer(notification = notification, color = Color(settings.stopwatchColor))
-                }
-                IslandMode.Empty -> Unit
             }
         }
     }
 }
-
 @Composable
 internal fun HotspotCollapsedGlyph(notification: IslandNotification?, settings: SmartIslandSettings = SmartIslandSettings.Default) {
     val hotspotColor = Color(settings.hotspotColor)

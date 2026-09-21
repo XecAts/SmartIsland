@@ -100,13 +100,13 @@ fun DownloadExpanded(
                     onCollapse()
                 }
             }
-            .padding(start = 18.dp, top = 20.dp, end = 18.dp, bottom = bottomPadding),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Top Header Row matching NotificationExpanded alignment
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // App Icon (42.dp matching NotificationExpanded)
@@ -115,7 +115,7 @@ fun DownloadExpanded(
             val mainIcon = largeIcon ?: icon
             if (mainIcon != null) {
                 val clipShape = if (largeIcon != null) CircleShape else RoundedCornerShape(8.dp)
-                Box(modifier = Modifier.size(42.dp)) {
+                Box(modifier = Modifier.size(36.dp)) {
                     Image(
                         bitmap = mainIcon.asImageBitmap(),
                         contentDescription = null,
@@ -126,7 +126,7 @@ fun DownloadExpanded(
                     if (largeIcon != null && icon != null) {
                         Box(
                             modifier = Modifier
-                                .size(16.dp)
+                                .size(14.dp)
                                 .align(Alignment.BottomEnd)
                                 .background(Color.Black, CircleShape)
                                 .padding(1.5.dp)
@@ -164,8 +164,8 @@ fun DownloadExpanded(
                     color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 17.sp,
-                    lineHeight = 20.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
@@ -173,8 +173,8 @@ fun DownloadExpanded(
                     color = Color(0xFFD5DAE0),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 13.sp,
-                    lineHeight = 16.sp
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp
                 )
             }
 
@@ -224,7 +224,7 @@ fun DownloadExpanded(
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .height(6.dp)
+                    .height(5.dp)
                     .clip(RoundedCornerShape(3.dp))
                     .background(Color(0x33FFFFFF))
             ) {

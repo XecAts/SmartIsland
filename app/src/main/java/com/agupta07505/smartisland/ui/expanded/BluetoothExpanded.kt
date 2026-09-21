@@ -89,18 +89,18 @@ fun BluetoothExpanded(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = bottomPadding),
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
             modifier = Modifier.weight(1f, fill = false)
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(36.dp)
                     .clip(CircleShape)
                     .background(Color(settings.bluetoothColor).copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
@@ -109,7 +109,7 @@ fun BluetoothExpanded(
                     imageVector = Icons.Rounded.BluetoothConnected,
                     contentDescription = "Bluetooth Connected",
                     tint = Color(settings.bluetoothColor),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(20.dp)
                 )
             }
 
@@ -117,14 +117,14 @@ fun BluetoothExpanded(
                 Text(
                     text = deviceName,
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(2.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
@@ -137,7 +137,7 @@ fun BluetoothExpanded(
                         Text(
                             text = if (settings.showBluetoothBattery && batteryLevel != null) "Connected" else statusText,
                             color = Color(0xFF10B981),
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -196,7 +196,7 @@ fun BluetoothExpanded(
                 if (isBatteryState) {
                     Box(
                         modifier = Modifier
-                            .size(46.dp)
+                            .size(38.dp)
                             .clip(RoundedCornerShape(14.dp))
                             .background(batteryColor.copy(alpha = 0.12f))
                             .border(1.dp, batteryColor.copy(alpha = 0.3f), RoundedCornerShape(14.dp)),
@@ -233,7 +233,7 @@ fun BluetoothExpanded(
                             imageVector = Icons.Rounded.Headphones,
                             contentDescription = "Earbuds",
                             tint = Color(settings.bluetoothColor),
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }

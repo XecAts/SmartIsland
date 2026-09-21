@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -105,20 +104,28 @@ fun NotificationExpanded(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .padding(start = 18.dp, top = 20.dp, end = 18.dp, bottom = bottomPadding),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(
+                start = 14.dp,
+                top = 10.dp,
+                end = 14.dp,
+                bottom = bottomPadding
+            ),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val largeIcon = notification?.largeIcon
             val icon = notification?.icon
             val mainIcon = largeIcon ?: icon
+
             if (mainIcon != null) {
-                val clipShape = if (largeIcon != null) CircleShape else RoundedCornerShape(8.dp)
-                Box(modifier = Modifier.size(42.dp)) {
+                val clipShape =
+                    if (largeIcon != null) CircleShape else RoundedCornerShape(8.dp)
+
+                Box(modifier = Modifier.size(34.dp)) {
                     Image(
                         bitmap = mainIcon.asImageBitmap(),
                         contentDescription = null,
@@ -126,10 +133,11 @@ fun NotificationExpanded(
                             .fillMaxSize()
                             .clip(clipShape)
                     )
+
                     if (largeIcon != null && icon != null) {
                         Box(
                             modifier = Modifier
-                                .size(16.dp)
+                                .size(14.dp)
                                 .align(Alignment.BottomEnd)
                                 .background(Color.Black, CircleShape)
                                 .padding(1.5.dp)
@@ -147,58 +155,80 @@ fun NotificationExpanded(
             } else {
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(34.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color(settings.notificationDotColor)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(notification?.appName?.firstOrNull()?.uppercase() ?: "S", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = notification?.appName?.firstOrNull()?.uppercase() ?: "S",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = notification?.title?.takeIf { it.isNotBlank() } ?: notification?.appName ?: "Notification",
+                    text = notification?.title?.takeIf { it.isNotBlank() }
+                        ?: notification?.appName
+                        ?: "Notification",
                     color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 17.sp,
-                    lineHeight = 20.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
+
                 Text(
-                    text = notification?.text?.takeIf { it.isNotBlank() } ?: "New activity",
+                    text = notification?.text?.takeIf { it.isNotBlank() }
+                        ?: "New activity",
                     color = Color(0xFFD5DAE0),
-                    minLines = 2,
+                    minLines = 1,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 13.sp,
-                    lineHeight = 16.sp
+                    fontSize = 12.sp,
+                    lineHeight = 15.sp
                 )
             }
 
             // Time text on top right using the internal helper in IslandCollapsedContent
             Text(
-                text = notification?.let { formatNotificationTime(it.timeMillis) } ?: "",
+                text = notification?.let {
+                    formatNotificationTime(it.timeMillis)
+                } ?: "",
                 color = Color(0xFFB7C0CA),
-                fontSize = 11.sp,
-                modifier = Modifier.padding(start = 8.dp)
+                fontSize = 10.sp,
+                modifier = Modifier.padding(start = 6.dp)
             )
         }
 
         // Bottom Section: Inline Quick Reply OR Action Buttons
         if (isReplying && notification != null) {
-            val quickReplyAction = notification.actionIntents.firstOrNull { it.isQuickReply }
-                ?: notification.actionIntents.firstOrNull { it.title.lowercase().contains("reply") }
+            val quickReplyAction =
+                notification.actionIntents.firstOrNull { it.isQuickReply }
+                    ?: notification.actionIntents.firstOrNull {
+                        it.title.lowercase().contains("reply")
+                    }
 
             val sendReplyAction: () -> Unit = {
                 if (replyText.isNotBlank()) {
                     if (quickReplyAction?.pendingIntent != null) {
                         val intent = Intent()
                         val bundle = Bundle()
-                        val key = quickReplyAction.remoteInputKey ?: "key_text_reply"
+                        val key =
+                            quickReplyAction.remoteInputKey ?: "key_text_reply"
+
                         bundle.putCharSequence(key, replyText)
+
                         val remoteInput = RemoteInput.Builder(key).build()
-                        RemoteInput.addResultsToIntent(arrayOf(remoteInput), intent, bundle)
+
+                        RemoteInput.addResultsToIntent(
+                            arrayOf(remoteInput),
+                            intent,
+                            bundle
+                        )
 
                         runCatching {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -207,17 +237,43 @@ fun NotificationExpanded(
                                         ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED
                                     )
                                     .toBundle()
-                                quickReplyAction.pendingIntent.send(context, 0, intent, null, null, null, options)
+
+                                quickReplyAction.pendingIntent.send(
+                                    context,
+                                    0,
+                                    intent,
+                                    null,
+                                    null,
+                                    null,
+                                    options
+                                )
                             } else {
-                                quickReplyAction.pendingIntent.send(context, 0, intent)
+                                quickReplyAction.pendingIntent.send(
+                                    context,
+                                    0,
+                                    intent
+                                )
                             }
                         }
                     } else {
-                        Toast.makeText(context, "Reply sent: $replyText", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Reply sent: $replyText",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                    val repo = SmartIslandRepositories.notificationRepository(context)
+
+                    val repo =
+                        SmartIslandRepositories.notificationRepository(context)
+
                     repo.removeNotification(notification.key)
-                    repo.sendCommand(com.agupta07505.smartisland.data.SmartIslandCommand.CancelNotification(notification.key))
+
+                    repo.sendCommand(
+                        com.agupta07505.smartisland.data.SmartIslandCommand.CancelNotification(
+                            notification.key
+                        )
+                    )
+
                     isReplying = false
                     onReplyStateChanged(false)
                     keyboardController?.hide()
@@ -254,16 +310,23 @@ fun NotificationExpanded(
                             imeAction = ImeAction.Send
                         ),
                         keyboardActions = KeyboardActions(
-                            onSend = { sendReplyAction() }
+                            onSend = {
+                                sendReplyAction()
+                            }
                         ),
                         decorationBox = { innerTextField ->
                             if (replyText.isEmpty()) {
                                 Text(
-                                    text = "Reply to ${notification.title.ifBlank { notification.appName }}...",
+                                    text = "Reply to ${
+                                        notification.title.ifBlank {
+                                            notification.appName
+                                        }
+                                    }...",
                                     color = Color(0xFF888888),
                                     fontSize = 12.sp
                                 )
                             }
+
                             innerTextField()
                         },
                         modifier = Modifier
@@ -278,7 +341,11 @@ fun NotificationExpanded(
                         .size(36.dp)
                         .clip(CircleShape)
                         .background(
-                            if (replyText.isNotBlank()) MaterialTheme.colorScheme.primary else Color(0xFF333333)
+                            if (replyText.isNotBlank()) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                Color(0xFF333333)
+                            }
                         )
                         .bounceClick {
                             sendReplyAction()
@@ -321,31 +388,61 @@ fun NotificationExpanded(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Left part of Bottom Section: Action Buttons Row
-                if (showActions && notification != null && notification.actionIntents.isNotEmpty()) {
+                if (
+                    showActions &&
+                    notification != null &&
+                    notification.actionIntents.isNotEmpty()
+                ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.weight(1f)
                     ) {
                         notification.actionIntents.forEach { action ->
-                            val isReplyAction = action.isQuickReply || action.title.lowercase().contains("reply")
+                            val isReplyAction =
+                                action.isQuickReply ||
+                                    action.title.lowercase().contains("reply")
+
                             Box(
                                 modifier = Modifier
                                     .height(28.dp)
                                     .clip(RoundedCornerShape(14.dp))
-                                    .background(Color(0xFFE2E8F0)) // light grey background matching the Telegram button
+                                    .background(Color(0xFFE2E8F0))
                                     .bounceClick {
                                         if (isReplyAction) {
                                             isReplying = true
                                         } else {
                                             if (action.pendingIntent != null) {
-                                                triggerAction(context, notification.packageName, action.pendingIntent, action.title, notification.contentIntent)
+                                                triggerAction(
+                                                    context,
+                                                    notification.packageName,
+                                                    action.pendingIntent,
+                                                    action.title,
+                                                    notification.contentIntent
+                                                )
                                             } else {
-                                                Toast.makeText(context, "Clicked: ${action.title}", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Clicked: ${action.title}",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
-                                            val repo = SmartIslandRepositories.notificationRepository(context)
-                                            repo.removeNotification(notification.key)
-                                            repo.sendCommand(com.agupta07505.smartisland.data.SmartIslandCommand.CancelNotification(notification.key))
+
+                                            val repo =
+                                                SmartIslandRepositories.notificationRepository(
+                                                    context
+                                                )
+
+                                            repo.removeNotification(
+                                                notification.key
+                                            )
+
+                                            repo.sendCommand(
+                                                com.agupta07505.smartisland.data.SmartIslandCommand.CancelNotification(
+                                                    notification.key
+                                                )
+                                            )
+
                                             onCollapse()
                                         }
                                     }
@@ -354,7 +451,7 @@ fun NotificationExpanded(
                             ) {
                                 Text(
                                     text = action.title,
-                                    color = Color(0xFF1F2937), // dark grey text
+                                    color = Color(0xFF1F2937),
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -371,7 +468,9 @@ fun NotificationExpanded(
                         .size(24.dp)
                         .clip(CircleShape)
                         .background(Color(0xFF222222))
-                        .bounceClick { onOpenNotification() },
+                        .bounceClick {
+                            onOpenNotification()
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(

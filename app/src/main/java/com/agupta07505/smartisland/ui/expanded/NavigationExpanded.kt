@@ -98,13 +98,13 @@ fun NavigationExpanded(
             .fillMaxWidth()
             .wrapContentHeight()
             .clickable { onOpenNotification() }
-            .padding(start = 18.dp, top = 20.dp, end = 18.dp, bottom = bottomPadding),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Top Section: App Icon + App Name & ETA Subtitle + Navigation Badge
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val largeIcon = notification?.largeIcon
@@ -124,7 +124,7 @@ fun NavigationExpanded(
             } else {
                 Box(
                     modifier = Modifier
-                        .size(42.dp)
+                        .size(36.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(navColor),
                     contentAlignment = Alignment.Center
@@ -133,7 +133,7 @@ fun NavigationExpanded(
                         imageVector = Icons.Rounded.Navigation,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
             }
@@ -144,8 +144,8 @@ fun NavigationExpanded(
                     color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 17.sp,
-                    lineHeight = 20.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
@@ -153,8 +153,8 @@ fun NavigationExpanded(
                     color = Color(0xFFD5DAE0),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    fontSize = 13.sp,
-                    lineHeight = 16.sp
+                    fontSize = 11.sp,
+                    lineHeight = 14.sp
                 )
             }
 
@@ -163,13 +163,13 @@ fun NavigationExpanded(
                 modifier = Modifier
                     .clip(RoundedCornerShape(14.dp))
                     .background(navColor.copy(alpha = 0.18f))
-                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = distanceText,
                     color = navColor,
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -181,13 +181,13 @@ fun NavigationExpanded(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
                 .background(Color(0xFF1E293B))
-                .padding(14.dp),
+                .padding(10.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(navColor.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
@@ -197,7 +197,7 @@ fun NavigationExpanded(
                         imageVector = Icons.Rounded.LocationOn,
                         contentDescription = null,
                         tint = navColor,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 } else {
                     Icon(
@@ -215,7 +215,7 @@ fun NavigationExpanded(
                 Text(
                     text = maneuverTitle,
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis

@@ -156,18 +156,18 @@ fun TimerExpanded(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onOpenNotification() }
-            .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = bottomPadding),
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Left: Hourglass / Timer Glyph
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+            horizontalArrangement = Arrangement.spacedBy(9.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(timerColor.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
@@ -177,7 +177,7 @@ fun TimerExpanded(
                     contentDescription = "Timer",
                     tint = timerColor,
                     modifier = Modifier
-                        .size(22.dp)
+                        .size(19.dp)
                         .graphicsLayer {
                             if (!isPaused && remainingSec > 0) {
                                 scaleX = pulseScale
@@ -191,7 +191,7 @@ fun TimerExpanded(
                 Text(
                     text = displayTime,
                     color = Color.White,
-                    fontSize = 22.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 )
@@ -214,7 +214,7 @@ fun TimerExpanded(
                 Text(
                     text = timerSubtitle,
                     color = if (remainingSec == 0L && !isPaused) Color(0xFFEF4444) else timerColor,
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -222,7 +222,7 @@ fun TimerExpanded(
 
         // Right: Interactive Quick Actions (Pause/Resume, Stop/Reset)
         Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 1. Pause / Resume Button
@@ -246,7 +246,7 @@ fun TimerExpanded(
 
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(34.dp)
                     .clip(CircleShape)
                     .background(timerColor)
                     .bounceClick {
@@ -285,7 +285,7 @@ fun TimerExpanded(
                     imageVector = if (isPaused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
                     contentDescription = if (isPaused) "Resume" else "Pause",
                     tint = Color.Black,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
 
@@ -313,7 +313,7 @@ fun TimerExpanded(
                     imageVector = Icons.Rounded.Stop,
                     contentDescription = "Stop",
                     tint = Color(0xFFEF4444),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }

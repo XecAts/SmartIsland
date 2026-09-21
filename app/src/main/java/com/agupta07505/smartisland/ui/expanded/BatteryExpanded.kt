@@ -144,30 +144,30 @@ fun BatteryExpanded(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .padding(start = 18.dp, top = 20.dp, end = 18.dp, bottom = bottomPadding)
-            .heightIn(min = 72.dp, max = 110.dp),
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding)
+            .heightIn(min = 68.dp, max = 96.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(9.dp),
             modifier = Modifier.weight(1f)
         ) {
             Box(
-                modifier = Modifier.size(46.dp),
+                modifier = Modifier.size(38.dp),
                 contentAlignment = Alignment.Center
             ) {
                 DottedRing(
                     progress = progress,
                     rotationAngle = rotationAngle,
-                    modifier = Modifier.size(44.dp),
+                    modifier = Modifier.size(36.dp),
                     color = batteryColor
                 )
                 
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(28.dp)
                         .background(batteryColor.copy(alpha = 0.12f), shape = CircleShape)
                         .border(1.2.dp, batteryColor.copy(alpha = 0.4f), CircleShape),
                     contentAlignment = Alignment.Center
@@ -178,7 +178,7 @@ fun BatteryExpanded(
                                 Icons.Rounded.BatterySaver,
                                 contentDescription = null,
                                 tint = batteryColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(17.dp)
                             )
                         }
                         isLowBattery -> {
@@ -206,20 +206,20 @@ fun BatteryExpanded(
                     text = notification.title.takeIf { it.isNotBlank() } ?: if (isBatterySaver) "Battery Saver ON" else if (isLowBattery) "Low Battery" else "Charging",
                     color = Color.White,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     maxLines = 1
                 )
                 Text(
                     text = "${pct.toInt()}%",
                     color = batteryColor,
                     fontWeight = FontWeight.ExtraBold,
-                    fontSize = 20.sp,
-                    lineHeight = 22.sp
+                    fontSize = 18.sp,
+                    lineHeight = 20.sp
                 )
                 Text(
                     text = timeText,
                     color = Color(0xFF98A2B3),
-                    fontSize = 11.sp,
+                    fontSize = 10.sp,
                     maxLines = 1
                 )
             }
@@ -231,8 +231,8 @@ fun BatteryExpanded(
         ) {
             Box(
                 modifier = Modifier
-                    .width(72.dp)
-                    .height(32.dp)
+                    .width(64.dp)
+                    .height(28.dp)
                     .border(1.5.dp, Color(0x33FFFFFF), RoundedCornerShape(8.dp))
                     .background(Color(0x1AFFFFFF), RoundedCornerShape(8.dp))
                     .padding(2.5.dp)
@@ -274,8 +274,8 @@ fun BatteryExpanded(
             Spacer(modifier = Modifier.width(3.dp))
             Box(
                 modifier = Modifier
-                    .width(4.dp)
-                    .height(12.dp)
+                    .width(3.dp)
+                    .height(10.dp)
                     .background(Color(0x66FFFFFF), shape = RoundedCornerShape(topEnd = 3.dp, bottomEnd = 3.dp))
             )
         }

@@ -53,7 +53,7 @@ class SmartIslandNotificationRepository : INotificationRepository {
             }
             updated.takeLast(MAX_STORED_NOTIFICATIONS)
         }
-        if (autoExpand && isNewNotification) {
+        if (autoExpand)  {
             _autoExpandEvent.tryEmit(notification.key)
         }
     }

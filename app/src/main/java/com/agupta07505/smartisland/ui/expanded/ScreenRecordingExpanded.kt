@@ -100,7 +100,7 @@ fun ScreenRecordingExpanded(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = bottomPadding),
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -108,18 +108,18 @@ fun ScreenRecordingExpanded(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(9.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(36.dp)
                     .clip(CircleShape)
                     .background(recColor.copy(alpha = pulseAlpha * 0.3f)),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
-                        .size(16.dp)
+                        .size(14.dp)
                         .graphicsLayer {
                             scaleX = pulseScale
                             scaleY = pulseScale
@@ -133,7 +133,7 @@ fun ScreenRecordingExpanded(
                 Text(
                     text = notification?.title?.takeIf { it.isNotBlank() } ?: "Screen Recording",
                     color = Color.White,
-                    fontSize = 15.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
@@ -142,7 +142,7 @@ fun ScreenRecordingExpanded(
                     Text(
                         text = "Recording • ",
                         color = Color(0xFF9CA3AF),
-                        fontSize = 12.sp
+                        fontSize = 10.sp
                     )
                     Text(
                         text = timerText,
@@ -156,7 +156,7 @@ fun ScreenRecordingExpanded(
 
         Box(
             modifier = Modifier
-                .height(36.dp)
+                .height(32.dp)
                 .clip(RoundedCornerShape(18.dp))
                 .background(recColor)
                 .clickable {
@@ -171,7 +171,7 @@ fun ScreenRecordingExpanded(
                     }
                     notification?.key?.let { repository.removeNotification(it) }
                 }
-                .padding(horizontal = 14.dp),
+                .padding(horizontal = 12.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(

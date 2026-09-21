@@ -114,18 +114,18 @@ fun StopwatchExpanded(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onOpenNotification() }
-            .padding(start = 18.dp, top = 14.dp, end = 18.dp, bottom = bottomPadding),
+            .padding(start = 14.dp, top = 10.dp, end = 14.dp, bottom = bottomPadding),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Left: Stopwatch Glyph & Time
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp)
+            horizontalArrangement = Arrangement.spacedBy(9.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(38.dp)
                     .clip(CircleShape)
                     .background(stopwatchColor.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
@@ -135,7 +135,7 @@ fun StopwatchExpanded(
                     contentDescription = "Stopwatch",
                     tint = stopwatchColor,
                     modifier = Modifier
-                        .size(22.dp)
+                        .size(19.dp)
                         .then(if (!isPaused) Modifier.rotate(rotation) else Modifier)
                 )
             }
@@ -144,7 +144,7 @@ fun StopwatchExpanded(
                 Text(
                     text = displayTime,
                     color = Color.White,
-                    fontSize = 22.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 )
@@ -165,7 +165,7 @@ fun StopwatchExpanded(
                 Text(
                     text = subtitle,
                     color = stopwatchColor,
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -173,7 +173,7 @@ fun StopwatchExpanded(
 
         // Right: Interactive Quick Actions (Lap, Pause/Resume, Reset)
         Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 1. Lap Button
@@ -182,7 +182,7 @@ fun StopwatchExpanded(
             }
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(34.dp)
                     .clip(CircleShape)
                     .background(Color(0xFF27272A))
                     .bounceClick {
@@ -197,7 +197,7 @@ fun StopwatchExpanded(
                     imageVector = Icons.Rounded.Flag,
                     contentDescription = "Lap",
                     tint = Color(0xFFE4E4E7),
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(15.dp)
                 )
             }
 
@@ -268,7 +268,7 @@ fun StopwatchExpanded(
                     imageVector = if (isPaused) Icons.Rounded.PlayArrow else Icons.Rounded.Pause,
                     contentDescription = if (isPaused) "Resume" else "Pause",
                     tint = Color.Black,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(17.dp)
                 )
             }
 
